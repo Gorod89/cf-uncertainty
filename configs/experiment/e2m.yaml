@@ -1,0 +1,25 @@
+# Experiment E5 (docs/design.md, section 15): the closed-loop rollouts of E2 (e2h.yaml, inherited through `base`) on
+# roughness-matched signals. Every rolled data set is harmonised with its window of artifacts/e1m/matching.json (one
+# matching file for the whole of E5, written by scripts/match_roughness.py --config configs/experiment/e1m.yaml; same
+# data, same rule); the checkpoints are those of artifacts/e1h and artifacts/e1h_mean1s (trained on harmonised highD,
+# window 11), checked against the signal key of the training data set train.data = highd (the reference keeps the
+# harmonised window). The one-step conformal analysis uses the E1 tables of the matched roots (e1_roots).
+#   bash scripts/run_e2_retry.sh artifacts/e2m/logs/run.out 8 --config configs/experiment/e2m.yaml
+#   python scripts/analyze_e2.py --root artifacts/e2m
+base: e2h.yaml
+root: artifacts/e2m
+signal: matched               # raw | harmonised | matched; experiment-level: overrides the `signal` of every data config
+match:                        # as in e1m.yaml (design.md 15.1)
+  reference: highd
+  grid: [11, 15, 21, 25, 31, 41, 51, 61, 81, 101]
+  tolerance: 0.1
+  file: artifacts/e1m/matching.json   # the matching file of e1m.yaml (shared by every E5 config)
+train:
+  data: highd                 # training data set of the checkpoints: their signal must be its key (harmonised, window 11)
+targets:                      # the checkpoints of the harmonised experiment (no model is retrained)
+  a: {checkpoints: artifacts/e1h/checkpoints, hold_steps: 1}
+  mean_1s:
+    checkpoints: artifacts/e1h_mean1s/checkpoints
+    hold_steps: 10
+    checkpoint_overrides: {diffusion_cf: artifacts/e1h/checkpoints}   # not retrained per target (design.md 11.1)
+e1_roots: {a: artifacts/e1m, mean_1s: artifacts/e1m_mean1s}   # E1 prediction tables of the one-step conformal analysis

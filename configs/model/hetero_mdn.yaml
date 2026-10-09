@@ -1,0 +1,12 @@
+# Heteroscedastic LSTM-MDN, single Gaussian (docs/design.md, section 7).
+name: hetero_mdn
+kwargs:
+  n_components: 1
+  hidden: 64              # LSTM state size
+  head_hidden: 64         # MLP head width
+  dropout: 0.0
+  log_sigma_min: -7.0     # clamp of log sigma in normalised target space
+  log_sigma_max: 3.0
+  beta_nll: 0.0           # > 0: beta-NLL weighting (Seitzer et al. 2022), K = 1 only
+train: {}
+needs_idm: false

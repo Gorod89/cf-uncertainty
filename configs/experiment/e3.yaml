@@ -1,0 +1,41 @@
+# Experiment E3: platoon-level distributional evaluation, hypothesis H3.2 (docs/design.md, section 13).
+# Runner: scripts/run_e3.py (cf_unc.experiments.e3), analysis: scripts/analyze_e3.py.
+root: artifacts/e3
+device: auto
+tf32: false
+checkpoints: {a: artifacts/e1/checkpoints, mean_1s: artifacts/e1_mean1s/checkpoints}      # signal variant "raw"
+variants:                                            # further signal variants; a missing checkpoint directory: skipped
+  harmonised: {a: artifacts/e1h/checkpoints, mean_1s: artifacts/e1h_mean1s/checkpoints}
+  # E3-pooled (design.md 17.1): the target-a checkpoints of two E6 roots (matched signals, pooled training domain).
+  # models: per-variant override of the model spec (E6 has no behavioural target: QuantilePIDL on target a, hold 1;
+  # a deviation from 13.2). profile_window: the leader speed of every profile smoothed again from the raw OpenACC file
+  # with the matched OpenACC window of E5 (read from the matching file: 61 samples); profiles__<variant>.yaml in the root.
+  pool:                                              # OpenACC in training: the profiles' population was seen
+    a: artifacts/e6_pool/checkpoints
+    models: {quantile_pidl: {target: a, hold_steps: 1}}
+    profile_window: {matching: artifacts/e1m/matching.json, data: openacc}
+  lodo_openacc:                                      # OpenACC held out: the honest transfer
+    a: artifacts/e6_lodo_openacc/checkpoints
+    models: {quantile_pidl: {target: a, hold_steps: 1}}
+    profile_window: {matching: artifacts/e1m/matching.json, data: openacc}
+models:                                              # design.md 13.2
+  idm_white_noise:  {target: a,       sampler_mode: per_step,       hold_steps: 1}
+  lstm_const_sigma: {target: a,       sampler_mode: per_step,       hold_steps: 1}
+  deep_ensemble:    {target: a,       sampler_mode: per_trajectory, hold_steps: 1}
+  gp_residual_idm:  {target: a,       sampler_mode: per_trajectory, hold_steps: 1}
+  quantile_pidl:    {target: mean_1s, sampler_mode: per_step,       hold_steps: 10}
+  diffusion_cf:     {target: a,       sampler_mode: per_step,       hold_steps: 1}
+seeds: [0, 1, 2, 3, 4]
+# v_max: optional cap of the follower speed [m/s] (null = none, design.md 13; sensitivity: e3_vcap.yaml)
+# max_batch: trajectories per engine batch; batch_profiles: profiles simulated together (one cascade and one random
+# stream per vehicle, written together); gap_cap: cap of the initial equilibrium gap [m]
+platoon: {n_followers: 20, n_rollouts: 100, n_rollouts_sampled: 32, history_s: 3.0, burn_in_s: 30.0, tail_s: 40.0,
+          max_batch: 100000, seed: 0, gap_cap: 120.0, batch_profiles: 60, v_max: null}
+profiles: configs/platoon/profiles.yaml
+run_profiles: extended                               # profiles simulated by the runner: headline | extended | [ids]
+idm: artifacts/e1/idm.json                           # closed-loop IDM of the initial state (the same for every variant)
+sets: {headline: 10, extended: null}                 # null = all profiles of the file
+calibration: {alpha: 0.1, gamma: 0.01, n_min: 5}
+bootstrap: {n_boot: 1000, ci: 0.95, seed: 0}
+h32: {support_min: 0.20, refute_max: 0.05, reference: idm_white_noise, references_extra: [lstm_const_sigma],
+      min_profiles: 5}                                # fewer profiles in a subset: verdict inconclusive

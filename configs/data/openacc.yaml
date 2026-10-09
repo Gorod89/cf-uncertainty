@@ -1,0 +1,8 @@
+# OpenACC platoon pairs, extracted by cf-stability (chunks of at most 60 s).
+name: openacc
+kind: parquet
+path: data/events/openacc
+unify_acceleration: true     # recompute a from the stored speed when the source acceleration is not savgol
+split:
+  file: data/splits/openacc_driver.json   # fold file of cf-stability
+  fold: 0                    # fold k = test, fold k+1 = validation, the rest = training

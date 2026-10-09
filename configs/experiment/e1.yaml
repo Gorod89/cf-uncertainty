@@ -1,0 +1,55 @@
+# Experiment E1 (docs/design.md, section 10): every model trained on highD (seeds 0-4), evaluated on
+# highD test, highD validation, NGSIM I-80 (reconstructed; FollowNet events as a cross-check), NGSIM US-101
+# (reconstructed), Waymo and OpenACC. Target: one-step acceleration a[t] (design.md, section 11.1; the behavioural
+# target mean_1s is configs/experiment/e1_mean1s.yaml, which inherits this file with `base: e1.yaml`).
+# Runner: scripts/run_e1.py (cf_unc.experiments.e1). Relative paths are resolved against the repository root.
+root: artifacts/e1
+device: auto                  # auto | cpu | cuda
+tf32: false                   # TF32 tensor cores for cuDNN / cuBLAS float32 work (false: IEEE float32, CPU-comparable)
+seeds: [0, 1, 2, 3, 4]
+models: [idm_white_noise, idm_white_noise_mle, lstm_const_sigma, hetero_mdn, hetero_mdn_mix3, deep_ensemble, mc_dropout, gp_residual_idm, quantile_pidl, diffusion_cf]
+seed_independent: [idm_white_noise, idm_white_noise_mle]   # trained once, the checkpoint is copied to every seed (rectangular tables)
+
+train:
+  data: highd                 # configs/data/highd.yaml, fold 0: train = folds 2,3,4, val = fold 1, test = fold 0
+  target: a                   # a (a[t]) | mean_1s ((v[t+10] - v[t]) / (10 DT)): training and evaluated windows
+  stride: 2                   # one-step models (about 458k training windows)
+  seq_stride: 5               # DiffusionCF (5 s acceleration sequences, the same for every target)
+  overrides: {}               # TrainConfig overrides applied to every model (on top of configs/train/default.yaml and the model's own)
+reuse_checkpoints: {}         # model -> checkpoints directory of another experiment root, e.g. {diffusion_cf: artifacts/e1/checkpoints}:
+                              # the checkpoint of (model, seed) is copied from there instead of trained (kwargs, IDM, target checked)
+
+model_overrides:              # constructor kwargs per model config (deep-merged last)
+  quantile_pidl: {w_phys: 0.0001}   # selected on the highD validation fold, artifacts/e1/selection/w_phys.json
+                                    # (scripts/select_w_phys.py --grid 0 0.0001 0.0003 0.001 0.003 0.01 0.03 0.1 0.3)
+
+eval:
+  datasets:
+    highd:     {data: highd,    split: test, stride: 2}
+    highd_val: {data: highd,    split: val,  stride: 2}
+    ngsim:     {data: ngsim,    split: all,  stride: 8}   # reconstructed NGSIM I-80 (about 439k windows)
+    ngsim_us101: {data: ngsim_us101, split: all, stride: 8}   # reconstructed NGSIM US-101, fourth shift pair
+    ngsim_fn:  {data: ngsim_fn, split: all,  stride: 3}   # FollowNet NGSIM I-80 events, cross-check (about 226k)
+    waymo:     {data: waymo,    split: all,  stride: 1}
+    openacc:   {data: openacc,  split: all,  stride: 5}
+  chunk_rows: 50000           # rows per prediction chunk (bounds memory; MC dropout has 50 components per row)
+  batch_size: 8192            # rows per network call inside predict_dist
+  max_rows_sampled: 10000     # DiffusionCF: rows evaluated per data set (32 samples x 50 steps each)
+  sample_seed: 0              # seed of the DiffusionCF row selection (the same rows for every model seed)
+  coverage: 0.9
+  max_events: null            # first N events of every evaluated data set (pilot: 400); null = all
+
+idm:                          # named IDM calibrations on the training events (extra keys go to calibrate_idm);
+  closed_loop: {objective: spacing, max_events: 3000, seed: 0}   # physics of the hybrid models (default)
+  mle:         {objective: accel,   max_events: 3000, seed: 0}   # one-step least squares: idm_white_noise_mle
+density_stride: 1             # training windows used for the training density on the map grid
+verbose: false                # per-epoch lines of the training loops (stdout only)
+
+config_paths:                 # where data / model / train / map configs are read from
+  data: configs/data
+  model: configs/model
+  train: configs/train/default.yaml
+  maps: configs/maps/default.yaml
+data_configs: {}              # inline data configs by name (take precedence over config_paths.data/<name>.yaml)
+model_configs: {}             # inline model configs by label (take precedence over config_paths.model/<label>.yaml)
+idm_reference: data/calibration/follownet_highd/idm_global.json   # cf-stability calibration, stored as "reference"

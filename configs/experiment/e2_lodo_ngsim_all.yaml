@@ -1,0 +1,17 @@
+# Experiment E6 (docs/design.md, section 16.4): the closed-loop rollouts of E2 (e2m.yaml, inherited through `base`)
+# with the checkpoints of artifacts/e6_lodo_ngsim_all (pooled domain without both NGSIM sets), target a only: the
+# held-out NGSIM I-80 and US-101 (500 of all their events each, as in e2m) and the highD test fold; highD validation is
+# the calibration set.
+#   bash scripts/run_e2_retry.sh artifacts/e2_lodo_ngsim_all/logs/run.out 8 --config configs/experiment/e2_lodo_ngsim_all.yaml
+#   python scripts/analyze_e2.py --root artifacts/e2_lodo_ngsim_all   (one-step conformal: the E1 tables of artifacts/e6_lodo_ngsim_all)
+base: e2m.yaml
+root: artifacts/e2_lodo_ngsim_all
+train:
+  data: [highd, waymo, openacc]      # the pooled training domain of the checkpoints (e6_lodo_ngsim_all.yaml)
+targets:
+  a: {checkpoints: artifacts/e6_lodo_ngsim_all/checkpoints, hold_steps: 1}
+  mean_1s: null               # not part of E6
+datasets:                     # inherited: highd_val (val fold, calibration set), highd (test fold), ngsim and ngsim_us101 (all events)
+  waymo: null                 # training sets other than highD are not rolled (design.md 16.1)
+  openacc: null
+e1_roots: {a: artifacts/e6_lodo_ngsim_all, mean_1s: null}

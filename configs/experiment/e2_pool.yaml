@@ -1,0 +1,20 @@
+# Experiment E6 (docs/design.md, section 16.1): the closed-loop rollouts of E2 (e2m.yaml, inherited through `base`:
+# matched signals of artifacts/e1m/matching.json, rollout, calibration, bootstrap and H3.4 settings, variants) with the
+# checkpoints of artifacts/e6_pool, trained on the pooled domain of five data sets. Target a only (the behavioural
+# target is not part of E6). Every checkpoint is checked against the list of the per-set signal keys of train.data.
+# The 500 events of a training set are drawn from its test fold only; highD validation is the calibration set.
+#   bash scripts/run_e2_retry.sh artifacts/e2_pool/logs/run.out 8 --config configs/experiment/e2_pool.yaml
+#   python scripts/analyze_e2.py --root artifacts/e2_pool        (one-step conformal: the E1 tables of artifacts/e6_pool)
+base: e2m.yaml
+root: artifacts/e2_pool
+train:
+  data: [highd, ngsim, ngsim_us101, waymo, openacc]   # the pooled training domain of the checkpoints (e6_pool.yaml)
+targets:
+  a: {checkpoints: artifacts/e6_pool/checkpoints, hold_steps: 1}
+  mean_1s: null               # not part of E6: removed from the inherited targets
+datasets:                     # inherited: highd_val (val fold, calibration set), highd (test fold)
+  ngsim:       {split: test}  # training sets: their test folds only
+  ngsim_us101: {split: test}
+  waymo:       {split: test}
+  openacc:     {split: test}
+e1_roots: {a: artifacts/e6_pool, mean_1s: null}   # E1 prediction tables of the one-step conformal analysis

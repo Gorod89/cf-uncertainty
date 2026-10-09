@@ -1,0 +1,9 @@
+# IDM plus white noise with the one-step maximum-likelihood (least-squares acceleration) IDM calibration `mle`
+# of the experiment config, so that the white-noise baseline is not handicapped in one-step metrics; the
+# closed-loop calibration stays the physics of the hybrid models (idm_white_noise uses it).
+name: idm_white_noise
+kwargs:
+  sigma: null             # null: RMS of y - a_IDM on the training windows
+train: {}                 # unused (no network); kept for a uniform config structure
+needs_idm: true
+idm: mle                  # name of the IDM calibration (experiment config, key `idm`); default closed_loop

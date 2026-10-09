@@ -1,0 +1,21 @@
+# Experiment E1 with harmonised signals (docs/design.md, section 12): every event of every data set is brought to ONE
+# signal processing at load time (Savitzky-Golay speeds, kinematically consistent gap, leader speed offset;
+# cf_unc.data.harmonise), the stored events stay untouched. Identical to e1.yaml (inherited through `base`) except
+# the root, the signal variant and the physics weight of QuantilePIDL, which is selected again:
+#   python scripts/select_w_phys.py --config configs/experiment/e1h.yaml --grid 0 0.0001 0.001 0.01 0.1 0.3
+#   bash scripts/run_e1_retry.sh artifacts/e1h/logs/run.out 8 --config configs/experiment/e1h.yaml
+# The signal variant is part of every resume key (windows specs, training density, IDM keys, checkpoint logs), so
+# nothing of artifacts/e1 can be reused or overwritten by this experiment (check: scripts/run_e1.py --dry-run).
+base: e1.yaml
+root: artifacts/e1h
+signal: harmonised            # raw | harmonised; experiment-level: overrides the `signal` of every data config
+harmonise:                    # cf_unc.data.harmonise.HarmoniseConfig (design.md, section 12)
+  window: 11                  # samples of the Savitzky-Golay filter of v and v_lead (1.1 s), mode interp
+  order: 2                    # polynomial order of the filter
+  min_gap: 0.5                # m: an event is dropped when min(s_h) <= min_gap
+  max_abs_c: 0.3              # m/s: ... when the leader speed offset |c| > max_abs_c
+  max_gap_rms: 2.0            # m: ... when rms(s - s_h) > max_gap_rms
+
+model_overrides:
+  quantile_pidl: {w_phys: 0.001}   # selected for the harmonised signals on the highD validation fold, artifacts/e1h/selection/w_phys.json
+                                    # (scripts/select_w_phys.py --config configs/experiment/e1h.yaml --grid 0 0.0001 0.001 0.01 0.1 0.3)

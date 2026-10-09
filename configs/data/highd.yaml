@@ -1,0 +1,8 @@
+# FollowNet HighD events (stand-in for raw highD), imported from cf-stability.
+name: highd
+kind: parquet
+path: data/events/follownet_highd
+unify_acceleration: true     # recompute a from the stored speed when the source acceleration is not savgol
+split:
+  file: data/splits/follownet_highd_driver.json   # fold file of cf-stability
+  fold: 0                    # fold k = test, fold k+1 = validation, the rest = training

@@ -1,0 +1,6 @@
+# Calibrated IDM (injected as `idm` by the training script) plus white noise (docs/design.md, section 7).
+name: idm_white_noise
+kwargs:
+  sigma: null             # null: RMS of y - a_IDM on the training windows
+train: {}                 # unused (no network); kept for a uniform config structure
+needs_idm: true

@@ -1,0 +1,36 @@
+# Root config of scripts/train.py (hydra). Override from the command line, e.g.
+#   python scripts/train.py model=deep_ensemble data=synthetic seed=1
+defaults:
+  - data: synthetic
+  - model: hetero_mdn
+  - train: default
+  - _self_
+
+seed: 0
+device: auto            # auto | cpu | cuda
+model_label: ${hydra:runtime.choices.model}   # name of the model config file (hetero_mdn_mix3, ...)
+split_seed: 0           # seed of the driver-disjoint train/val/test split
+eval_max_rows: null     # cap on evaluated windows per split (null = all)
+eval_max_rows_sampled: 2000   # cap for sampling-based models (DiffusionCF: 32 samples x 50 steps per window)
+verbose: false
+hist_len: 30            # samples (3 s)
+stride: 1               # window stride for one-step models
+seq_stride: 5           # window stride for sequence models (DiffusionCF)
+coverage: 0.9
+n_boot: 1000
+
+idm:
+  objective: spacing    # spacing | accel
+  max_events: 300
+  cache: artifacts/idm/${data.name}.json
+
+out_dir: artifacts/runs/${data.name}/${model_label}/seed${seed}
+
+hydra:
+  job:
+    chdir: false
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.override_dirname}

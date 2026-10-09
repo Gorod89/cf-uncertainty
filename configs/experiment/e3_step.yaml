@@ -1,0 +1,22 @@
+# Sensitivity of E3 (docs/design.md, section 13.7): deep ensemble with per-step draws (member and noise redrawn every
+# step) instead of the kept member of e3.yaml.
+# Same settings as e3.yaml otherwise (cf_unc.experiments.e3.load_config has no `base:`; keep in sync by hand).
+# Headline profiles only, raw signal variant only.
+root: artifacts/e3_step
+device: auto
+tf32: false
+checkpoints: {a: artifacts/e1/checkpoints, mean_1s: artifacts/e1_mean1s/checkpoints}      # signal variant "raw"
+variants: {}                                        # raw checkpoints only
+models:
+  idm_white_noise:     {target: a, sampler_mode: per_step, hold_steps: 1}
+  deep_ensemble__step: {model: deep_ensemble, target: a, sampler_mode: per_step, hold_steps: 1}
+seeds: [0, 1, 2, 3, 4]
+platoon: {n_followers: 20, n_rollouts: 100, n_rollouts_sampled: 32, history_s: 3.0, burn_in_s: 30.0, tail_s: 40.0,
+          max_batch: 100000, seed: 0, gap_cap: 120.0, batch_profiles: 60, v_max: null}
+profiles: configs/platoon/profiles.yaml
+run_profiles: headline
+idm: artifacts/e1/idm.json
+sets: {headline: 10, extended: null}
+calibration: {alpha: 0.1, gamma: 0.01, n_min: 5}
+bootstrap: {n_boot: 1000, ci: 0.95, seed: 0}
+h32: {support_min: 0.20, refute_max: 0.05, reference: idm_white_noise, references_extra: [], min_profiles: 5}

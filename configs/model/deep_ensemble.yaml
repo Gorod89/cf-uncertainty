@@ -1,0 +1,16 @@
+# Deep ensemble of HeteroMDN members on driver-bootstrap resamples (docs/design.md, section 7).
+# Training overrides for all members go into `train` below; keys of `member.train` (if any) win over them.
+name: deep_ensemble
+kwargs:
+  n_members: 5
+  bootstrap: true         # member m: bootstrap of drivers with seed * 1000 + m
+  member:
+    n_components: 1
+    hidden: 64
+    head_hidden: 64
+    dropout: 0.0
+    log_sigma_min: -7.0
+    log_sigma_max: 3.0
+    beta_nll: 0.0
+train: {}
+needs_idm: false

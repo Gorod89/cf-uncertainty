@@ -1,0 +1,36 @@
+# Experiment E6 (docs/design.md, section 16.1), leave one domain out: the pooled training of e6_pool.yaml without NGSIM
+# I-80 (the roughness shift of E5). Training folds of highD, NGSIM US-101, Waymo and OpenACC (the same per-set
+# subsamples as e6_pool: the seed is mixed with the data set name); NGSIM I-80 is held out and evaluated on all its
+# events, the FollowNet NGSIM I-80 events on all events are its cross-check. Every other setting as in e6_pool.yaml
+# (both inherit e1m.yaml; tests/test_pooled.py checks that they differ only in root, train.data and the evaluated sets).
+#   python scripts/run_e1.py --config configs/experiment/e6_lodo_ngsim.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e6_lodo_ngsim/logs/run.out 8 --config configs/experiment/e6_lodo_ngsim.yaml
+#   python scripts/analyze_e1.py --root artifacts/e6_lodo_ngsim --config configs/experiment/e6_lodo_ngsim.yaml --in-domain pool_test
+# H3.1 / H3.1e pair: ngsim (held out, all events) against pool_test; ngsim_fn is its cross-check; highd_val the placebo.
+base: e1m.yaml
+root: artifacts/e6_lodo_ngsim
+signal: matched
+match:
+  file: artifacts/e1m/matching.json   # the matching file of E5, read only
+
+train:
+  data: [highd, ngsim_us101, waymo, openacc]   # pooled training domain without NGSIM I-80
+  max_windows_per_dataset: 150000
+  max_sequences_per_dataset: 40000
+  subsample_seed: 0
+  idm_from: artifacts/e1m/idm.json   # frozen IDM prior: both calibrations of e1m (closed_loop, mle) copied, none fitted
+reuse_checkpoints: null
+
+model_overrides:
+  quantile_pidl: {w_phys: 0.001}
+
+eval:
+  datasets:
+    highd:       {data: highd,       split: test, stride: 2}
+    highd_val:   {data: highd,       split: val,  stride: 2}   # calibration set (E2 one-step conformal), placebo
+    ngsim:       {data: ngsim,       split: all,  stride: 8}   # held out: all events (as in e1m)
+    ngsim_us101: {data: ngsim_us101, split: test, stride: 8}
+    ngsim_fn:    {data: ngsim_fn,    split: all,  stride: 3}   # cross-check of the held-out NGSIM I-80
+    waymo:       {data: waymo,       split: test, stride: 1}
+    openacc:     {data: openacc,     split: test, stride: 5}
+    pool_test:   {pool: [highd, ngsim_us101, waymo, openacc]}

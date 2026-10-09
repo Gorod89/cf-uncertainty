@@ -1,0 +1,28 @@
+# Experiment E5 (docs/design.md, section 15) with the behavioural target mean_1s: roughness-matched signals on top of
+# e1h_mean1s.yaml (inherited through `base`: target mean_1s, harmonise settings, physics weight of QuantilePIDL).
+# The windows are those of e1m.yaml: this config reads artifacts/e1m/matching.json (one matching file for the whole of
+# E5, written by scripts/match_roughness.py --config configs/experiment/e1m.yaml; same data, same rule). No model is
+# retrained: the checkpoints of artifacts/e1h_mean1s are copied, DiffusionCF (not retrained per target, design.md
+# 11.1) from artifacts/e1h.
+#   python scripts/run_e1.py --config configs/experiment/e1m_mean1s.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e1m_mean1s/logs/run.out 8 --config configs/experiment/e1m_mean1s.yaml
+base: e1h_mean1s.yaml
+root: artifacts/e1m_mean1s
+signal: matched               # raw | harmonised | matched; experiment-level: overrides the `signal` of every data config
+match:                        # as in e1m.yaml (design.md 15.1)
+  reference: highd
+  grid: [11, 15, 21, 25, 31, 41, 51, 61, 81, 101]
+  tolerance: 0.1
+  file: artifacts/e1m/matching.json   # the matching file of e1m.yaml (shared by every E5 config)
+
+reuse_checkpoints:            # copied, not trained (--pilot: artifacts/e1h_mean1s_pilot/checkpoints, artifacts/e1h_pilot/...)
+  idm_white_noise: artifacts/e1h_mean1s/checkpoints
+  idm_white_noise_mle: artifacts/e1h_mean1s/checkpoints
+  lstm_const_sigma: artifacts/e1h_mean1s/checkpoints
+  hetero_mdn: artifacts/e1h_mean1s/checkpoints
+  hetero_mdn_mix3: artifacts/e1h_mean1s/checkpoints
+  deep_ensemble: artifacts/e1h_mean1s/checkpoints
+  mc_dropout: artifacts/e1h_mean1s/checkpoints
+  gp_residual_idm: artifacts/e1h_mean1s/checkpoints
+  quantile_pidl: artifacts/e1h_mean1s/checkpoints
+  diffusion_cf: artifacts/e1h/checkpoints   # sequence model: one checkpoint for every target (design.md 11.1)

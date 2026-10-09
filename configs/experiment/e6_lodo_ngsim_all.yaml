@@ -1,0 +1,36 @@
+# Experiment E6 (docs/design.md, section 16.4), leave BOTH NGSIM sets out: the pooled training of e6_pool.yaml without
+# NGSIM I-80 and NGSIM US-101 (the same programme and processing), so that NGSIM is a true domain hold-out. Training
+# folds of highD, Waymo and OpenACC (the same per-set subsamples as e6_pool); NGSIM I-80 and US-101 are held out and
+# evaluated on all their events, the FollowNet NGSIM I-80 events are the cross-check of ngsim. Every other setting as
+# in e6_lodo_ngsim.yaml.
+#   python scripts/run_e1.py --config configs/experiment/e6_lodo_ngsim_all.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e6_lodo_ngsim_all/logs/run.out 8 --config configs/experiment/e6_lodo_ngsim_all.yaml
+#   python scripts/analyze_e1.py --root artifacts/e6_lodo_ngsim_all --config configs/experiment/e6_lodo_ngsim_all.yaml --in-domain pool_test
+# H3.1 / H3.1e pairs: ngsim and ngsim_us101 (held out, all events) against pool_test; ngsim_fn the cross-check of ngsim.
+base: e1m.yaml
+root: artifacts/e6_lodo_ngsim_all
+signal: matched
+match:
+  file: artifacts/e1m/matching.json   # the matching file of E5, read only
+
+train:
+  data: [highd, waymo, openacc]      # pooled training domain without both NGSIM sets
+  max_windows_per_dataset: 150000
+  max_sequences_per_dataset: 40000
+  subsample_seed: 0
+  idm_from: artifacts/e1m/idm.json   # frozen IDM prior: both calibrations of e1m (closed_loop, mle) copied, none fitted
+reuse_checkpoints: null
+
+model_overrides:
+  quantile_pidl: {w_phys: 0.001}
+
+eval:
+  datasets:
+    highd:       {data: highd,       split: test, stride: 2}
+    highd_val:   {data: highd,       split: val,  stride: 2}   # calibration set (E2 one-step conformal), placebo
+    ngsim:       {data: ngsim,       split: all,  stride: 8}   # held out: all events (as in e1m)
+    ngsim_us101: {data: ngsim_us101, split: all,  stride: 8}   # held out: all events (as in e1m)
+    ngsim_fn:    {data: ngsim_fn,    split: all,  stride: 3}   # cross-check of the held-out NGSIM I-80
+    waymo:       {data: waymo,       split: test, stride: 1}
+    openacc:     {data: openacc,     split: test, stride: 5}
+    pool_test:   {pool: [highd, waymo, openacc]}

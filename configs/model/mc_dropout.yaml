@@ -1,0 +1,13 @@
+# MC dropout HeteroMDN (docs/design.md, section 7).
+name: mc_dropout
+kwargs:
+  p: 0.1                  # dropout after the LSTM state and after the head layer, active at inference
+  n_passes: 50            # dropout networks pooled by predict_dist (masks shared by all inputs)
+  n_components: 1
+  hidden: 64
+  head_hidden: 64
+  log_sigma_min: -7.0
+  log_sigma_max: 3.0
+  predict_seed: 0         # seed of the n_passes mask pairs of predict_dist
+train: {}
+needs_idm: false

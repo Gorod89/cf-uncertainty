@@ -1,0 +1,8 @@
+# NGSIM US-101, trajectories reconstructed by cf-stability from the raw NGSIM (lanes 1-5).
+name: ngsim_us101
+kind: parquet
+path: data/events/ngsim_us101
+unify_acceleration: true     # recompute a from the stored speed when the source acceleration is not savgol
+split:
+  file: data/splits/ngsim_us101_driver.json   # fold file of cf-stability
+  fold: 0                    # fold k = test, fold k+1 = validation, the rest = training

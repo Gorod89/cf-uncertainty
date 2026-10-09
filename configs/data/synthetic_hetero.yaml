@@ -1,0 +1,16 @@
+# StochasticIDM with heterogeneous drivers and gap-dependent noise (closer to real data than `synthetic`).
+# Only the differences to the SyntheticConfig defaults are listed.
+name: synthetic_hetero
+kind: synthetic
+generator:
+  n_drivers: 200
+  events_per_driver: 4
+  duration_s: 40.0
+  heterogeneity_cv: 0.15
+  noise_kind: gap
+  noise_sigma: 0.4
+  noise_kappa: 1.5
+  noise_s_scale: 15.0
+  seed: 1
+  dataset: synthetic_hetero
+  site: sim

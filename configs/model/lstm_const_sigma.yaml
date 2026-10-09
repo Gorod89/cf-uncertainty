@@ -1,0 +1,7 @@
+# LSTM mean (MSE) with a constant sigma = RMS validation residual (docs/design.md, section 7).
+name: lstm_const_sigma
+kwargs:
+  hidden: 64
+  head_hidden: 64
+train: {}
+needs_idm: false

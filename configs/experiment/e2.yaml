@@ -1,0 +1,57 @@
+# Experiment E2 (docs/design.md, section 11): closed-loop stochastic rollouts of the E1 models on 500 events per
+# data set, raw and conformally corrected coverage of the 90 % gap interval (hypothesis H3.4).
+# Runner: scripts/run_e2.py (cf_unc.experiments.e2); analysis: scripts/analyze_e2.py.
+# Relative paths are resolved against the repository root.
+root: artifacts/e2
+device: auto                  # auto | cpu | cuda
+tf32: false                   # TF32 tensor cores for cuDNN / cuBLAS float32 work (false: IEEE float32)
+targets:                      # a target whose checkpoint directory does not exist is skipped with a warning
+  a:       {checkpoints: artifacts/e1/checkpoints,        hold_steps: 1}    # one-step acceleration, kept 1 step
+  mean_1s:                                                                  # mean acceleration over 1 s, kept 10 steps
+    checkpoints: artifacts/e1_mean1s/checkpoints
+    hold_steps: 10
+    checkpoint_overrides: {diffusion_cf: artifacts/e1/checkpoints}   # not retrained per target (design.md 11.1);
+                                                                      # plan samplers always follow their plan (hold 1)
+train:
+  data: highd                 # training data set of the checkpoints (E1 train.data): every checkpoint must have been
+                              # trained on its signal key (design.md 15.1; raw / harmonised: the experiment-level key)
+models: [idm_white_noise, idm_white_noise_mle, lstm_const_sigma, hetero_mdn, hetero_mdn_mix3, deep_ensemble, mc_dropout, gp_residual_idm, quantile_pidl, diffusion_cf]
+seeds: [0, 1, 2, 3, 4]
+datasets:                     # data: data config (configs/data/<name>.yaml); split: all | train | val | test
+  highd_val:   {data: highd,       split: val,  n_events: 500}   # calibration set of the conformal corrections
+  highd:       {data: highd,       split: test, n_events: 500}   # in-domain test set
+  ngsim:       {data: ngsim,       split: all,  n_events: 500}
+  ngsim_us101: {data: ngsim_us101, split: all,  n_events: 500}
+  waymo:       {data: waymo,       split: all,  n_events: 500}
+  openacc:     {data: openacc,     split: all,  n_events: 500}
+rollout:
+  n_rollouts: 200             # rollouts per event
+  n_rollouts_sampled: 32      # plan samplers (DiffusionCF): rollouts per event
+  horizon_s: 10.0             # simulated time, s
+  horizons_s: [1, 3, 5, 10]   # evaluation horizons, s
+  max_batch: 100000           # trajectories per batch (memory bound only: results do not depend on it)
+  stream_events: 100          # events per random stream (the unit of randomness of the engine)
+  event_seed: 0               # seed of the event subsample (mixed with the data set name)
+  seed: 0                     # base seed of the rollouts (mixed with the model seed and the data set name)
+sampler_mode: {default: per_step, gp_residual_idm: per_trajectory}   # design.md 11.2
+variants:                     # sensitivity to the sampler mode: epistemic draw frozen along a rollout or redrawn every step
+  deep_ensemble__traj:   {model: deep_ensemble,   sampler_mode: per_trajectory}
+  mc_dropout__traj:      {model: mc_dropout,      sampler_mode: per_trajectory}
+  gp_residual_idm__step: {model: gp_residual_idm, sampler_mode: per_step}
+
+calibration:                  # analysis (scripts/analyze_e2.py), design.md 11.4
+  alpha: 0.1                  # nominal miscoverage of the 90 % intervals
+  gamma: 0.01                 # ACI step of the main tables
+  gammas: [0.005, 0.01, 0.02, 0.05]   # ACI sensitivity
+  n_min: 20                   # ACI: no correction before 20 scores
+  calibration_set: highd_val
+  in_domain: highd
+  onestep_score: normalised   # score of the one-step conformal coverage in the H3.4 verdict (absolute | normalised)
+  corrected: aci_online       # corrected variant of the H3.4 verdict (static | aci_frozen | aci_online)
+bootstrap: {n_boot: 1000, ci: 0.95, seed: 0}
+h34: {nominal: 0.90, onestep_tol: 0.03, raw_max: 0.80, corrected_min: 0.87, refute_min: 0.87}
+e1_roots: {a: artifacts/e1, mean_1s: artifacts/e1_mean1s}   # E1 prediction tables of the one-step conformal analysis
+
+config_paths:
+  data: configs/data
+data_configs: {}              # inline data configs by name (take precedence over config_paths.data/<name>.yaml)

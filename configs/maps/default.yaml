@@ -1,0 +1,42 @@
+# Uncertainty maps, shift and regime analysis (docs/design.md, section 10).
+grid:
+  s:  {lo: 0.0,  hi: 120.0, step: 5.0}     # m, 24 bins, right-open [lo, lo + step)
+  dv: {lo: -5.0, hi: 5.0,   step: 0.5}     # m/s, 20 bins; dv = v - v_lead
+rare:
+  freq_threshold: 0.01      # plan: bin frequency in the training windows < 1 %
+  mass_threshold: 0.10      # least frequent bins holding together at most 10 % of the training windows
+  min_count_display: 30     # bins with fewer evaluated windows are masked in figures
+regions:                    # named regions of hypothesis H3.1
+  small_gap: {s_max: 15.0}
+  large_dv: {abs_dv_min: 3.0}
+regimes:
+  s_congested: 15.0         # m
+  v_congested: 8.0          # m/s
+  s_free: 60.0              # m
+  s_lo: 10.0                # m
+  dv_eps: 0.5               # m/s
+  a_brake: -0.5             # m/s^2, applied to a[t-1]
+  v_free_frac: 0.8
+  v0: null                  # null: free speed of the IDM calibrated on the training events
+  priority: [congested, braking, approaching, free, steady]
+  reference: steady
+bootstrap:
+  n_boot: 1000
+  ci: 0.95
+  seed: 0
+  unit: event               # event | driver
+h31:
+  epi_support: 3.0          # lower bound of R_epi >= 3
+  epi_refute: 1.5           # upper bound of R_epi < 1.5
+  alea_band: [0.7, 1.3]     # aleatoric changes by less than 30 %
+  alea_refute: [0.5, 2.0]   # aleatoric changes by a factor of 2 or more
+  min_pairs: 2
+h31e:                       # restated H3.1, epistemic part only (design.md, section 12); growth thresholds and
+                            # min_pairs from h31 (epi_support, epi_refute, min_pairs) unless set here
+  rule: rare_mass           # concentration rule, in-domain test set: lowest 10 % of the training mass
+  conc_support: 1.0         # supported: lower bound of the ratio inside / outside the rule > 1
+  conc_refute: 1.0          # refuted: upper bound < 1 (less epistemic variance in rare states)
+matched:
+  min_count: 30             # windows per bin in both data sets
+cross_check: [ngsim_fn]       # second extraction of a counted data set: reported, not counted for H3.1
+cross_check_of: {ngsim_fn: ngsim}   # the data set a cross-check repeats: no pair when that one is a training set (E6)

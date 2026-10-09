@@ -1,0 +1,8 @@
+# FollowNet NGSIM I-80 events (gross spacing minus a nominal 4.5 m), imported from cf-stability. Cross-check of `ngsim`.
+name: ngsim_fn
+kind: parquet
+path: data/events/follownet_ngsim_i80
+unify_acceleration: true
+split:
+  file: data/splits/follownet_ngsim_i80_driver.json
+  fold: 0

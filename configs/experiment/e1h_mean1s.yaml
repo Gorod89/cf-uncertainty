@@ -1,0 +1,22 @@
+# Experiment E1 with the behavioural target mean_1s (e1_mean1s.yaml, inherited through `base`) on harmonised signals
+# (docs/design.md, section 12; settings identical to e1h.yaml). Differs from e1_mean1s.yaml in the root, the signal
+# variant, the reused DiffusionCF checkpoints (those of e1h, trained on harmonised signals) and the physics weight of
+# QuantilePIDL, which is selected again:
+#   python scripts/select_w_phys.py --config configs/experiment/e1h_mean1s.yaml --grid 0 0.0001 0.001 0.01 0.1 0.3
+#   bash scripts/run_e1_retry.sh artifacts/e1h_mean1s/logs/run.out 8 --config configs/experiment/e1h_mean1s.yaml
+base: e1_mean1s.yaml
+root: artifacts/e1h_mean1s
+signal: harmonised            # raw | harmonised; experiment-level: overrides the `signal` of every data config
+harmonise:                    # the same settings as e1h.yaml (checked when the DiffusionCF checkpoints are reused)
+  window: 11
+  order: 2
+  min_gap: 0.5
+  max_abs_c: 0.3
+  max_gap_rms: 2.0
+
+reuse_checkpoints:            # not retrained for mean_1s (design.md 11.1); --pilot: artifacts/e1h_pilot/checkpoints
+  diffusion_cf: artifacts/e1h/checkpoints
+
+model_overrides:
+  quantile_pidl: {w_phys: 0.001}   # selected for mean_1s and the harmonised signals, artifacts/e1h_mean1s/selection/w_phys.json
+                                    # (scripts/select_w_phys.py --config configs/experiment/e1h_mean1s.yaml --grid 0 0.0001 0.001 0.01 0.1 0.3)

@@ -1,0 +1,14 @@
+# Empirical growth of the speed variability along a platoon from the literature (docs/design.md 13.1), e.g. the
+# car-following experiments of Jiang et al. (2014, 2015), where the standard deviation of the speed grows concavely
+# with the vehicle index. Empty template: scripts/analyze_e3.py adds every filled series to growth.csv
+# (variant "literature", model "<name>", window "literature:<quantity>", exponent beta by least squares in logs)
+# and draws the speed-standard-deviation series in the growth figures. Values are not comparable in level with the
+# OpenACC profiles (other leaders, speeds and durations); compare shapes and exponents.
+#
+# series:
+#   jiang2014:
+#     source: "Jiang et al. (2014), PLoS ONE 9(4) e94351, Fig. ..."   # where the numbers come from
+#     quantity: sd                                                   # sd | amplitude  [m/s]
+#     index: [1, 2, 3, 4, 5]                                         # vehicle index behind the leader (1 = first)
+#     value: [0.5, 0.8, 1.0, 1.2, 1.3]                               # placeholder numbers, replace before use
+series: {}

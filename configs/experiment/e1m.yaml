@@ -1,0 +1,32 @@
+# Experiment E5 (docs/design.md, section 15): roughness-matched signals, target a. The harmonised processing of
+# e1h.yaml (inherited through `base`, settings of `harmonise` unchanged) with ONE Savitzky-Golay window per data set:
+# highD (the reference and the training data) keeps the window 11, every other data set gets the smallest window of
+# the grid whose roughness of the follower speed is within 10 % of highD's (scripts/match_roughness.py writes the
+# windows into match.file; the runners refuse to run without it). No model is retrained: every checkpoint is copied
+# from artifacts/e1h (trained on harmonised highD, window 11), which is legitimate because the signal key of the
+# training data set highD is the harmonised key (checked for every checkpoint: signal, kwargs, IDM, target).
+#   python scripts/match_roughness.py --config configs/experiment/e1m.yaml        # -> artifacts/e1m/matching.json
+#   python scripts/run_e1.py --config configs/experiment/e1m.yaml --dry-run       # plan and reuse decisions
+#   bash scripts/run_e1_retry.sh artifacts/e1m/logs/run.out 8 --config configs/experiment/e1m.yaml
+# Matching file convention: ONE file for the whole of E5, artifacts/e1m/matching.json (written with this config);
+# e1m_mean1s.yaml and e2m.yaml read the same file (same data, same rule), so every E5 root uses the same windows.
+base: e1h.yaml
+root: artifacts/e1m
+signal: matched               # raw | harmonised | matched; experiment-level: overrides the `signal` of every data config
+match:                        # cf_unc.data.harmonise.MatchConfig (design.md 15.1); harmonise: as in e1h.yaml (window 11)
+  reference: highd            # keeps harmonise.window; the training data set of the reused models
+  grid: [11, 15, 21, 25, 31, 41, 51, 61, 81, 101]   # candidate windows (samples, odd)
+  tolerance: 0.1              # smallest window with roughness <= (1 + tolerance) x the roughness of the reference
+  file: artifacts/e1m/matching.json   # written by scripts/match_roughness.py (this config), read by the runners
+
+reuse_checkpoints:            # every model of e1h (target a), copied, not trained (--pilot: artifacts/e1h_pilot/checkpoints)
+  idm_white_noise: artifacts/e1h/checkpoints
+  idm_white_noise_mle: artifacts/e1h/checkpoints
+  lstm_const_sigma: artifacts/e1h/checkpoints
+  hetero_mdn: artifacts/e1h/checkpoints
+  hetero_mdn_mix3: artifacts/e1h/checkpoints
+  deep_ensemble: artifacts/e1h/checkpoints
+  mc_dropout: artifacts/e1h/checkpoints
+  gp_residual_idm: artifacts/e1h/checkpoints
+  quantile_pidl: artifacts/e1h/checkpoints
+  diffusion_cf: artifacts/e1h/checkpoints

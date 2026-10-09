@@ -1,0 +1,8 @@
+# NGSIM I-80, trajectories reconstructed by cf-stability from the raw NGSIM (own reconstruction, three periods, lanes 1-6).
+name: ngsim
+kind: parquet
+path: data/events/ngsim_i80
+unify_acceleration: true     # recompute a from the stored speed when the source acceleration is not savgol
+split:
+  file: data/splits/ngsim_i80_driver.json   # fold file of cf-stability
+  fold: 0                    # fold k = test, fold k+1 = validation, the rest = training

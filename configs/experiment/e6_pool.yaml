@@ -1,0 +1,47 @@
+# Experiment E6 (docs/design.md, section 16.1): the ten model configurations of E1 (5 seeds, target a) trained on the
+# roughness-matched signals of a POOLED training domain: the training folds of highD, NGSIM I-80, NGSIM US-101, Waymo
+# and OpenACC together (the driver-disjoint fold files of cf-stability, fold 0: fold 0 test, fold 1 validation, the
+# rest training, for every set). Signals and windows of artifacts/e1m/matching.json (highD 11, OpenACC 61, the NGSIM
+# sets and Waymo 101; nothing is re-matched), inherited from e1m.yaml through `base` (which inherits e1h.yaml, e1.yaml).
+# Budget: every training set contributes at most train.max_windows_per_dataset one-step windows (uniform subsample with
+# the seed train.subsample_seed after the stride of 2; DiffusionCF: train.max_sequences_per_dataset sequence windows);
+# the validation folds are capped the same way. Every model is trained (no reuse: the signal key of a pooled training is
+# the list of the per-set keys, so no checkpoint of e1, e1h, e1m, ... is accepted). QuantilePIDL w_phys = 0.001 (the
+# harmonised selection, not re-selected). IDM: no calibration of its own; the calibrations of artifacts/e1m/idm.json
+# (closed_loop and mle, harmonised highD) are copied as a frozen physics prior identical to the one of the e1m models
+# (train.idm_from; the white-noise sigma of the IDM baselines is still fitted on the pooled training windows), so that
+# E6 against e1m isolates the pooled training of the learned parts; the regimes of the analyses use its v0.
+#   python scripts/run_e1.py --config configs/experiment/e6_pool.yaml --dry-run      # plan, windows after the caps
+#   bash scripts/run_e1_retry.sh artifacts/e6_pool/logs/run.out 8 --config configs/experiment/e6_pool.yaml
+#   python scripts/analyze_e1.py --root artifacts/e6_pool --config configs/experiment/e6_pool.yaml --in-domain pool_test
+# Evaluation: every training set on its test fold (table <name>), their union as the table pool_test (the in-domain
+# reference of the analyses), highD validation (calibration set of the one-step conformal analysis of E2, placebo of
+# the shift analysis) and the FollowNet NGSIM I-80 events on all events (a second extraction of a training set here:
+# no pair). The pooled root has no shift pair (design.md 16.1).
+base: e1m.yaml
+root: artifacts/e6_pool
+signal: matched               # experiment level (design.md 15.1); match settings and harmonise inherited from e1m.yaml
+match:
+  file: artifacts/e1m/matching.json   # the matching file of E5, read only (one matching for E5 and E6)
+
+train:
+  data: [highd, ngsim, ngsim_us101, waymo, openacc]   # pooled training domain: the training folds of these data sets
+  max_windows_per_dataset: 150000    # one-step windows per data set and split (train, val) after the stride
+  max_sequences_per_dataset: 40000   # DiffusionCF: sequence windows per data set and split after seq_stride
+  subsample_seed: 0                  # seed of the uniform subsamples (mixed with the data set and split names)
+  idm_from: artifacts/e1m/idm.json   # frozen IDM prior: both calibrations of e1m (closed_loop, mle) copied, none fitted
+reuse_checkpoints: null       # every model is trained (nothing inherited from e1m.yaml)
+
+model_overrides:
+  quantile_pidl: {w_phys: 0.001}   # the harmonised selection (artifacts/e1h/selection/w_phys.json), not re-selected
+
+eval:
+  datasets:                   # strides of E1, so that a test-fold table holds a subset of the rows of the e1m table
+    highd:       {data: highd,       split: test, stride: 2}
+    highd_val:   {data: highd,       split: val,  stride: 2}   # calibration set (E2 one-step conformal), placebo
+    ngsim:       {data: ngsim,       split: test, stride: 8}
+    ngsim_us101: {data: ngsim_us101, split: test, stride: 8}
+    ngsim_fn:    {data: ngsim_fn,    split: all,  stride: 3}   # repeats a training set (NGSIM I-80) here: no pair
+    waymo:       {data: waymo,       split: test, stride: 1}
+    openacc:     {data: openacc,     split: test, stride: 5}
+    pool_test:   {pool: [highd, ngsim, ngsim_us101, waymo, openacc]}   # union of the test-fold tables (in-domain)

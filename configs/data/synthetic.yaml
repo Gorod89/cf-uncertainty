@@ -1,0 +1,43 @@
+# StochasticIDM synthetic data (docs/design.md, section 3.2).
+# `generator` mirrors the defaults of cf_unc.data.synthetic.SyntheticConfig
+# (SyntheticConfig.from_dict(cfg.generator) == SyntheticConfig(), checked in tests/test_synthetic.py).
+name: synthetic
+kind: synthetic
+generator:
+  n_drivers: 200
+  events_per_driver: 4
+  duration_s: 40.0            # s, events have duration_s / DT + 1 samples
+  idm:                        # population (median) IDM parameters
+    v0: 30.0                  # m/s
+    T: 1.5                    # s
+    s0: 2.0                   # m
+    a_max: 1.2                # m/s^2
+    b: 1.8                    # m/s^2
+    delta: 4.0
+  heterogeneity_cv: 0.0       # CV of the per-driver lognormal multipliers (0 = identical drivers)
+  noise_kind: const           # const | gap
+  noise_sigma: 0.4            # m/s^2, per-step white acceleration noise
+  noise_kappa: 1.5            # gap noise: sigma (1 + kappa exp(-s / s_scale))
+  noise_s_scale: 15.0         # m
+  min_gap: 0.5                # m, events with min(s) < min_gap are redrawn
+  seed: 0
+  dataset: synthetic
+  site: sim
+  leader:
+    level_ranges:             # m/s, congested / medium / free speed-target levels
+      - [2.0, 8.0]
+      - [8.0, 20.0]
+      - [20.0, 30.0]
+    level_weights: [1.0, 1.0, 1.0]
+    hold_mean_s: 12.0         # s, regime holding time = hold_min_s + Exp(hold_mean_s - hold_min_s)
+    hold_min_s: 4.0           # s
+    gain: 0.5                 # 1/s, first-order tracking of the speed target
+    accel_min: -3.0           # m/s^2
+    accel_max: 2.0            # m/s^2
+    ou_sigma: 0.3             # m/s^2, stationary std of the OU acceleration noise
+    ou_tau_s: 2.0             # s, OU correlation time
+    v_min: 2.0                # m/s
+  init_speed_std: 1.5         # m/s, v(0) = v_L(0) + N(0, init_speed_std^2)
+  init_gap_factor: [0.6, 2.5] # s(0) = s_eq(v(0)) * U(low, high)
+  init_gap_range: [3.0, 150.0]  # m, clip of s(0)
+  max_regen_rounds: 100

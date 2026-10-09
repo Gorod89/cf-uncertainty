@@ -1,0 +1,8 @@
+# Waymo car-following pairs of Hu et al. (2022), extracted by cf-stability.
+name: waymo
+kind: parquet
+path: data/events/waymo
+unify_acceleration: true     # recompute a from the stored speed when the source acceleration is not savgol
+split:
+  file: data/splits/waymo_driver.json   # fold file of cf-stability
+  fold: 0                    # fold k = test, fold k+1 = validation, the rest = training

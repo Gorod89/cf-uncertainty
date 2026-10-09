@@ -1,0 +1,12 @@
+# Heteroscedastic LSTM-MDN, 3-component Gaussian mixture (docs/design.md, section 7).
+name: hetero_mdn
+kwargs:
+  n_components: 3
+  hidden: 64
+  head_hidden: 64
+  dropout: 0.0
+  log_sigma_min: -7.0
+  log_sigma_max: 3.0
+  beta_nll: 0.0           # must stay 0 for n_components > 1
+train: {}
+needs_idm: false

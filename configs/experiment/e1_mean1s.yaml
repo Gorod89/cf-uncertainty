@@ -1,0 +1,17 @@
+# Experiment E1 with the behavioural target mean_1s = (v[t+10] - v[t]) / (10 DT), the mean acceleration over the
+# next second (docs/design.md, section 11.1). Identical to e1.yaml (inherited through `base`) except the root, the
+# target, the reused DiffusionCF checkpoints and the physics weight of QuantilePIDL.
+#   python scripts/select_w_phys.py --config configs/experiment/e1_mean1s.yaml --grid 0 0.0001 0.001 0.01 0.1 0.3
+#   bash scripts/run_e1_retry.sh artifacts/e1_mean1s/logs/run.out 8 --config configs/experiment/e1_mean1s.yaml
+base: e1.yaml
+root: artifacts/e1_mean1s
+
+train:
+  target: mean_1s             # training windows of the one-step models and evaluated windows (y of the windows tables)
+
+reuse_checkpoints:            # not retrained: its law of mean_1s is the mean of the first 10 steps of every sampled
+  diffusion_cf: artifacts/e1/checkpoints   # 5 s sequence (--pilot: artifacts/e1_pilot/checkpoints)
+
+model_overrides:
+  quantile_pidl: {w_phys: 0.0001}   # selected for mean_1s on the highD validation fold, artifacts/e1_mean1s/selection/w_phys.json
+                                    # (scripts/select_w_phys.py --config configs/experiment/e1_mean1s.yaml --grid 0 0.0001 0.001 0.01 0.1 0.3)

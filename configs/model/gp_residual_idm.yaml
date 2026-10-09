@@ -1,0 +1,17 @@
+# Frozen calibrated IDM plus a sparse variational GP on the acceleration residual (docs/design.md, section 7).
+# The IDM parameters are injected as `idm` by the training script (needs_idm). The GP has its own optimiser
+# settings below and no `train` argument, so `train` must stay empty.
+# Mirrors the defaults of cf_unc.models.gp_residual_idm.GPResidualIDM (checked in tests/test_gp.py).
+name: gp_residual_idm
+kwargs:
+  n_inducing: 300           # inducing points M
+  inducing_init: kmeans     # kmeans (k-means++ seeding + Lloyd iterations) | random (subset of the inputs)
+  learn_inducing: true
+  lr: 0.01                  # Adam on all variational, kernel and likelihood parameters
+  max_epochs: 30
+  batch_size: 2048          # minibatch of the VariationalELBO
+  patience: 5               # epochs without improvement of the validation NLPD
+  max_train: null           # seeded subsample of the training windows (null: all)
+  jitter: null              # K_zz jitter; null: GPyTorch default (1e-6 in float64)
+train: {}                   # unused: no `train` argument
+needs_idm: true

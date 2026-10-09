@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  fast-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the CPU build of PyTorch
+        run: pip install "torch>=2.2,<3" --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install the package and the test dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Fast test suite (no training runs, no GPU, no downloaded data)
+        run: python -m pytest -m "not slow and not gpu and not data" -q -p no:cacheprovider

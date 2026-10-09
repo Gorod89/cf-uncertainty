@@ -1,0 +1,18 @@
+# Physics-informed quantile regression with an IDM physics term (docs/design.md, section 7).
+# The IDM parameters are injected as `idm` by the training script (needs_idm).
+# Mirrors the defaults of cf_unc.models.quantile_pidl.QuantilePIDL (checked in tests/test_quantile_pidl.py).
+name: quantile_pidl
+kwargs:
+  levels: [0.05, 0.25, 0.5, 0.75, 0.95]
+  w_phys: 0.3               # physics term: (median - a_IDM)^2 on observed + synthetic windows
+  w_nc: 10.0                # non-crossing penalty
+  margin: 0.0               # minimal quantile spacing of the penalty (normalised target units)
+  colloc_box:               # last sample of the synthetic collocation windows (uniform)
+    s: [2.0, 120.0]         # m
+    dv: [-5.0, 5.0]         # m/s
+    v: [0.0, 40.0]          # m/s
+  n_colloc: null            # synthetic windows per batch (null: as many as observed rows)
+  hidden: 64                # LSTM state size
+  head_hidden: 64           # MLP head width
+train: {}                   # overrides of configs/train/default.yaml
+needs_idm: true

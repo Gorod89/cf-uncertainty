@@ -1,0 +1,21 @@
+# Experiment E2 (closed-loop rollouts, e2.yaml, inherited through `base`) on harmonised signals (docs/design.md,
+# section 12; settings identical to e1h.yaml): the rolled events are harmonised at load time and the checkpoints are
+# those of artifacts/e1h and artifacts/e1h_mean1s (every checkpoint must have been trained on the same signal variant).
+#   bash scripts/run_e2_retry.sh artifacts/e2h/logs/run.out 8 --config configs/experiment/e2h.yaml
+#   python scripts/analyze_e2.py --root artifacts/e2h        (E1 roots of the one-step conformal analysis: e1_roots)
+base: e2.yaml
+root: artifacts/e2h
+signal: harmonised            # raw | harmonised; experiment-level: overrides the `signal` of every data config
+harmonise:                    # the same settings as e1h.yaml (checked against the train_log.json of every checkpoint)
+  window: 11
+  order: 2
+  min_gap: 0.5
+  max_abs_c: 0.3
+  max_gap_rms: 2.0
+targets:
+  a: {checkpoints: artifacts/e1h/checkpoints, hold_steps: 1}
+  mean_1s:
+    checkpoints: artifacts/e1h_mean1s/checkpoints
+    hold_steps: 10
+    checkpoint_overrides: {diffusion_cf: artifacts/e1h/checkpoints}   # not retrained per target (design.md 11.1)
+e1_roots: {a: artifacts/e1h, mean_1s: artifacts/e1h_mean1s}   # E1 prediction tables of the one-step conformal analysis
