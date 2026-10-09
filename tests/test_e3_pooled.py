@@ -233,7 +233,11 @@ def test_variant_config(world: dict[str, Any], tmp_path: Path) -> None:
         with pytest.raises(ValueError, match=message):
             E3Runner(make_config(tmp_path / "bad", world, override=override), echo=False)
     assert not (tmp_path / "bad").exists()  # a config error creates nothing
-    # the real config: QuantilePIDL on target a with hold 1 in both E3-pooled variants, 13.2 elsewhere
+
+
+@pytest.mark.skipif(not Path("artifacts/e1m/matching.json").exists(), reason="the real E3 config resolves its profile window from the E5 matching file (an experiment artefact)")
+def test_real_variant_config() -> None:
+    """The shipped config: QuantilePIDL on target a with hold 1 in both E3-pooled variants, 13.2 elsewhere."""
     real = parse_variants(load_config())
     assert list(real) == ["raw", "harmonised", "pool", "lodo_openacc"]
     for name in ("pool", "lodo_openacc"):
