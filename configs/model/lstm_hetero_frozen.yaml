@@ -1,0 +1,13 @@
+# Frozen-mean heteroscedastic ablation (review control R13, docs/design.md 18.4; cf_unc.models.lstm_hetero_frozen):
+# the trained mean of LSTMConstSigma of the SAME seed (<mean_from>/seed<k>/model.pt) frozen, a variance head
+# log sigma(x) (the head shape of HeteroMDN) trained by Gaussian NLL on its frozen LSTM features, with the training
+# budget of HeteroMDN (train: {} = configs/train/default.yaml). One-step law N(mu_frozen, sigma(x)^2): against
+# lstm_const_sigma only the variance differs (constant -> state-dependent), at one mean and one backbone.
+name: lstm_hetero_frozen
+kwargs:
+  mean_from: artifacts/e1/checkpoints/lstm_const_sigma   # seed-matched source of the frozen mean (target a, raw signals)
+  head_hidden: 64         # variance head: Linear(64, 64), SiLU, Linear(64, 1)
+  log_sigma_min: -7.0     # clamp of log sigma in normalised target space (as HeteroMDN)
+  log_sigma_max: 3.0
+train: {}                 # the TrainConfig of HeteroMDN (configs/train/default.yaml)
+needs_idm: false

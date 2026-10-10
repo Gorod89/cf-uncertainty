@@ -5,16 +5,31 @@ ACI, one-step conformal coverage, collisions and the H3.4 verdicts.
     python scripts/analyze_e2.py --root artifacts/e2_pilot
     python scripts/analyze_e2.py --root artifacts/e2 --e1-roots a=artifacts/e1 mean_1s=artifacts/e1_mean1s --n-boot 2000
 
-Writes ``<root>/tables/``: coverage_by_horizon.csv, aci_gamma_sensitivity.csv, onestep_conformal.csv, collisions.csv,
-h34_verdicts.csv, analysis_info.json; the figures of ``cf_unc.report.figures_e2`` into ``<root>/figures``; prints a
-summary. Settings (alpha, gammas, n_min, bootstrap, H3.4 thresholds) come from ``<root>/config.yaml`` (written by the
-runner) with the defaults of ``configs/experiment/e2.yaml`` for missing keys.
+Writes ``<root>/tables/`` (``--tables-dir``): coverage_by_horizon.csv, aci_gamma_sensitivity.csv,
+onestep_conformal.csv, collisions.csv, h34_verdicts.csv, stream_info.csv, analysis_info.json; the figures of
+``cf_unc.report.figures_e2`` into ``<root>/figures``; prints a summary. Settings (alpha, gammas, n_min, bootstrap,
+H3.4 thresholds) come from ``<root>/config.yaml`` (written by the runner) with the defaults of
+``configs/experiment/e2.yaml`` for missing keys.
 
 Statistical conventions: every seed is calibrated separately (static correction, ACI state, one-step conformal
 quantile); per event the covered indicators and widths are averaged over the seeds, then events are resampled
-(1000 percentile bootstrap replicates; one-step tables: windows grouped by event). Bootstrap seeds depend on the data
-set and horizon only, so every model and variant is resampled with the same events. ACI runs over the calibration
-events in their random ``order`` (events table), then continues over the evaluated events in their ``order``.
+(1000 percentile bootstrap replicates; one-step tables: windows grouped by event); a second interval resamples
+followers (``*_follower`` columns: the driver codes of the events and windows tables; all events of a drawn follower
+are kept). Bootstrap seeds depend on the data set and horizon only, so every model and variant is resampled with the
+same events. ACI runs over the calibration events in their random ``order`` (events table), then continues over the
+evaluated events in their ``order``.
+
+ACI follows Gibbs and Candes (``cf_unc.rollout.calibration``: infinite interval at a level >= 1, empty interval at a
+level <= 0; columns ``share_infinite``, ``share_empty``, ``width_finite_*``); ``--finite-quantile`` (setting
+``calibration.finite_quantile``) runs the heuristic finite variant of the submitted manuscript instead and reproduces
+its tables (write them elsewhere with ``--tables-dir``). Information budget (review item R8, setting
+``calibration.streams``): the variants ``aci_online_chrono`` (evaluated events in chronological order),
+``aci_online_delayed`` (chronological, a label used only a horizon after its interval was issued),
+``static_prequential`` and ``static_prequential_delayed`` (the static correction recalibrated on the same labels as
+ACI, no learning rate) at the main gamma; the clock of every data set comes from the meta of its events
+(``cf_unc.rollout.streams``; untimed sets count the delay in events, ``calibration.delay_events_per_s`` events per
+second of horizon) and is listed in stream_info.csv. H3.4: the decision table of
+``cf_unc.rollout.calibration.h34_verdict`` (docs/review_fixes_v3.md, R7).
 """
 
 from __future__ import annotations
@@ -28,40 +43,53 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 import yaml
 
 from cf_unc.eval.bootstrap import bootstrap_by_group
 from cf_unc.maps import io as e1_io
 from cf_unc.report.figures_e2 import make_e2_figures
 from cf_unc.rollout import tables
-from cf_unc.rollout.calibration import SCORES, coverage_table, h34_verdict, split_conformal_onestep
+from cf_unc.rollout.calibration import COVERAGE_COLUMNS, SCORES, coverage_table, h34_verdict, split_conformal_onestep
+from cf_unc.rollout.streams import event_meta, stream_order
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULTS: dict[str, dict[str, Any]] = {  # mirror of configs/experiment/e2.yaml
     "calibration": {"alpha": 0.1, "gamma": 0.01, "gammas": [0.005, 0.01, 0.02, 0.05], "n_min": 20,
-                    "onestep_score": "normalised", "corrected": "aci_online"},  # fmt: skip
+                    "onestep_score": "normalised", "corrected": "aci_online", "finite_quantile": False,
+                    "streams": True, "delay_events_per_s": 1.0},  # fmt: skip
     "bootstrap": {"n_boot": 1000, "ci": 0.95, "seed": 0},
     "h34": {"nominal": 0.90, "onestep_tol": 0.03, "raw_max": 0.80, "corrected_min": 0.87, "refute_min": 0.87},
 }
 CORRECTED = ("static", "aci_frozen", "aci_online")
+BREAK_S = 600.0  # s: a step of the issue times this long is a break between recordings (stream_info)
+GAMMA_VARIANTS = ("aci_frozen", "aci_online")  # the variants of the gamma sensitivity
+_BASE = ("horizon_s", "variant", "gamma", "picp", "picp_lo", "picp_hi", "width_mean", "width_median", "crps", "collided",
+         "q_mean", "n_events", "n_seeds")  # fmt: skip
+_EXTRA = [c for c in COVERAGE_COLUMNS if c not in _BASE]  # columns of the review fixes (R1, R4, R8)
 COLUMNS: dict[str, list[str]] = {
     "coverage_by_horizon": [
         "model", "target", "dataset", "horizon_s", "variant", "picp", "picp_lo", "picp_hi", "width_mean", "width_median",
-        "crps", "collided", "q_mean", "n_events", "n_seeds", "gamma",
+        "crps", "collided", "q_mean", "n_events", "n_seeds", "gamma", *_EXTRA,
     ],
     "aci_gamma_sensitivity": [
         "model", "target", "dataset", "horizon_s", "variant", "gamma", "picp", "picp_lo", "picp_hi", "width_mean",
-        "width_median", "q_mean", "n_events", "n_seeds",
+        "width_median", "q_mean", "n_events", "n_seeds", "share_infinite", "share_empty", "width_finite_median",
     ],
     "onestep_conformal": [
         "model", "target", "dataset", "score", "picp_raw", "picp_raw_lo", "picp_raw_hi", "picp_conformal",
         "picp_conformal_lo", "picp_conformal_hi", "width_raw", "width_conformal", "q", "n_windows", "n_events", "n_seeds",
+        "picp_raw_lo_follower", "picp_raw_hi_follower", "picp_conformal_lo_follower", "picp_conformal_hi_follower",
+        "n_followers",
     ],
     "h34_verdicts": [
-        "model", "target", "dataset", "corrected", "onestep_score", "onestep_picp", "onestep_lo", "onestep_hi",
-        "onestep_picp_dataset", "raw_picp_min", "raw_min_horizon", "corrected_picp_min", "corrected_min_horizon",
-        "part_i", "part_ii", "part_iii", "refuted_raw", "verdict", "part_i_ci", "part_ii_ci", "part_iii_ci",
-        "refuted_raw_ci", "verdict_ci", "n_seeds",
+        "model", "target", "dataset", "corrected", "onestep_score", "onestep_source", "onestep_picp", "onestep_lo",
+        "onestep_hi", "onestep_picp_dataset", "raw_picp_min", "raw_min_horizon", "raw_hi_min", "corrected_picp_min",
+        "corrected_min_horizon", "corrected_lo_min", "part_i", "part_ii", "part_iii", "verdict", "part_i_ci",
+        "part_ii_ci", "part_iii_ci", "verdict_ci", "n_seeds",
+    ],
+    "stream_info": [
+        "target", "dataset", "clock", "n_events", "n_followers", "span_s", "events_per_s",
     ],
 }  # fmt: skip
 
@@ -100,17 +128,70 @@ def _frame(rows: list[dict[str, Any]], name: str) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=COLUMNS[name])
 
 
+def data_meta_loader(root: Path, log=print):  # noqa: ANN001, ANN201
+    """``load(dataset, events) -> {event_id: meta} | None``: the meta of the rolled events of an E2 data set, read
+    from the event directory of its data config (``datasets.<name>.data`` of ``<root>/config.yaml``, inline
+    ``data_configs`` or ``configs/data/<data>.yaml``; key ``path``). None when the config or the directory is
+    missing (the stream is then untimed, ordered by the event codes)."""
+    path = root / "config.yaml"
+    stored = (yaml.safe_load(path.read_text(encoding="utf-8")) or {}) if path.exists() else {}
+    specs = stored.get("datasets") or {}
+    inline = stored.get("data_configs") or {}
+    cfg_dir = _resolve((stored.get("config_paths") or {}).get("data") or "configs/data")
+
+    def load(dataset: str, events: pd.DataFrame) -> dict[str, dict[str, Any]] | None:
+        name = str((specs.get(dataset) or {}).get("data") or dataset)
+        dcfg = inline.get(name)
+        if dcfg is None:
+            p = cfg_dir / f"{name}.yaml"
+            dcfg = (yaml.safe_load(p.read_text(encoding="utf-8")) or {}) if p.exists() else {}
+        directory = dcfg.get("path") if isinstance(dcfg, Mapping) else None
+        if not directory or not (_resolve(directory) / "events.parquet").exists():
+            log(f"  {dataset}: no event directory of data config {name!r}: the stream is untimed (event order)")
+            return None
+        return event_meta(_resolve(directory), events["event_id"])
+
+    return load
+
+
+def stream_info_row(target: str, dataset: str, clock: str, events: pd.DataFrame) -> dict[str, Any]:
+    """stream_info row: the clock of a data set, its events and followers, the recorded time spanned by the issue
+    times (steps of 600 s and more - breaks between recording periods and runs - left out) and the events per
+    second of it."""
+    t = np.sort(events["t_issue"].to_numpy(np.float64))
+    t = t[np.isfinite(t)]
+    steps = np.diff(t)
+    span = float(steps[steps < BREAK_S].sum()) if t.size > 1 else float("nan")
+    n = len(events)
+    return {"target": target, "dataset": dataset, "clock": clock, "n_events": n,
+            "n_followers": int(events["driver"].nunique()) if "driver" in events.columns else np.nan,
+            "span_s": span if t.size > 1 else np.nan,
+            "events_per_s": n / span if t.size > 1 and span > 0 else np.nan}  # fmt: skip
+
+
 # ------------------------------------------------------------------------------------ rollout tables
-def rollout_tables(root: Path, target: str, calibration: str, s: Mapping[str, Mapping[str, Any]],
-                   log=print) -> tuple[list[pd.DataFrame], list[pd.DataFrame], list[dict[str, Any]]]:  # fmt: skip  # noqa: ANN001
-    """Coverage rows (main gamma), gamma-sensitivity rows and collision rows of one target."""
+def rollout_tables(
+    root: Path, target: str, calibration: str, s: Mapping[str, Mapping[str, Any]], log=print,  # noqa: ANN001
+    data_meta=None,  # noqa: ANN001
+) -> tuple[list[pd.DataFrame], list[pd.DataFrame], list[dict[str, Any]], list[dict[str, Any]]]:  # fmt: skip
+    """Coverage rows (main gamma), gamma-sensitivity rows, collision rows and stream_info rows of one target.
+
+    data_meta: ``load(dataset, events)`` of :func:`data_meta_loader` (None: every stream untimed)."""
     listing = tables.available(root, target)
     if listing.empty:
-        return [], [], []
+        return [], [], [], []
     c, b = s["calibration"], s["bootstrap"]
     gamma = float(c["gamma"])
     gammas = sorted({gamma, *(float(g) for g in c["gammas"])})
     events = {d: tables.load_events_table(root, target, d) for d in listing["dataset"].unique()}
+    streams = bool(c.get("streams", True))
+    stream_rows: list[dict[str, Any]] = []
+    if streams:
+        for d in sorted(events):
+            if d == calibration:
+                continue
+            events[d], clock = stream_order(events[d], data_meta(d, events[d]) if data_meta is not None else None)
+            stream_rows.append(stream_info_row(target, d, clock, events[d]))
     coverage, sensitivity, collisions = [], [], []
     for model in listing["model"].unique():
         sub = listing[listing["model"] == model]
@@ -122,7 +203,8 @@ def rollout_tables(root: Path, target: str, calibration: str, s: Mapping[str, Ma
             table = coverage_table(
                 eval_tables, events[dataset], cal if with_cal else None, events.get(calibration) if with_cal else None,
                 alpha=float(c["alpha"]), gammas=gammas, n_min=int(c["n_min"]), n_boot=int(b["n_boot"]), ci=float(b["ci"]),
-                boot_seed=_seed(int(b["seed"]), dataset),
+                boot_seed=_seed(int(b["seed"]), dataset), finite_quantile=bool(c.get("finite_quantile", False)),
+                stream_gamma=gamma if streams else None, delay_events_per_s=float(c.get("delay_events_per_s", 1.0)),
             )  # fmt: skip
             table.insert(0, "dataset", dataset)
             table.insert(0, "target", target)
@@ -130,10 +212,10 @@ def rollout_tables(root: Path, target: str, calibration: str, s: Mapping[str, Ma
             aci = table["variant"].str.startswith("aci")
             main = ~aci | np.isclose(table["gamma"].fillna(-1.0), gamma)
             coverage.append(table[main][COLUMNS["coverage_by_horizon"]])
-            sensitivity.append(table[aci][COLUMNS["aci_gamma_sensitivity"]])
+            sensitivity.append(table[table["variant"].isin(GAMMA_VARIANTS)][COLUMNS["aci_gamma_sensitivity"]])
             collisions.append(collision_row(model, target, dataset, eval_tables))
         log(f"  [{target}] {model}: {len(loaded)} data sets, seeds {sorted({s for t in loaded.values() for s in t})}")
-    return coverage, sensitivity, collisions
+    return coverage, sensitivity, collisions, stream_rows
 
 
 def collision_row(model: str, target: str, dataset: str, eval_tables: Mapping[int, pd.DataFrame]) -> dict[str, Any]:
@@ -168,7 +250,9 @@ def onestep_conformal(e1_root: Path, target: str, calibration: str, s: Mapping[s
 
     def window(d: str) -> pd.DataFrame:
         if d not in windows:
-            windows[d] = pd.read_parquet(e1_io.windows_path(e1_root, d), columns=["event", "y"])
+            path = e1_io.windows_path(e1_root, d)
+            has_driver = "driver" in pq.read_schema(path).names  # follower codes for the second interval
+            windows[d] = pd.read_parquet(path, columns=["event", "y", *(["driver"] if has_driver else [])])
         return windows[d]
 
     def preds(model: str, seed: int, d: str) -> pd.DataFrame:
@@ -188,6 +272,7 @@ def onestep_conformal(e1_root: Path, target: str, calibration: str, s: Mapping[s
                 continue
             w = window(dataset)
             y, events = w["y"].to_numpy(np.float64), w["event"].to_numpy()
+            drivers = w["driver"].to_numpy() if "driver" in w.columns else None
             ev = {k: preds(model, k, dataset) for k in seeds}
             raw_cov = np.stack([np.where(ev[k]["valid"], ev[k]["covered"].to_numpy(np.float64), np.nan) for k in seeds])
             raw_width = np.stack([np.where(ev[k]["valid"], ev[k]["width"].to_numpy(np.float64), np.nan) for k in seeds])
@@ -195,6 +280,8 @@ def onestep_conformal(e1_root: Path, target: str, calibration: str, s: Mapping[s
             ok = ~np.isnan(raw_mean)
             boot_seed = _seed(int(b["seed"]), "onestep", dataset)
             raw_boot = bootstrap_by_group(raw_mean[ok], events[ok], n_boot=int(b["n_boot"]), seed=boot_seed, ci=float(b["ci"]))
+            raw_fb = (bootstrap_by_group(raw_mean[ok], drivers[ok], n_boot=int(b["n_boot"]), seed=boot_seed, ci=float(b["ci"]))
+                      if drivers is not None else {"lo": np.nan, "hi": np.nan})  # fmt: skip
             for score in SCORES:
                 cov, width, qs = [], [], []
                 for k in seeds:
@@ -210,13 +297,17 @@ def onestep_conformal(e1_root: Path, target: str, calibration: str, s: Mapping[s
                 good = ~np.isnan(per_window)
                 boot = bootstrap_by_group(per_window[good], events[good], n_boot=int(b["n_boot"]), seed=boot_seed,
                                           ci=float(b["ci"]))  # fmt: skip
+                fb = (bootstrap_by_group(per_window[good], drivers[good], n_boot=int(b["n_boot"]), seed=boot_seed,
+                                         ci=float(b["ci"])) if drivers is not None else {"lo": np.nan, "hi": np.nan})  # fmt: skip
                 rows.append({
                     "model": model, "target": target, "dataset": dataset, "score": score,
                     "picp_raw": raw_boot["estimate"], "picp_raw_lo": raw_boot["lo"], "picp_raw_hi": raw_boot["hi"],
                     "picp_conformal": boot["estimate"], "picp_conformal_lo": boot["lo"], "picp_conformal_hi": boot["hi"],
                     "width_raw": float(np.nanmean(_mean0(raw_width)[ok])), "width_conformal": float(np.mean(_mean0(np.stack(width))[good])),
                     "q": float(np.mean(qs)), "n_windows": int(good.sum()), "n_events": int(np.unique(events[good]).size),
-                    "n_seeds": len(seeds),
+                    "n_seeds": len(seeds), "picp_raw_lo_follower": raw_fb["lo"], "picp_raw_hi_follower": raw_fb["hi"],
+                    "picp_conformal_lo_follower": fb["lo"], "picp_conformal_hi_follower": fb["hi"],
+                    "n_followers": int(np.unique(drivers[good]).size) if drivers is not None else np.nan,
                 })  # fmt: skip
         log(f"  [{target}] one-step conformal {model}: seeds {sorted(cal_seeds)}")
     return rows
@@ -225,8 +316,10 @@ def onestep_conformal(e1_root: Path, target: str, calibration: str, s: Mapping[s
 # --------------------------------------------------------------------------------------------- H3.4
 def h34_rows(coverage: pd.DataFrame, onestep: pd.DataFrame, s: Mapping[str, Mapping[str, Any]], in_domain: str,
              calibration: str) -> list[dict[str, Any]]:  # fmt: skip
-    """One verdict row per (model, target, data set, corrected variant); part (i) = one-step conformal coverage of
-    the in-domain test set (score of the settings), parts (ii) and (iii) on the row's data set."""
+    """One verdict row per (model, target, data set, corrected variant) by the decision table of
+    ``cf_unc.rollout.calibration.h34_verdict``: part (i) = one-step conformal coverage of the in-domain test fold
+    (score of the settings; the same number for every data set, ``onestep_source``), parts (ii) and (iii) on the
+    row's data set; ``onestep_picp_dataset`` is the data set's own one-step conformal coverage (information only)."""
     score = str(s["calibration"]["onestep_score"])
     th = {k: float(v) for k, v in s["h34"].items()}
     bases = s.get("base_models", {})
@@ -254,13 +347,14 @@ def h34_rows(coverage: pd.DataFrame, onestep: pd.DataFrame, s: Mapping[str, Mapp
             )  # fmt: skip
             rows.append({
                 "model": model, "target": target, "dataset": dataset, "corrected": corrected, "onestep_score": score,
-                "onestep_picp": o_est, "onestep_lo": o_lo, "onestep_hi": o_hi,
+                "onestep_source": in_domain, "onestep_picp": o_est, "onestep_lo": o_lo, "onestep_hi": o_hi,
                 "onestep_picp_dataset": float(here.iloc[0]["picp_conformal"]) if len(here) else np.nan,
                 "raw_picp_min": float(raw["picp"].min()), "raw_min_horizon": float(raw.loc[raw["picp"].idxmin(), "horizon_s"]),
-                "corrected_picp_min": float(corr["picp"].min()),
+                "raw_hi_min": float(raw["picp_hi"].min()), "corrected_picp_min": float(corr["picp"].min()),
                 "corrected_min_horizon": float(corr.loc[corr["picp"].idxmin(), "horizon_s"]),
-                **{k: v[k] for k in ("part_i", "part_ii", "part_iii", "refuted_raw", "verdict", "part_i_ci", "part_ii_ci",
-                                     "part_iii_ci", "refuted_raw_ci", "verdict_ci")},
+                "corrected_lo_min": float(corr["picp_lo"].min()),
+                **{k: v[k] for k in ("part_i", "part_ii", "part_iii", "verdict", "part_i_ci", "part_ii_ci", "part_iii_ci",
+                                     "verdict_ci")},
                 "n_seeds": int(corr["n_seeds"].min()),
             })  # fmt: skip
     return rows
@@ -276,8 +370,10 @@ def analyze_e2(
     settings: Mapping[str, Mapping[str, Any]] | None = None,
     figures: bool = True,
     verbose: bool = True,
+    tables_dir: str = "tables",
 ) -> dict[str, pd.DataFrame]:
-    """Every E2 table under ``<root>/tables`` (module docstring) and the figures; returns the tables by name.
+    """Every E2 table under ``<root>/<tables_dir>`` (module docstring) and the figures (only for the default
+    ``tables``); returns the tables by name.
 
     e1_roots: target -> E1 root of the one-step conformal analysis (default: ``e1_roots`` of ``<root>/config.yaml``,
     else ``{"a": "artifacts/e1", "mean_1s": "artifacts/e1_mean1s"}``; missing roots are skipped), so that e.g. the
@@ -297,12 +393,14 @@ def analyze_e2(
     if not targets:
         raise FileNotFoundError(f"no rollout tables under {root}")
     log(f"E2 analysis of {root}: targets {targets}")
-    cov_parts, sens_parts, collision_rows, onestep_rows = [], [], [], []
+    cov_parts, sens_parts, collision_rows, onestep_rows, stream_rows = [], [], [], [], []
+    meta = data_meta_loader(root, log)
     for target in targets:
-        cov, sens, col = rollout_tables(root, target, calibration, s, log)
+        cov, sens, col, streams = rollout_tables(root, target, calibration, s, log, meta)
         cov_parts += cov
         sens_parts += sens
         collision_rows += col
+        stream_rows += streams
         e1_root = e1_roots.get(target)
         if e1_root is not None and _resolve(e1_root).is_dir():
             onestep_rows += onestep_conformal(_resolve(e1_root), target, calibration, s, log)
@@ -313,13 +411,15 @@ def analyze_e2(
         "aci_gamma_sensitivity": pd.concat(sens_parts, ignore_index=True) if sens_parts else _frame([], "aci_gamma_sensitivity"),
         "onestep_conformal": _frame(onestep_rows, "onestep_conformal"),
         "collisions": pd.DataFrame(collision_rows),
+        "stream_info": _frame(stream_rows, "stream_info"),
     }  # fmt: skip
     out["h34_verdicts"] = _frame(h34_rows(out["coverage_by_horizon"], out["onestep_conformal"], s, in_domain, calibration),
                                  "h34_verdicts")  # fmt: skip
-    table_dir = root / "tables"
+    table_dir = root / tables_dir
     table_dir.mkdir(parents=True, exist_ok=True)
     for name, frame in out.items():
         frame.to_csv(table_dir / f"{name}.csv", index=False)
+    figures = figures and tables_dir == "tables"  # the figures read <root>/tables
     paths = make_e2_figures(root, in_domain=in_domain, calibration=calibration) if figures and cov_parts else []
     info = {"root": str(root), "targets": targets, "e1_roots": {k: str(v) for k, v in e1_roots.items()},
             "calibration": calibration, "in_domain": in_domain, "settings": s, "figures": [p.name for p in paths],
@@ -378,11 +478,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--n-boot", type=int, default=None, help="bootstrap replicates (default: config)")
     parser.add_argument("--no-figures", action="store_true")
     parser.add_argument("--quiet", action="store_true")
+    parser.add_argument("--finite-quantile", action="store_true",
+                        help="heuristic finite ACI of the submitted manuscript (reproduces its tables; use --tables-dir)")
+    parser.add_argument("--no-streams", action="store_true", help="skip the information-budget variants (R8)")
+    parser.add_argument("--tables-dir", default="tables", help="directory below the root for the tables (figures: "
+                        "only with the default)")  # fmt: skip
     args = parser.parse_args(argv)
     e1_roots = None if args.e1_roots is None else dict(item.split("=", 1) for item in args.e1_roots)
-    settings = {"bootstrap": {"n_boot": args.n_boot}} if args.n_boot else None
-    out = analyze_e2(args.root, e1_roots, args.calibration, args.in_domain, settings=settings,
-                     figures=not args.no_figures, verbose=not args.quiet)  # fmt: skip
+    settings: dict[str, dict[str, Any]] = {"bootstrap": {"n_boot": args.n_boot}} if args.n_boot else {}
+    if args.finite_quantile or args.no_streams:
+        settings["calibration"] = {"finite_quantile": True if args.finite_quantile else None,
+                                   "streams": False if args.no_streams else None}  # fmt: skip
+    out = analyze_e2(args.root, e1_roots, args.calibration, args.in_domain, settings=settings or None,
+                     figures=not args.no_figures, verbose=not args.quiet, tables_dir=args.tables_dir)  # fmt: skip
     corrected = str(load_settings(_resolve(args.root))["calibration"]["corrected"])
     print(format_summary(out, args.in_domain, corrected))
     return 0

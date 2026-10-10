@@ -6,9 +6,11 @@
     python scripts/run_e2.py --set rollout.max_batch=50000 --root artifacts/e2_test
     python scripts/run_e2.py --config configs/experiment/e2h.yaml  # harmonised signals -> artifacts/e2h (checkpoints of e1h)
     python scripts/run_e2.py --config configs/experiment/e2m.yaml  # E5, matched signals -> artifacts/e2m (checkpoints of e1h)
+    python scripts/run_e2.py --config configs/experiment/e2_ctrl.yaml --dry-run   # what a run would do; writes nothing
 
-Precedence: config file < --pilot < --set < explicit flags. Exit code 1 if any unit failed (see logs/errors.log), 2
-when the run is refused because the matching file of signal ``matched`` is missing or stale (design.md 15.1).
+Precedence: config file < --pilot < --set < explicit flags. Exit code 1 if any unit failed (see logs/errors.log); with
+--dry-run, if a stored setting conflicts with the config. Exit code 2 when the run is refused because the matching file
+of signal ``matched`` is missing or stale (design.md 15.1).
 """
 
 from __future__ import annotations
@@ -23,7 +25,7 @@ warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
 from omegaconf import OmegaConf  # noqa: E402
 
 from cf_unc.data.harmonise import MatchingError  # noqa: E402
-from cf_unc.experiments.e2 import DEFAULT_CONFIG, load_config, run_e2  # noqa: E402
+from cf_unc.experiments.e2 import DEFAULT_CONFIG, dry_run_e2, load_config, run_e2  # noqa: E402
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -38,6 +40,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--set", nargs="+", default=[], metavar="KEY=VALUE", help="dotted overrides of the config")
     parser.add_argument("--pilot", action="store_true", help="reduced experiment (cf_unc.experiments.e2.PILOT)")
     parser.add_argument("--quiet", action="store_true", help="no progress lines on stdout (logs/run.log only)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="tables done and missing, stored specs and checkpoints checked; loads no events, writes nothing")
     return parser.parse_args(argv)
 
 
@@ -66,6 +70,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.datasets:
         cfg.datasets = _select(cfg.datasets, args.datasets, "data sets")
     try:
+        if args.dry_run:
+            plan = dry_run_e2(cfg, echo=not args.quiet)
+            print(json.dumps(plan, indent=2))
+            return 1 if plan["conflicts"] else 0
         status = run_e2(cfg, echo=not args.quiet)
     except MatchingError as exc:
         print(f"refused: {exc}", file=sys.stderr)

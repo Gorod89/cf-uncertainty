@@ -17,6 +17,7 @@ _MODULES = (
     "gp_residual_idm",
     "quantile_pidl",
     "diffusion_cf",
+    "lstm_hetero_frozen",
 )
 
 for _name in _MODULES:

@@ -148,8 +148,12 @@ def plot_coverage_by_horizon(
 def plot_width_by_horizon(
     coverage: pd.DataFrame, target: str, dataset: str, path: Path, models: Sequence[str] | None = None
 ) -> Path | None:
-    """Mean width [m] of the raw and of the ACI-corrected 90 % gap interval against the horizon (log scale)."""
+    """Mean width [m] of the raw and of the ACI-corrected 90 % gap interval against the horizon (log scale): the
+    mean over the finite intervals (``width_finite_mean``; an ACI interval at a level >= 1 is infinite) when the table
+    has it, else ``width_mean``."""
     sel = coverage[(coverage["target"] == target) & (coverage["dataset"] == dataset)]
+    column = "width_finite_mean" if "width_finite_mean" in sel.columns else "width_mean"
+    sel = sel.assign(width_mean=sel[column])
     sel = sel[np.isfinite(sel["width_mean"].to_numpy(float)) & (sel["width_mean"].to_numpy(float) > 0)]
     names = _models(sel, models)
     if not names:
@@ -177,8 +181,8 @@ def plot_width_by_horizon(
     ]
     _finish(
         fig, f"Width of the 90 % gap interval by horizon: {label(dataset, DATASET_LABEL_E2)}",
-        f"Closed-loop rollouts, {TARGET_LABEL.get(target, target)}. Mean over events of the seed-averaged width; "
-        "log scale shared by all panels.",
+        f"Closed-loop rollouts, {TARGET_LABEL.get(target, target)}. Mean over events of the seed-averaged width of "
+        "the finite intervals; log scale shared by all panels.",
         handles, ncol=2,
     )  # fmt: skip
     return _save(fig, path)

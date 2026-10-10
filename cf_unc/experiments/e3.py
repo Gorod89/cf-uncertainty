@@ -25,6 +25,19 @@ A *unit* is (signal variant, model, seed, profile). Signal variants: ``raw`` (``
   refuses the variant); the analysis reads the leader of a variant from that file. The measured follower statistics
   stay those of the profiles file.
 
+* ``only_models``: the labels of ``cfg.models`` that run in this variant (absent: all of them), e.g. the review control
+  ``raw_a`` (design.md 18.2), whose other models would repeat the ``raw`` units bit for bit.
+
+Model specs (``cfg.models``, design.md 13.2 and 18): ``model``, ``target``, ``sampler_mode``, ``hold_steps`` and two
+optional keys (review controls, design.md 18):
+
+* ``checkpoints``: a checkpoints directory of this label that replaces the variant's directory of its target (e.g.
+  ``diffusion_cf_hist`` of ``artifacts/e1_ctrl/checkpoints`` in the ``raw`` variant); part of the unit spec as the
+  variant's directory always was, so the specs of the models without it are unchanged. A variant's ``models``
+  override may set it too.
+* ``variants``: the variants this label runs in (absent: every variant), e.g. a control model whose checkpoints exist
+  for some variants only. Not part of the unit spec.
+
 A (variant, target) whose checkpoint directory does not exist is skipped with a warning (the targets of a variant are
 those of its model specs after the overrides). Profiles come from ``cfg.profiles``; ``cfg.run_profiles`` selects
 ``headline`` (the first ``sets.headline`` profiles), ``extended`` (all, or the first ``sets.extended``) or a list of
@@ -96,8 +109,9 @@ __all__ = [
 DEFAULT_CONFIG = ROOT / "configs" / "experiment" / "e3.yaml"
 PILOT: dict[str, Any] = {"root": "artifacts/e3_pilot", "seeds": [0], "run_profiles": "headline", "n_rollouts": 20}
 RAW = "raw"
-MODEL_KEYS = ("model", "target", "sampler_mode", "hold_steps")  # keys of a model spec (and of a variant's override)
-VARIANT_KEYS = ("models", "profile_window")  # keys of a variant that are not targets
+MODEL_KEYS = ("model", "target", "sampler_mode", "hold_steps", "checkpoints")  # keys of a model spec and of a variant's override
+SELECT_KEYS = ("variants",)  # keys of a model spec that select where it runs (not part of the unit spec)
+VARIANT_KEYS = ("models", "profile_window", "only_models")  # keys of a variant that are not targets
 UNIT_COLUMNS = (
     "profile", "seed", "vehicle", "rollout", "amplitude", "sd", "amplitude_profile", "sd_profile", "min_gap",
     "first_collision", "leader_amplitude", "leader_sd", "leader_sd_profile", "emp_amplitude", "emp_sd", "s_init",
@@ -164,6 +178,7 @@ class Variant:
     models: dict[str, dict[str, Any]] = field(default_factory=dict)
     profile_window: int | None = None
     window_source: dict[str, str] | None = None  # {"matching", "data"} when the window was read from a matching file
+    only_models: list[str] | None = None  # labels that run in this variant (None: every label)
 
 
 def profile_window(value: Any) -> tuple[int, dict[str, str] | None]:
@@ -184,10 +199,25 @@ def profile_window(value: Any) -> tuple[int, dict[str, str] | None]:
     return int(value), source
 
 
+def check_models(cfg: DictConfig | Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+    """The model specs of ``cfg.models``; ValueError for a key outside ``MODEL_KEYS`` + ``SELECT_KEYS`` or a
+    ``variants`` entry that is not a list of names."""
+    models = {str(k): dict(v or {}) for k, v in (_plain(cfg.get("models")) or {}).items()}
+    for label, spec in models.items():
+        bad = sorted(set(spec) - set(MODEL_KEYS) - set(SELECT_KEYS))
+        if bad:
+            raise ValueError(f"models.{label}: unknown keys {bad}; known: {[*MODEL_KEYS, *SELECT_KEYS]}")
+        where = spec.get("variants")
+        if where is not None and (isinstance(where, str) or not all(isinstance(v, str) for v in where)):
+            raise ValueError(f"models.{label}.variants must be a list of variant names, got {where!r}")
+    return models
+
+
 def parse_variants(cfg: DictConfig | Mapping[str, Any]) -> dict[str, Variant]:
     """The signal variants of an E3 config: ``raw`` (``checkpoints``) first, then ``variants`` in config order. A
-    variant's ``models`` may only override ``MODEL_KEYS`` of labels of ``cfg.models`` (ValueError otherwise)."""
-    labels = set((_plain(cfg.get("models")) or {}))
+    variant's ``models`` may only override ``MODEL_KEYS`` of labels of ``cfg.models``, its ``only_models`` may only
+    list such labels (ValueError otherwise)."""
+    labels = set(check_models(cfg))
     out = {RAW: Variant(RAW, {str(k): str(v) for k, v in (_plain(cfg.get("checkpoints")) or {}).items() if v is not None})}
     for name, spec in (_plain(cfg.get("variants")) or {}).items():
         spec = dict(spec or {})
@@ -202,8 +232,14 @@ def parse_variants(cfg: DictConfig | Mapping[str, Any]) -> dict[str, Variant]:
                 raise ValueError(f"variant {name}: models.{label} may override {list(MODEL_KEYS)} only, got {bad}")
         window = spec.pop("profile_window", None)
         w, source = (None, None) if window is None else profile_window(window)
+        only = spec.pop("only_models", None)
+        if only is not None:
+            only = [str(m) for m in ([only] if isinstance(only, str) else only)]
+            unknown = sorted(set(only) - labels)
+            if unknown:
+                raise ValueError(f"variant {name}: only_models lists {unknown}, which are not keys of models {sorted(labels)}")
         dirs = {str(k): str(v) for k, v in spec.items() if v is not None}
-        out[str(name)] = Variant(str(name), dirs, overrides, w, source)
+        out[str(name)] = Variant(str(name), dirs, overrides, w, source, only)
     return out
 
 
@@ -283,7 +319,7 @@ class E3Runner:
         self.cfg = cfg
         self.dry = bool(dry)
         self.root = _path(cfg.root)
-        self.models = {str(k): dict(v) for k, v in _plain(cfg.models).items()}
+        self.models = check_models(cfg)
         self.variants = parse_variants(cfg)  # a config error refuses before anything is created
         if not self.dry:
             self.root.mkdir(parents=True, exist_ok=True)
@@ -334,9 +370,17 @@ class E3Runner:
     def target_of(self, variant: str, label: str) -> str:
         return str(self.spec_of(variant, label).get("target", "a"))
 
+    def runs_in(self, variant: str, label: str) -> bool:
+        """Whether ``label`` runs in ``variant``: listed by the model's ``variants`` (absent: every variant) and by the
+        variant's ``only_models`` (absent: every label)."""
+        where = self.models[label].get("variants")
+        only = self.variants[variant].only_models
+        return (where is None or variant in where) and (only is None or label in only)
+
     def labels(self, variant: str) -> list[str]:
-        """Model labels whose target directory exists in ``variant``."""
-        return [m for m in self.models if self.target_of(variant, m) in self.active.get(variant, [])]
+        """Model labels that run in ``variant`` (``runs_in``) and whose target directory exists in it."""
+        return [m for m in self.models
+                if self.runs_in(variant, m) and self.target_of(variant, m) in self.active.get(variant, [])]
 
     def status(self, finished: bool = False) -> dict[str, Any]:
         per_variant = {}
@@ -392,7 +436,7 @@ class E3Runner:
         target = str(spec.get("target", "a"))
         out = {
             "label": label, "model": str(spec.get("model", label)), "target": target,
-            "checkpoints": self.variants[variant].checkpoints[target],
+            "checkpoints": self.checkpoint_dir(variant, label),
             "sampler_mode": str(spec.get("sampler_mode", "per_step")), "hold_steps": int(spec.get("hold_steps", 1)),
         }  # fmt: skip
         if self.variants[variant].profile_window is not None:
@@ -417,6 +461,13 @@ class E3Runner:
         if not path.exists():
             return "new"
         return "equal" if json.loads(path.read_text(encoding="utf-8")) == dict(spec) else "conflict"
+
+    def checkpoint_dir(self, variant: str, label: str) -> str:
+        """Checkpoints directory of ``label`` in ``variant``: the model's ``checkpoints`` (after the variant's
+        overrides), else the variant's directory of the label's target."""
+        spec = self.spec_of(variant, label)
+        own = spec.get("checkpoints")
+        return str(own) if own is not None else self.variants[variant].checkpoints[str(spec.get("target", "a"))]
 
     def checkpoint(self, variant: str, label: str, seed: int) -> Path:
         spec = self.model_spec(variant, label)
@@ -498,7 +549,7 @@ class E3Runner:
             raise FileNotFoundError(f"checkpoint {path} does not exist")
         self.current = group
         model = load_model(path, device=self.device)
-        sampled = bool(getattr(model, "needs_leader_future", False))
+        sampled = bool(getattr(model, "plan_sampler", False))  # plan samplers: n_rollouts_sampled, hold 1
         n_r = int(self.pcfg.n_rollouts_sampled if sampled else self.pcfg.n_rollouts)
         hold = 1 if sampled else int(spec["hold_steps"])
         size = max(1, min(self.batch_profiles, int(self.pcfg.max_batch) // n_r))
@@ -563,7 +614,7 @@ class E3Runner:
             if not v.checkpoints:  # not requested (run_e3.py --variants without this one)
                 continue
             present = []
-            for t in sorted({self.target_of(variant, m) for m in self.models}):
+            for t in sorted({self.target_of(variant, m) for m in self.models if self.runs_in(variant, m)}):
                 directory = v.checkpoints.get(t)
                 if directory is not None and _path(directory).is_dir():
                     present.append(t)
@@ -642,7 +693,7 @@ class E3Runner:
                 row: dict[str, Any] = {
                     "target": self.target_of(variant, label), "hold_steps": int(spec.get("hold_steps", 1)),
                     "sampler_mode": str(spec.get("sampler_mode", "per_step")),
-                    "checkpoints": v.checkpoints[self.target_of(variant, label)], "done": done,
+                    "checkpoints": self.checkpoint_dir(variant, label), "done": done,
                     "missing": len(self.seeds) * len(self.run_ids) - done,
                 }  # fmt: skip
                 if ok:

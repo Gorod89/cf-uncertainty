@@ -20,6 +20,7 @@ from cf_unc.experiments.e1 import run_e1
 from cf_unc.experiments.e2 import load_config, run_e2, select_events
 from cf_unc.models.base import MODEL_REGISTRY, CFModel, register
 from cf_unc.rollout import tables
+from cf_unc.rollout.calibration import STREAM_VARIANTS, h34_verdict
 
 REPO = Path(__file__).resolve().parents[1]
 N_FOLDS = 5
@@ -108,7 +109,7 @@ def _files(root: Path) -> dict[str, int]:
 def test_pilot_config() -> None:
     cfg = load_config(pilot=True)
     assert cfg.root == "artifacts/e2_pilot" and list(cfg.seeds) == [0] and list(cfg.targets) == ["a"]
-    assert {int(d.n_events) for d in cfg.datasets.values()} == {100} and len(cfg.models) == 10
+    assert {int(d.n_events) for d in cfg.datasets.values()} == {100} and len(cfg.models) == 11  # + idm_ar_noise (R10)
     assert load_config(pilot=True, overrides=["rollout.max_batch=5000"]).rollout.max_batch == 5000
 
 
@@ -284,7 +285,8 @@ def test_analyze_e2_end_to_end(first_run: tuple[DictConfig, dict], e1_root: tupl
     e1, _ = e1_root
     analysis = _load_script("analyze_e2")
     out = analysis.analyze_e2(root, {"a": e1, "mean_1s": root / "none"}, verbose=False)
-    for name in ("coverage_by_horizon", "aci_gamma_sensitivity", "onestep_conformal", "collisions", "h34_verdicts"):
+    for name in ("coverage_by_horizon", "aci_gamma_sensitivity", "onestep_conformal", "collisions", "h34_verdicts",
+                 "stream_info"):
         frame = pd.read_csv(root / "tables" / f"{name}.csv")
         assert len(frame) > 0, name
         if name in analysis.COLUMNS:
@@ -292,25 +294,59 @@ def test_analyze_e2_end_to_end(first_run: tuple[DictConfig, dict], e1_root: tupl
     assert (root / "tables" / "analysis_info.json").exists()
     cov = out["coverage_by_horizon"]
     assert set(cov["model"]) == set(LABELS) and set(cov["dataset"]) == set(DATASETS)
-    assert set(cov[cov["dataset"] == "highd"]["variant"]) == {"raw", "raw_linear", "static", "aci_frozen", "aci_online"}
+    assert set(cov[cov["dataset"] == "highd"]["variant"]) == {"raw", "raw_linear", "static", "aci_frozen", "aci_online",
+                                                               *STREAM_VARIANTS}  # fmt: skip
     assert set(cov[cov["dataset"] == "highd_val"]["variant"]) == {"raw", "raw_linear"}  # the calibration set itself
     assert ((cov["picp"] >= 0) & (cov["picp"] <= 1)).all() and (cov["n_seeds"] == 2).all()
     assert (cov[cov["variant"].str.startswith("aci")]["gamma"] == 0.01).all()
+    online = cov[cov["variant"].isin(["aci_online", "aci_online_chrono", "static_prequential"])]
+    assert (online["delay_events_mean"] == 0).all() and online["picp_first50"].notna().all()
+    assert cov.loc[cov["variant"] == "raw", "picp_first50"].isna().all()
+    delayed = cov[cov["variant"] == "aci_online_delayed"]  # synthetic events: untimed, 1 event per second of horizon
+    assert (delayed["delay_events_mean"] > 0).all()
+    assert ((cov["share_infinite"] >= 0) & (cov["share_infinite"] <= 1)).all() and (cov["share_empty"] >= 0).all()
+    assert (cov["picp_lo_follower"] <= cov["picp"] + 1e-12).all() and cov["n_followers"].notna().all()
+    streams = out["stream_info"]
+    assert set(streams["dataset"]) == {"highd", "ngsim"} and set(streams["clock"]) == {"untimed"}
     sens = out["aci_gamma_sensitivity"]
     assert sorted(sens["gamma"].unique()) == [0.005, 0.01, 0.02, 0.05]
+    assert set(sens["variant"]) == {"aci_frozen", "aci_online"}
     one = out["onestep_conformal"]
     assert set(one["model"]) == set(MODELS) and set(one["dataset"]) == {"highd", "ngsim"} and set(one["score"]) == {"absolute", "normalised"}
     assert ((one["picp_conformal_lo"] <= one["picp_conformal"]) & (one["picp_conformal"] <= one["picp_conformal_hi"])).all()
+    assert one["picp_conformal_lo_follower"].notna().all() and (one["n_followers"] > 0).all()
     col = out["collisions"]
     assert {"collided_1s", "collided_2s", "events_with_collision"} <= set(col.columns) and len(col) == len(LABELS) * len(DATASETS)
     ver = out["h34_verdicts"]
     assert set(ver["verdict"]) <= {"supported", "refuted", "inconclusive"} and set(ver["dataset"]) == {"highd", "ngsim"}
     assert set(ver["corrected"]) == {"static", "aci_frozen", "aci_online"} and ver["onestep_picp"].notna().all()
+    assert set(ver["onestep_source"]) == {"highd"}
+    # the table rows follow the decision table of h34_verdict (R7)
+    for row in ver.itertuples():
+        raw = cov[(cov["model"] == row.model) & (cov["target"] == row.target) & (cov["dataset"] == row.dataset)
+                  & (cov["variant"] == "raw")].sort_values("horizon_s")  # fmt: skip
+        corr = cov[(cov["model"] == row.model) & (cov["target"] == row.target) & (cov["dataset"] == row.dataset)
+                   & (cov["variant"] == row.corrected)].sort_values("horizon_s")  # fmt: skip
+        again = h34_verdict(row.onestep_picp, raw["picp"], corr["picp"], onestep_ci=(row.onestep_lo, row.onestep_hi),
+                            raw_ci=(raw["picp_lo"], raw["picp_hi"]), corrected_ci=(corr["picp_lo"], corr["picp_hi"]))  # fmt: skip
+        assert (again["verdict"], again["verdict_ci"]) == (row.verdict, row.verdict_ci)
     figures = {p.name for p in (root / "figures").glob("*.png")}
     assert figures == {"coverage_by_horizon__a.png", "coverage_by_horizon__a__ngsim.png", "width_by_horizon__a.png"}
     assert all(p.stat().st_size > 5000 for p in (root / "figures").glob("*.png"))
     text = analysis.format_summary(out)
     assert "H3.4 verdicts" in text and "lstm_const_sigma" in text
+    # the heuristic finite ACI of the submitted tables is still available, in its own directory
+    finite = analysis.analyze_e2(root, {"a": e1, "mean_1s": root / "none"}, verbose=False, figures=False,
+                                 settings={"calibration": {"finite_quantile": True, "streams": False}},
+                                 tables_dir="tables_finite")  # fmt: skip
+    assert (root / "tables_finite" / "coverage_by_horizon.csv").exists()
+    f_cov = finite["coverage_by_horizon"]
+    assert set(f_cov["variant"]) == {"raw", "raw_linear", "static", "aci_frozen", "aci_online"}
+    assert (f_cov["share_infinite"] == 0).all() and (f_cov["share_empty"] == 0).all()  # every correction finite
+    same = ["model", "target", "dataset", "horizon_s", "variant"]
+    merged = cov.merge(f_cov, on=same, suffixes=("", "_finite"))
+    fixed = merged[merged["variant"].isin(["raw", "raw_linear", "static"])]
+    assert len(fixed) and np.allclose(fixed["picp"], fixed["picp_finite"])  # only ACI changes
 
 
 # ------------------------------------------------------------------------------ signal variant

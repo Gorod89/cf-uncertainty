@@ -835,11 +835,21 @@ def concentrations(
             per_seed = full[:, 1] / full[:, 0]
             reps_ratio = _avg_seeds(rep[:, :, 1], ok) / _avg_seeds(rep[:, :, 0], ok)
         lo, hi, se = _interval(reps_ratio, ci)
+        # mass-share concentration (share of the mass in the mask / share of the windows in it) = mean(x | mask) /
+        # mean(x): the same draws, the overall mean from the resampled sums and counts of both groups
+        sums = reps[:, col - 2 * width : col - width].reshape(-1, k_eff, 2)
+        counts = reps[:, col - width : col].reshape(-1, k_eff, 2)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            rep_all = sums.sum(axis=-1) / counts.sum(axis=-1)
+            reps_mass = _avg_seeds(rep[:, :, 1], ok) / _avg_seeds(rep_all, ok)
+        mass_lo, mass_hi, _ = _interval(reps_mass, ci)
+        all_means = _seed_group_means(x)[:, 0]
         valid = (~np.isnan(x)).any(axis=0)
         xbar = _row_nanmean(x.T)  # seed mean per window
         total = float(np.sum(xbar[valid]))
         mean_in = float(full[ok, 1].mean()) if ok.any() else float("nan")
         mean_out = float(full[ok, 0].mean()) if ok.any() else float("nan")
+        mean_all = float(all_means[ok].mean()) if ok.any() else float("nan")
         out[(name, rule)] = {
             "estimate": _ratio(mean_in, mean_out),
             "lo": lo,
@@ -849,6 +859,9 @@ def concentrations(
             "seed_sd": _sd(per_seed[ok]),
             "share_windows": float(mask[valid].mean()) if valid.any() else float("nan"),
             "share_mass": _ratio(float(np.sum(xbar[valid & mask])), total),
+            "mass_ratio": _ratio(mean_in, mean_all),
+            "mass_ratio_lo": mass_lo,
+            "mass_ratio_hi": mass_hi,
             "mean_mask": mean_in,
             "mean_rest": mean_out,
             "n_events": n_units,
@@ -871,8 +884,10 @@ def concentration(
     x: (n_seeds, n) or (n,); mask: (n,) bool (e.g. rare bins, ``s < 15``); events: (n,) unit labels.
     Both conditional means come from the same resampled units (and seeds). Returns ``estimate``, ``lo``,
     ``hi``, ``se``, ``per_seed``, ``seed_sd``, ``share_windows`` = share of the valid windows in the mask,
-    ``share_mass`` = ``sum(x[mask]) / sum(x)`` of the seed-averaged x, ``mean_mask``, ``mean_rest``,
-    ``n_events``, ``n_seeds``, ``replicates``.
+    ``share_mass`` = ``sum(x[mask]) / sum(x)`` of the seed-averaged x, ``mass_ratio`` (with ``mass_ratio_lo`` /
+    ``mass_ratio_hi``) = share of the mass / share of the windows = ``mean(x | mask) / mean(x)`` (the definition of
+    the Methods; > 1 exactly when ``estimate`` > 1), ``mean_mask``, ``mean_rest``, ``n_events``, ``n_seeds``,
+    ``replicates``.
     """
     return concentrations({"x": x}, {"mask": mask}, events, n_boot, seed, ci)[("x", "mask")]
 

@@ -6,6 +6,7 @@
     python scripts/run_e3.py --profiles p01 p07 --set platoon.batch_profiles=10 --root artifacts/e3_test
     python scripts/run_e3.py --dry-run                          # units done / missing per variant, stored specs; writes nothing
     bash scripts/run_e3_retry.sh artifacts/e3/logs/run_pooled.out 8 --variants pool lodo_openacc --quiet   # E3-pooled (17.1)
+    python scripts/run_e3.py --dry-run --variants raw_w61 raw_a pool_w11 lodo_openacc_w11 --quiet   # review controls (18)
 
 A run set other than the one of the root's other units (e.g. ``--profiles headline`` in a root of the extended set)
 belongs in another root (``--root``): the random streams are seeded per batch of the run set, so its units would
@@ -67,6 +68,8 @@ def main(argv: list[str] | None = None) -> int:
         for name, spec in (cfg.get("variants") or {}).items():  # per-variant overrides of the models left out go too
             if spec is not None and spec.get("models") is not None:
                 spec.models = OmegaConf.create({k: v for k, v in spec.models.items() if k in args.models})
+            if spec is not None and spec.get("only_models") is not None:  # and so do they from a variant's selection
+                spec.only_models = [m for m in spec.only_models if m in args.models]
     if args.seeds:
         cfg.seeds = list(args.seeds)
     if args.profiles:

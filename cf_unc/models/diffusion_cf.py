@@ -8,6 +8,9 @@ with stochasticity ``eta`` (1: ancestral-like, 0: deterministic). Written from s
 
 Diffusion step ``k = 0 .. t_train-1`` is the noise level after ``k + 1`` forward steps:
 ``x_k = sqrt(ab_k) x_0 + sqrt(1 - ab_k) eps`` with ``ab_k = alpha_bar[k]``.
+
+``DiffusionCFHist`` (registry name ``diffusion_cf_hist``, review control R2): the same model without the leader-future
+input, conditioned on the history only.
 """
 
 from __future__ import annotations
@@ -148,11 +151,15 @@ class Denoiser(nn.Module):
     channels ``[x_k, v_lead_rel]`` (B, 2, L); block b is dilated by 3^(b mod 4), so that with 4 blocks of
     kernel 5 every output step sees the whole 50-step sequence; zero-initialised 1x1 output convolution.
     Holds the input normaliser (history, pooled acceleration sequence) and ``vl_scale`` [m/s] as buffers.
+
+    ``leader=False`` (DiffusionCFHist, review control R2): the leader-future channel is removed, the input
+    convolution sees ``[x_k]`` only (B, 1, L), so the denoiser is conditioned on the history alone; everything else
+    (encoder, FiLM, conv stack, step embedding) is the same network.
     """
 
-    def __init__(self, seq_len: int, channels: int, n_blocks: int, kernel: int, hidden: int) -> None:
+    def __init__(self, seq_len: int, channels: int, n_blocks: int, kernel: int, hidden: int, leader: bool = True) -> None:
         super().__init__()
-        self.seq_len, self.channels = seq_len, channels
+        self.seq_len, self.channels, self.leader = seq_len, channels, bool(leader)
         self.norm = Normalizer(N_FEATURES)
         self.register_buffer("vl_scale", torch.ones(()))
         self.encoder = nn.LSTM(N_FEATURES, hidden, batch_first=True)
@@ -161,7 +168,7 @@ class Denoiser(nn.Module):
         self.cond_mlp = nn.Sequential(
             nn.Linear(hidden + channels, cond_dim), nn.SiLU(), nn.Linear(cond_dim, cond_dim), nn.SiLU()
         )
-        self.inp = nn.Conv1d(2, channels, kernel, padding="same")
+        self.inp = nn.Conv1d(2 if self.leader else 1, channels, kernel, padding="same")
         self.blocks = nn.ModuleList(_ResBlock(channels, kernel, cond_dim, 3 ** (b % 4)) for b in range(n_blocks))
         self.out_norm = nn.GroupNorm(math.gcd(8, channels), channels)
         self.out = nn.Conv1d(channels, 1, 1)
@@ -172,16 +179,27 @@ class Denoiser(nn.Module):
         """(B, H, 3) normalised history -> (B, hidden) last LSTM output."""
         return self.encoder(hist_n)[0][:, -1]
 
-    def denoise(self, x_k: torch.Tensor, k: torch.Tensor, ctx: torch.Tensor, vl_rel: torch.Tensor) -> torch.Tensor:
-        """x_k (B, L), k (B,) or (1,) int, ctx (B, hidden), vl_rel (B, L) -> predicted noise (B, L)."""
+    def denoise(
+        self, x_k: torch.Tensor, k: torch.Tensor, ctx: torch.Tensor, vl_rel: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """x_k (B, L), k (B,) or (1,) int, ctx (B, hidden), vl_rel (B, L) -> predicted noise (B, L).
+
+        ``vl_rel`` is ignored (may be None) by a denoiser without the leader channel (``leader=False``)."""
         temb = self.step_mlp(step_embedding(k, self.channels)).expand(ctx.shape[0], -1)
         cond = self.cond_mlp(torch.cat([ctx, temb], dim=-1))
-        h = self.inp(torch.stack([x_k, vl_rel], dim=1))
+        if self.leader:
+            if vl_rel is None:
+                raise ValueError("this denoiser is conditioned on the leader's future: vl_rel is required")
+            h = self.inp(torch.stack([x_k, vl_rel], dim=1))
+        else:
+            h = self.inp(x_k.unsqueeze(1))
         for block in self.blocks:
             h = block(h, cond)
         return self.out(F.silu(self.out_norm(h))).squeeze(1)
 
-    def forward(self, x_k: torch.Tensor, k: torch.Tensor, hist_n: torch.Tensor, vl_rel: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x_k: torch.Tensor, k: torch.Tensor, hist_n: torch.Tensor, vl_rel: torch.Tensor | None = None
+    ) -> torch.Tensor:
         return self.denoise(x_k, k, self.context(hist_n), vl_rel)
 
 
@@ -201,6 +219,7 @@ class DiffusionCF(CFModel):
     """
 
     needs_leader_future = True
+    plan_sampler = True
 
     def __init__(
         self,
@@ -232,6 +251,8 @@ class DiffusionCF(CFModel):
             raise ValueError(f"unknown train options {unknown}")
         self.seq_len, self.n_samples, self.t_train, self.eta = int(seq_len), int(n_samples), int(t_train), float(eta)
         self.arch = dict(seq_len=self.seq_len, channels=channels, n_blocks=n_blocks, kernel=kernel, hidden=hidden)
+        if not self.needs_leader_future:  # DiffusionCFHist: no leader-future channel (the denoiser default keeps it)
+            self.arch["leader"] = False
         self.replan_every, self.predict_seed, self.clip_x0 = int(replan_every), int(predict_seed), bool(clip_x0)
         self.train_cfg = TrainConfig.from_any({**DEFAULT_TRAIN, **(train or {})})
         self.alpha_bar = cosine_alpha_bar(self.t_train)
@@ -244,8 +265,11 @@ class DiffusionCF(CFModel):
             raise RuntimeError("DiffusionCF is not fitted")
         return self.net
 
-    def _leader(self, hist: torch.Tensor, v_lead_future: np.ndarray | torch.Tensor | None) -> torch.Tensor:
-        """(N, L) leader speed [m/s] at t+1 .. t+L; constant ``v_t - dv_t`` if None."""
+    def _leader(self, hist: torch.Tensor, v_lead_future: np.ndarray | torch.Tensor | None) -> torch.Tensor | None:
+        """(N, L) leader speed [m/s] at t+1 .. t+L; constant ``v_t - dv_t`` if None. A model without the leader
+        input (``needs_leader_future`` False, DiffusionCFHist) returns None whatever is passed."""
+        if not self.needs_leader_future:
+            return None
         if v_lead_future is None:
             return (hist[:, -1, 2] - hist[:, -1, 1]).unsqueeze(-1).expand(-1, self.seq_len)
         vlf = torch.as_tensor(v_lead_future if torch.is_tensor(v_lead_future) else np.asarray(v_lead_future))
@@ -256,21 +280,27 @@ class DiffusionCF(CFModel):
         return vlf
 
     def _arrays(self, ws: WindowSet) -> dict[str, np.ndarray]:
-        """Normalised training arrays: hist (N, H, 3), vl (N, L) relative leader speed, y (N, L)."""
+        """Normalised training arrays: hist (N, H, 3), vl (N, L) relative leader speed (only with the leader input),
+        y (N, L)."""
         norm = self._require_net().norm
         x_mean, x_std = norm.x_mean.cpu().numpy(), norm.x_std.cpu().numpy()
-        rel = ws.v_lead_future.astype(np.float64) - ws.X[:, -1:, 2]
-        return {
+        out = {
             "hist": ((ws.X - x_mean) / x_std).astype(np.float32),
-            "vl": (rel / float(self.net.vl_scale)).astype(np.float32),
             "y": ((ws.y_seq - float(norm.y_mean)) / float(norm.y_std)).astype(np.float32),
         }
+        if self.needs_leader_future:
+            rel = ws.v_lead_future.astype(np.float64) - ws.X[:, -1:, 2]
+            out["vl"] = (rel / float(self.net.vl_scale)).astype(np.float32)
+        return out
 
     @torch.no_grad()
-    def _denoise_chunk(self, hist: torch.Tensor, vlf: torch.Tensor, n_samples: int, draw: DrawFn) -> torch.Tensor:
-        """Sample (N, S, L) accelerations [m/s^2] for histories (N, H, 3) and leader speeds (N, L)."""
+    def _denoise_chunk(
+        self, hist: torch.Tensor, vlf: torch.Tensor | None, n_samples: int, draw: DrawFn
+    ) -> torch.Tensor:
+        """Sample (N, S, L) accelerations [m/s^2] for histories (N, H, 3) and leader speeds (N, L) (None: a model
+        without the leader input)."""
         net = self._require_net()
-        rel = ((vlf - hist[:, -1, 2:3]) / net.vl_scale).repeat_interleave(n_samples, dim=0)
+        rel = None if vlf is None else ((vlf - hist[:, -1, 2:3]) / net.vl_scale).repeat_interleave(n_samples, dim=0)
         ctx = net.context(net.norm.norm_x(hist)).repeat_interleave(n_samples, dim=0)
         y_mean, y_std = float(net.norm.y_mean), float(net.norm.y_std)
         x0_range = ((A_MIN - y_mean) / y_std, (A_MAX - y_mean) / y_std) if self.clip_x0 else None
@@ -282,8 +312,9 @@ class DiffusionCF(CFModel):
         return (y_mean + y_std * x0).clamp(A_MIN, A_MAX).reshape(hist.shape[0], n_samples, self.seq_len)
 
     def _sample(
-        self, hist: torch.Tensor, vlf: torch.Tensor, n_samples: int, generator: torch.Generator | None, batch_size: int
-    ) -> torch.Tensor:
+        self, hist: torch.Tensor, vlf: torch.Tensor | None, n_samples: int, generator: torch.Generator | None,
+        batch_size: int,
+    ) -> torch.Tensor:  # fmt: skip
         """Chunked sampling, (N, S, L) tensor. ``generator=None``: one seeded noise stream per RNG_BLOCK rows.
 
         The seeded streams are CPU generators on every device (the noise is moved to the model's device), so that
@@ -308,7 +339,7 @@ class DiffusionCF(CFModel):
                 z = [torch.randn((full * n_samples, length), generator=g, device=g.device) for g, _, full in streams]
                 return torch.cat([zi[: m * n_samples] for zi, (_, m, _) in zip(z, streams)]).to(self.device)
 
-            out.append(self._denoise_chunk(hist[a:b], vlf[a:b], n_samples, draw))
+            out.append(self._denoise_chunk(hist[a:b], None if vlf is None else vlf[a:b], n_samples, draw))
         return torch.cat(out) if out else torch.empty((0, n_samples, length), device=self.device)
 
     # ------------------------------------------------------------------- training
@@ -321,7 +352,7 @@ class DiffusionCF(CFModel):
             x0 = batch["y"]
             k = torch.randint(0, self.t_train, (x0.shape[0],), generator=gen, device=x0.device)
             eps = torch.randn(x0.shape, generator=gen, device=x0.device)
-            return F.mse_loss(net(q_sample(x0, k, eps, ab), k, batch["hist"], batch["vl"]), eps)
+            return F.mse_loss(net(q_sample(x0, k, eps, ab), k, batch["hist"], batch.get("vl")), eps)
 
         return loss
 
@@ -329,21 +360,24 @@ class DiffusionCF(CFModel):
         """Deterministic eps-MSE with the steps ``k`` and noises ``eps`` stored in the validation arrays."""
         ab = torch.as_tensor(self.alpha_bar, dtype=torch.float32, device=batch["y"].device)
         x_k = q_sample(batch["y"], batch["k"], batch["eps"], ab)
-        return F.mse_loss(net(x_k, batch["k"], batch["hist"], batch["vl"]), batch["eps"])
+        return F.mse_loss(net(x_k, batch["k"], batch["hist"], batch.get("vl")), batch["eps"])
 
     def fit(self, train: WindowSet, val: WindowSet | None = None, *, seed: int = 0, verbose: bool = False) -> dict:
-        """Train on windows cut with ``seq_len = L`` (needs ``y_seq`` and ``v_lead_future``); JSON-able log."""
+        """Train on windows cut with ``seq_len = L`` (needs ``y_seq``, and ``v_lead_future`` with the leader input);
+        JSON-able log."""
         for name, ws in (("train", train), ("val", val)):
-            if ws is not None and (ws.y_seq is None or ws.v_lead_future is None):
-                raise ValueError(f"DiffusionCF needs {name} windows with y_seq and v_lead_future (seq_len > 0)")
+            if ws is not None and (ws.y_seq is None or (self.needs_leader_future and ws.v_lead_future is None)):
+                what = "y_seq and v_lead_future" if self.needs_leader_future else "y_seq"
+                raise ValueError(f"{type(self).__name__} needs {name} windows with {what} (seq_len > 0)")
             if ws is not None and ws.y_seq.shape[1] != self.seq_len:
                 raise ValueError(f"{name} windows have seq_len {ws.y_seq.shape[1]}, the model expects {self.seq_len}")
         started = time.perf_counter()
         torch.manual_seed(_seed(seed, 0))
         self.net = net = Denoiser(**self.arch).to(self.device)
         net.norm.fit(train.X, train.y_seq)
-        rel = train.v_lead_future.astype(np.float64) - train.X[:, -1:, 2]
-        net.vl_scale.fill_(max(float(rel.std()), 1e-6))
+        if self.needs_leader_future:  # the history-only model keeps vl_scale = 1 (unused)
+            rel = train.v_lead_future.astype(np.float64) - train.X[:, -1:, 2]
+            net.vl_scale.fill_(max(float(rel.std()), 1e-6))
         val_arrays = None
         if val is not None and len(val) > 0:
             n, rng = len(val), np.random.default_rng([abs(int(seed)), 2])
@@ -379,7 +413,8 @@ class DiffusionCF(CFModel):
         if val_arrays is not None:
             m = min(VAL_NLL_WINDOWS, len(val))
             idx = np.sort(np.random.default_rng([abs(int(seed)), 3]).choice(len(val), m, replace=False))
-            dist = self.predict_dist(val.X[idx], v_lead_future=val.v_lead_future[idx])
+            future = None if val.v_lead_future is None else val.v_lead_future[idx]
+            dist = self.predict_dist(val.X[idx], v_lead_future=future)
             val_nll = float(-np.mean(dist.log_prob(val.y[idx])))
         log.update(
             n_params=int(sum(p.numel() for p in net.parameters())),
@@ -401,8 +436,9 @@ class DiffusionCF(CFModel):
     ) -> np.ndarray:
         """(N, S, L) float32 sampled accelerations [m/s^2] a[t : t+L], clipped to [A_MIN, A_MAX].
 
-        state_history (N, H, 3); v_lead_future (N, L) leader speed [m/s] at t+1 .. t+L (None: constant leader).
-        ``generator=None`` draws from ``predict_seed`` (reproducible, independent of ``batch_size`` rows per chunk).
+        state_history (N, H, 3); v_lead_future (N, L) leader speed [m/s] at t+1 .. t+L (None: constant leader;
+        ignored by a model without the leader input). ``generator=None`` draws from ``predict_seed`` (reproducible,
+        independent of ``batch_size`` rows per chunk).
         """
         hist = as_history_tensor(state_history, self.device)
         s = self.n_samples if n_samples is None else int(n_samples)
@@ -444,8 +480,11 @@ class DiffusionCF(CFModel):
 
         ``v_lead[:, k]`` is the leader speed [m/s] at rollout step k (step 0 = last history sample of the first
         call); None: constant-leader assumption at every re-plan. ``mode`` is validated only (no epistemic part).
+        A model without the leader input (DiffusionCFHist) ignores ``v_lead`` (stored as None).
         """
         super().init_sampler(n_traj, generator, mode)
+        if not self.needs_leader_future:
+            v_lead = None
         if v_lead is not None:
             v_lead = torch.as_tensor(v_lead if torch.is_tensor(v_lead) else np.asarray(v_lead))
             v_lead = v_lead.to(device=self.device, dtype=torch.float32)
@@ -464,7 +503,7 @@ class DiffusionCF(CFModel):
         if j == 0:
             h = as_history_tensor(hist, self.device)
             if state["v_lead"] is None:
-                vlf = self._leader(h, None)
+                vlf = self._leader(h, None)  # None for a model without the leader input
             else:
                 v_lead = state["v_lead"]
                 cols = torch.arange(k + 1, k + 1 + self.seq_len, device=self.device).clamp(max=v_lead.shape[1] - 1)
@@ -483,3 +522,20 @@ class DiffusionCF(CFModel):
         self.net.load_state_dict(state["net"])
         self.net.eval()
         self.fitted = True
+
+
+@register("diffusion_cf_hist")
+class DiffusionCFHist(DiffusionCF):
+    """DiffusionCF conditioned on the 3 s history only (review control R2, docs/design.md 18.1).
+
+    The same DDPM (schedule, denoiser, EMA training, DDIM sampler with ``n_samples`` = 32 and 50 steps, re-planning
+    every ``replan_every`` steps) with the leader-future branch of the conditioning removed: the input convolution
+    of the denoiser sees the noisy sequence only (``Denoiser(leader=False)``), so the generated 5 s plan depends on
+    the history alone, exactly the information of the one-step networks. Removal (not a zeroed channel or a learned
+    null token) keeps no unused weights and makes the information budget explicit. ``v_lead_future`` arguments and
+    the ``v_lead`` of a rollout are accepted and ignored; it is still a plan sampler (``plan_sampler``: sampled-row
+    evaluation in E1, ``n_rollouts_sampled`` rollouts and hold 1 in E2 / E3). Constructor and training budget as
+    DiffusionCF (configs/model/diffusion_cf_hist.yaml mirrors configs/model/diffusion_cf.yaml).
+    """
+
+    needs_leader_future = False

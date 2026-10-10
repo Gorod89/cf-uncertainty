@@ -49,7 +49,11 @@ class CFModel(abc.ABC):
 
     name: ClassVar[str] = "base"
     uses_history: ClassVar[bool] = True  # False: only the last sample of the history is used
-    needs_leader_future: ClassVar[bool] = False  # True: DiffusionCF
+    needs_leader_future: ClassVar[bool] = False  # True: DiffusionCF (predict_dist / init_sampler take the leader's future)
+    # True: a sampler of 5 s plans (DiffusionCF, DiffusionCFHist): E1 evaluates it on the sampled rows
+    # (``eval.max_rows_sampled``), E2 / E3 roll it out ``n_rollouts_sampled`` times and it follows its plan step by
+    # step (hold 1). Separate from ``needs_leader_future``, which only says whether the leader's future is an input.
+    plan_sampler: ClassVar[bool] = False
     has_epistemic: ClassVar[bool] = False  # True: predict_dist fills epistemic_var
 
     def __init__(self, **init_kwargs: Any) -> None:

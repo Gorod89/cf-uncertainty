@@ -33,6 +33,8 @@ LABELS = [
     "gp_residual_idm",
     "quantile_pidl",
     "diffusion_cf",
+    "idm_ar_noise",  # review controls (design.md 18); lstm_hetero_frozen needs a stored mean
+    "diffusion_cf_hist",
 ]
 N_ROWS = 256  # predicted rows (DiffusionCF: 64)
 N_TRAJ = 32

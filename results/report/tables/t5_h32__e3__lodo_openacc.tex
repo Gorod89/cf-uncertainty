@@ -16,6 +16,7 @@ ACC (47) & IDM + white noise & 3.54 [2.83, 4.22] & -- & reference \\
  & GP residual on IDM & 2.86 [2.24, 3.45] & 0.19 [$-$0.03, 0.38] & inconclusive \\
  & Quantile PIDL (one-step target) & 4.11 [3.29, 5.04] & $-$0.16 [$-$0.55, 0.12] & inconclusive \\
  & Diffusion & 1.88 [1.61, 2.15] & 0.47 [0.39, 0.53] & supported \\
+ & IDM + AR(1) noise & 3.03 [2.66, 3.49] & 0.15 [$-$0.12, 0.33] & inconclusive \\
 \midrule
 Human (12) & IDM + white noise & 1.05 [0.82, 1.29] & -- & reference \\
  & LSTM, constant sigma & 89.6 [69.7, 110.0] & $-$84.0 [$-$114.2, $-$62.9] & refuted \\
@@ -23,6 +24,7 @@ Human (12) & IDM + white noise & 1.05 [0.82, 1.29] & -- & reference \\
  & GP residual on IDM & 2.63 [2.12, 3.20] & $-$1.49 [$-$2.21, $-$1.03] & refuted \\
  & Quantile PIDL (one-step target) & 4.86 [3.08, 7.70] & $-$3.61 [$-$5.37, $-$2.26] & refuted \\
  & Diffusion & 1.56 [1.19, 1.96] & $-$0.48 [$-$0.85, $-$0.16] & refuted \\
+ & IDM + AR(1) noise & 3.55 [2.67, 4.48] & $-$2.37 [$-$2.97, $-$1.83] & refuted \\
 \midrule
 all (60) & IDM + white noise & 3.03 [2.45, 3.65] & -- & reference \\
  & LSTM, constant sigma & 78.8 [62.6, 98.1] & $-$25.0 [$-$32.9, $-$19.3] & refuted \\
@@ -30,6 +32,7 @@ all (60) & IDM + white noise & 3.03 [2.45, 3.65] & -- & reference \\
  & GP residual on IDM & 2.77 [2.30, 3.30] & 0.08 [$-$0.14, 0.27] & inconclusive \\
  & Quantile PIDL (one-step target) & 4.30 [3.45, 5.37] & $-$0.42 [$-$0.89, $-$0.07] & refuted \\
  & Diffusion & 1.81 [1.57, 2.06] & 0.40 [0.30, 0.48] & supported \\
+ & IDM + AR(1) noise & 3.13 [2.76, 3.54] & $-$0.03 [$-$0.35, 0.18] & inconclusive \\
 \midrule
 mixed (1) & IDM + white noise & 2.57 [2.57, 2.57] & -- & reference \\
  & LSTM, constant sigma & 76.4 [76.4, 76.4] & $-$28.7 [$-$28.7, $-$28.7] & not judged \\
@@ -37,6 +40,7 @@ mixed (1) & IDM + white noise & 2.57 [2.57, 2.57] & -- & reference \\
  & GP residual on IDM & 0.305 [0.305, 0.305] & 0.88 [0.88, 0.88] & not judged \\
  & Quantile PIDL (one-step target) & 6.13 [6.13, 6.13] & $-$1.38 [$-$1.38, $-$1.38] & not judged \\
  & Diffusion & 1.17 [1.17, 1.17] & 0.55 [0.55, 0.55] & not judged \\
+ & IDM + AR(1) noise & 2.81 [2.81, 2.81] & $-$0.09 [$-$0.09, $-$0.09] & not judged \\
 \bottomrule
 \end{tabular}
 \end{table}

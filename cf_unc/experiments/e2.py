@@ -42,6 +42,11 @@ training set is drawn from its test fold (or, as a calibration set, its validati
 sets are rolled as configured. The target spec also stores the training data sets and their signal key
 (``train_data``, ``train_signal``), so the tables of a root rolled with checkpoints of one training data set are never
 resumed by a pooled config (or the other way round).
+
+``dry_run_e2(cfg)`` (``scripts/run_e2.py --dry-run``, added with the review controls, design.md 18): what a run would do,
+loading no events and writing nothing: per target whether its checkpoint directory exists, the target spec, the events
+tables and the label specs compared with the stored ones, per label and seed whether the checkpoint exists and was
+trained on the signal key of ``train.data``, and the tables done and missing.
 """
 
 from __future__ import annotations
@@ -91,6 +96,7 @@ __all__ = [
     "DEFAULT_CONFIG",
     "PILOT",
     "E2Runner",
+    "dry_run_e2",
     "events_table",
     "load_config",
     "run_e2",
@@ -169,22 +175,24 @@ def events_table(split: EventSet, drawn: np.ndarray, folds: Mapping[str, int] | 
 
 # ------------------------------------------------------------------------------------------ runner
 class E2Runner:
-    """State of one call of ``run_e2`` (module docstring)."""
+    """State of one call of ``run_e2`` (module docstring); ``dry=True``: nothing is created or written (dry runs)."""
 
-    def __init__(self, cfg: DictConfig, echo: bool = True) -> None:
+    def __init__(self, cfg: DictConfig, echo: bool = True, dry: bool = False) -> None:
         self.cfg = cfg
         self.root = _path(cfg.root)
         self.train_names = train_datasets(cfg)  # training data sets of the checkpoints (a list for a pooled domain)
         self.pooled = is_pooled(cfg)
         self.train_data = None if not self.train_names else ", ".join(self.train_names)  # for messages
-        if str(cfg.get("signal") or "") == "matched" and self.train_data is None:
+        if str(cfg.get("signal") or "") in ("matched", "matched_causal") and self.train_data is None:
             raise MatchingError("signal matched: E2 needs train.data, the training data set of the checkpoints, whose "
                                 "signal key the checkpoints are checked against (design.md 15.1)")  # fmt: skip
         # signal matched: the windows of the matching file; refuses (MatchingError) before anything is created
         self.windows = check_matching(cfg)
         self.check_pooled_splits()  # a pooled domain never rolls training events (ValueError, nothing created)
-        self.root.mkdir(parents=True, exist_ok=True)
-        self.log = RunLog(self.root, echo)
+        self.dry = bool(dry)
+        if not self.dry:
+            self.root.mkdir(parents=True, exist_ok=True)
+        self.log = RunLog(self.root, echo, write=not self.dry)
         self.device = resolve_device(str(cfg.get("device", "auto")))
         self.data = Data(cfg, self.log.line)
         self.variants = {str(k): dict(_plain(v)) for k, v in (cfg.get("variants") or {}).items()}
@@ -312,6 +320,12 @@ class E2Runner:
                 f"{describe_signal(expected)}{where}; use the checkpoints of the same signal variant"
             )
 
+    def compare_spec(self, path: Path, spec: Mapping[str, Any]) -> str:
+        """``check_spec`` without writing: ``new`` (no stored spec), ``equal`` or ``conflict``."""
+        if not path.exists():
+            return "new"
+        return "equal" if json.loads(path.read_text(encoding="utf-8")) == dict(spec) else "conflict"
+
     def check_spec(self, path: Path, spec: Mapping[str, Any]) -> bool:
         """Write ``spec`` to ``path`` or verify that the stored one is equal (ValueError otherwise)."""
         if path.exists():
@@ -376,7 +390,7 @@ class E2Runner:
     # ------------------------------------------------------------------ rollouts
     def rollout_config(self, target: str, label: str, model: CFModel, seed: int, dataset: str) -> RolloutConfig:
         r, spec = self.cfg.rollout, self.label_spec(label)
-        sampled = bool(getattr(model, "needs_leader_future", False))
+        sampled = bool(getattr(model, "plan_sampler", False))  # plan samplers: n_rollouts_sampled, hold 1
         n_r = spec["n_rollouts"] or (int(r.n_rollouts_sampled) if sampled else int(r.n_rollouts))
         return RolloutConfig(
             n_rollouts=int(n_r),
@@ -486,8 +500,81 @@ class E2Runner:
         return status
 
 
+    # ------------------------------------------------------------------ dry run
+    def dry_run(self) -> dict[str, Any]:
+        """What ``run`` would do (module docstring), loading no events and writing nothing.
+
+        Returns ``root``, ``signal``, ``targets`` (per configured target: ``checkpoints``, ``active``, ``spec`` = new /
+        equal / conflict against ``<target>/spec.json``, ``events`` = data set -> stored / new, and per label its base
+        ``model``, ``sampler_mode``, ``spec`` against the stored label spec, ``missing_checkpoints`` (seeds), ``done``
+        and ``missing`` tables), ``conflicts`` (stored settings that differ from the config, checkpoints trained on
+        another signal key: a run would refuse these units), ``done``, ``missing`` and ``nothing_to_do``.
+        """
+        conflicts: list[dict[str, str]] = []
+        targets: dict[str, Any] = {}
+        for target, tspec in self.targets.items():
+            ckpt = _path(tspec["checkpoints"])
+            entry: dict[str, Any] = {"checkpoints": str(tspec["checkpoints"]), "active": ckpt.is_dir(),
+                                     "hold_steps": int(tspec.get("hold_steps", 1)), "labels": {}}  # fmt: skip
+            if not entry["active"]:  # a run skips the target; its tables are listed as missing all the same
+                entry["skipped"] = f"checkpoint directory {ckpt} does not exist (a run skips this target)"
+            entry["spec"] = self.compare_spec(self.root / target / "spec.json", self.target_spec(target))
+            if entry["spec"] == "conflict":
+                conflicts.append({"unit": f"{target}/spec", "error": "stored spec.json differs from the config"})
+            entry["events"] = {d: "stored" if tables.events_path(self.root, target, d).exists() else "new"
+                               for d in self.datasets}  # fmt: skip
+            for label in self.labels:
+                spec = self.label_spec(label)
+                row: dict[str, Any] = {"model": spec["model"], "sampler_mode": spec["sampler_mode"],
+                                       "spec": self.compare_spec(self.root / target / "rollouts" / label / "spec.json",
+                                                                 _jsonable({**spec, "label": label})),
+                                       "missing_checkpoints": [], "done": 0, "missing": 0}  # fmt: skip
+                if row["spec"] == "conflict":
+                    conflicts.append({"unit": f"{target}/{label}", "error": "stored label spec.json differs from the config"})
+                for seed in self.seeds:
+                    path = self.checkpoint(target, label, seed)
+                    if not path.exists():
+                        row["missing_checkpoints"].append(seed)
+                    else:
+                        try:
+                            self.check_signal(path)
+                        except ValueError as exc:
+                            conflicts.append({"unit": f"{target}/{label}/seed{seed}", "error": str(exc)})
+                    for d in self.datasets:
+                        done = tables.rollout_path(self.root, target, label, seed, d).exists()
+                        row["done" if done else "missing"] += 1
+                entry["labels"][label] = row
+            entry["done"] = sum(r["done"] for r in entry["labels"].values())
+            entry["missing"] = sum(r["missing"] for r in entry["labels"].values())
+            targets[target] = entry
+        done = sum(e.get("done", 0) for e in targets.values())
+        missing = sum(e.get("missing", 0) for e in targets.values())
+        out = {"root": str(self.root), "signal": str(self.cfg.get("signal") or "raw"), "matched_windows": self.windows,
+               "datasets": list(self.datasets), "seeds": list(self.seeds), "targets": targets, "conflicts": conflicts,
+               "done": done, "missing": missing, "nothing_to_do": missing == 0 and not conflicts}  # fmt: skip
+        self.log.line(f"E2 dry run: root {self.root}, signal {out['signal']}; tables {done}/{done + missing} done, "
+                      f"{len(conflicts)} conflict(s){'; nothing to do' if out['nothing_to_do'] else ''}")  # fmt: skip
+        for target, e in targets.items():
+            skipped = f" - SKIPPED: {e['skipped']}" if not e["active"] else ""
+            self.log.line(f"  target {target} ({e['checkpoints']}, hold {e['hold_steps']}): spec {e['spec']}, "
+                          f"tables {e['done']}/{e['done'] + e['missing']}{skipped}")  # fmt: skip
+            for label, r in e["labels"].items():
+                gaps = f", checkpoints missing for seeds {r['missing_checkpoints']}" if r["missing_checkpoints"] else ""
+                self.log.line(f"    {label} ({r['model']}, {r['sampler_mode']}): {r['done']} done, {r['missing']} "
+                              f"missing, spec {r['spec']}{gaps}")  # fmt: skip
+        for c in conflicts:
+            self.log.line(f"  conflict: {c['unit']}: {c['error']}")
+        return out
+
+
 def run_e2(cfg: DictConfig | Mapping[str, Any], echo: bool = True) -> dict[str, Any]:
     """Run or resume experiment E2 (module docstring); returns the final status (also in ``status.json``)."""
     cfg = cfg if isinstance(cfg, DictConfig) else OmegaConf.create(dict(cfg))
     configure_torch(bool(cfg.get("tf32", False)))
     return E2Runner(cfg, echo=echo).run()
+
+
+def dry_run_e2(cfg: DictConfig | Mapping[str, Any], echo: bool = True) -> dict[str, Any]:
+    """``E2Runner.dry_run`` of the config: what a run would do and which stored settings conflict; writes nothing."""
+    cfg = cfg if isinstance(cfg, DictConfig) else OmegaConf.create(dict(cfg))
+    return E2Runner(cfg, echo=echo, dry=True).dry_run()

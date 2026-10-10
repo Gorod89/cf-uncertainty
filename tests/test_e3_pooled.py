@@ -239,7 +239,8 @@ def test_variant_config(world: dict[str, Any], tmp_path: Path) -> None:
 def test_real_variant_config() -> None:
     """The shipped config: QuantilePIDL on target a with hold 1 in both E3-pooled variants, 13.2 elsewhere."""
     real = parse_variants(load_config())
-    assert list(real) == ["raw", "harmonised", "pool", "lodo_openacc"]
+    # the variants of 13 and 17.1 first; the review controls of design.md 18.2 after them (tests/test_review_controls.py)
+    assert list(real) == ["raw", "harmonised", "pool", "lodo_openacc", "raw_w61", "raw_a", "pool_w11", "lodo_openacc_w11"]
     for name in ("pool", "lodo_openacc"):
         assert real[name].models == {"quantile_pidl": {"target": "a", "hold_steps": 1}} and set(real[name].checkpoints) == {"a"}
         assert real[name].window_source == {"matching": "artifacts/e1m/matching.json", "data": "openacc"}

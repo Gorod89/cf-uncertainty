@@ -136,7 +136,86 @@ def main() -> None:
                 "models of the median width, m)", "",
                 table(["data set", "gamma", *[f"PICP {h:g} s" for h in horizons], *[f"width {h:g} s" for h in horizons]], rows), ""]  # fmt: skip
 
+    out += review_sections(cov, horizons, t)
     print("\n".join(out))
+
+
+BUDGET = (("static", "static"), ("static_prequential", "static prequential"), ("aci_frozen", "ACI frozen"),
+          ("aci_online", "ACI online"), ("aci_online_chrono", "ACI chronological"),
+          ("aci_online_delayed", "ACI chronological, delayed"), ("static_prequential_delayed", "static prequential, delayed"))
+
+
+def review_sections(cov: pd.DataFrame, horizons: list[float], t: Path) -> list[str]:
+    """Tables of the review fixes (docs/review_fixes_v3.md): ACI at the ends of the level range (R1), information
+    budget of the online corrections (R8), follower-cluster intervals (R4); empty for tables without their columns."""
+    out: list[str] = []
+    if "share_infinite" not in cov.columns:
+        return out
+    last = horizons[-1]
+    for target in ordered(cov.target, TARGETS):
+        for d in ordered(cov[cov.target == target].dataset, DATASETS):
+            sub = cov[(cov.target == target) & (cov.dataset == d)]
+            if d == "highd_val" or not set(sub.variant) & {"aci_online"}:
+                continue
+            rows = []
+            for m in ordered(sub.model, MODELS):
+                block = sub[sub.model == m]
+                cells = [m]
+                for v in ("aci_frozen", "aci_online"):
+                    vb = block[block.variant == v].set_index("horizon_s")
+                    cells.append(" ".join(num(100 * float(vb.loc[h, "share_infinite"]), 1) if h in vb.index else "-"
+                                          for h in horizons))  # fmt: skip
+                vb = block[block.variant == "aci_online"].set_index("horizon_s")
+                cells.append(" ".join(num(float(vb.loc[h, "width_finite_median"]), 2) if h in vb.index else "-" for h in horizons))
+                cells.append(" ".join(num(float(vb.loc[h, "width_median"]), 2) if h in vb.index else "-" for h in horizons))
+                rows.append(cells)
+            hz = "/".join(f"{h:g}" for h in horizons)
+            out += [f"### Target `{target}`, {d}: ACI at the ends of the level range (R1) at {hz} s", "",
+                    "Share of the intervals that are the whole line (level >= 1, Gibbs and Candes), per cent; median "
+                    "width of the finite intervals and of all intervals (inf when more than half are infinite), m.", "",
+                    table(["model", "infinite % ACI frozen", "infinite % ACI online", "median finite width ACI online, m",
+                           "median width ACI online, m"], rows), ""]  # fmt: skip
+            if not set(sub.variant) & {"aci_online_delayed"}:
+                continue
+            rows = []
+            for m in ordered(sub.model, MODELS):
+                block = sub[sub.model == m]
+                cells = [m]
+                for v, _ in BUDGET:
+                    vb = block[block.variant == v].set_index("horizon_s")
+                    cells.append(" ".join(num(float(vb.loc[h, "picp"])) if h in vb.index else "-" for h in horizons))
+                vb = block[block.variant == "aci_online_delayed"].set_index("horizon_s")
+                cells.append(f"{num(float(vb.loc[last, 'picp_first50']))} / {num(float(vb.loc[last, 'picp_first100']))}"
+                             if last in vb.index else "-")  # fmt: skip
+                cells.append(num(float(vb.loc[last, "delay_events_mean"]), 1) if last in vb.index else "-")
+                rows.append(cells)
+            out += [f"### Target `{target}`, {d}: information budget of the corrections (R8), PICP at {hz} s", "",
+                    "static / ACI frozen: no label of the evaluated set; static prequential: the static correction "
+                    "recalibrated on every label seen so far (the labels of ACI online, no learning rate); ACI online: "
+                    "random order, label after each event; chronological: events in time order; delayed: a label used "
+                    f"only a horizon after its interval was issued. First 50 / 100: coverage of delayed ACI over the first "
+                    f"events of the stream at {last:g} s; delay: mean events issued before a label arrives at {last:g} s.", "",
+                    table(["model", *[lab for _, lab in BUDGET], f"first 50 / 100, {last:g} s", f"delay, events"], rows), ""]  # fmt: skip
+    streams = t / "stream_info.csv"
+    if streams.exists():
+        s = pd.read_csv(streams)
+        rows = [[str(r.target), str(r.dataset), str(r.clock), str(int(r.n_events)), num(float(r.n_followers), 0),
+                 num(float(r.span_s), 0), num(float(r.events_per_s), 3)] for r in s.itertuples()]  # fmt: skip
+        out += ["### Clocks of the evaluated streams (R8)", "",
+                table(["target", "data set", "clock", "events", "followers", "recorded span, s", "events per s"], rows), ""]
+    if "picp_lo_follower" in cov.columns:
+        rows = []
+        for (target, d), grp in cov[cov.dataset != "highd_val"].groupby(["target", "dataset"], sort=False):
+            for v in ("raw", "aci_online"):
+                g = grp[grp.variant == v]
+                ratio = (g.picp_hi_follower - g.picp_lo_follower) / (g.picp_hi - g.picp_lo)
+                rows.append([str(target), str(d), v, num(float(g.n_followers.max()), 0), num(float(g.n_events.max()), 0),
+                             num(float(ratio.median()), 2), num(float(ratio.max()), 2)])  # fmt: skip
+        out += ["### Follower-cluster bootstrap of the coverage intervals (R4)", "",
+                "Width of the 95 % interval when whole followers are resampled, relative to the event bootstrap "
+                "(median and largest over models and horizons).", "",
+                table(["target", "data set", "variant", "followers", "events", "width ratio, median", "width ratio, max"], rows), ""]
+    return out
 
 
 if __name__ == "__main__":

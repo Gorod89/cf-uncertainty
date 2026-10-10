@@ -203,8 +203,8 @@ premise of H3.4 failing, not the correction.
 * The NGSIM I-80 hold-out keeps US-101 in training (same programme and processing): a weak domain
   hold-out, reported as such; the fourth root (16.4) holds both NGSIM sets out and is the true
   domain hold-out; `ngsim_fn` (never trained on) agrees with both.
-* GPU: one short period of the pilot went below the 6 GB rule agreed with the sibling
-  project (41 GB held by its runs); the full runs waited for >= 6 GB free before starting.
+* GPU: one short period of the pilot went below the 6 GB rule agreed with the cf-stability
+  session (41 GB held by its smoke runs); the full runs waited for >= 6 GB free before starting.
 
 ## 6. Open points
 

@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from cf_unc.data.schema import EventSet
-from cf_unc.data.windows import DEFAULT_TARGET, TARGET_STEPS, WindowSet, check_target, target_values
+from cf_unc.data.windows import DEFAULT_TARGET, TARGET_STEPS, WindowSet, check_target, target_speed, target_values
 
 WINDOW_INT = ("event_index", "t_index", "event", "driver", "fold")
 WINDOW_FLOAT = ("s", "dv", "v", "v_lead", "a_prev", "y")
@@ -62,7 +62,7 @@ def windows_table(
         ok = t >= 1
         a_prev[rows[ok]] = ev.a[t[ok] - 1]
         ok = t >= steps
-        y_prev[rows[ok]] = target_values(ev.a, ev.v, t[ok] - steps, target)
+        y_prev[rows[ok]] = target_values(ev.a, target_speed(ev), t[ok] - steps, target)  # v, or a recorded v_target
     fold_of_event = np.array([-1 if folds is None else int(folds.get(ev.event_id, -1)) for ev in evs], dtype=np.int64)
     subsets = sorted({event_subset(ev.meta) for ev in evs})
     subset_of_event = np.array([subsets.index(event_subset(ev.meta)) for ev in evs], dtype=np.int64)

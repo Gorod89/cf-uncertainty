@@ -48,6 +48,7 @@ data set has exactly the key of the harmonised variant.
 from __future__ import annotations
 
 import copy
+import functools
 import json
 import time
 from dataclasses import asdict, dataclass, fields
@@ -62,22 +63,37 @@ from cf_unc.data.schema import Event, EventSet
 
 __all__ = [
     "DEFAULT_SIGNAL",
+    "DEFAULT_TARGET_FROM",
     "DROP_REASONS",
+    "MATCHING_KIND",
     "MATCH_FLAGS",
     "SIGNALS",
+    "TARGET_FROM",
     "HarmoniseConfig",
     "MatchConfig",
     "MatchingError",
+    "TargetSpeedEvent",
+    "causal_events",
+    "causal_savgol",
+    "causal_savgol_coeffs",
     "check_signal",
+    "check_target_from",
     "choose_window",
     "harmonise_event",
     "harmonise_events",
     "matched_windows",
+    "matching_kind",
     "read_matching",
+    "with_recorded_targets",
 ]
 
-SIGNALS = ("raw", "harmonised", "matched")
+# raw | harmonised (section 12) | matched (15.1) | causal and matched_causal (review control R6, design.md 18.5)
+SIGNALS = ("raw", "harmonised", "matched", "causal", "matched_causal")
 DEFAULT_SIGNAL = "raw"
+MATCHED_SIGNALS = {"matched": "harmonised", "matched_causal": "causal"}  # matched variant -> per-data-set processing
+# where the speed-based targets (mean_1s, fwd_diff) come from: the processed speed (signal) or the stored one (recorded)
+TARGET_FROM = ("signal", "recorded")
+DEFAULT_TARGET_FROM = "signal"
 DROP_REASONS = ("non_finite", "min_gap", "max_abs_c", "max_gap_rms", "short_event")
 _SHORT = DROP_REASONS.index("short_event")
 QUANTILES = (0.05, 0.50, 0.95)
@@ -89,6 +105,14 @@ def check_signal(signal: str) -> str:
     if signal not in SIGNALS:
         raise ValueError(f"signal must be one of {SIGNALS}, got {signal!r}")
     return signal
+
+
+def check_target_from(value: str | None) -> str:
+    """``value`` (None: ``DEFAULT_TARGET_FROM``) if it is one of ``TARGET_FROM``, else ValueError."""
+    value = DEFAULT_TARGET_FROM if value is None else str(value)
+    if value not in TARGET_FROM:
+        raise ValueError(f"target_from must be one of {TARGET_FROM}, got {value!r}")
+    return value
 
 
 @dataclass(frozen=True)
@@ -353,6 +377,174 @@ def harmonise_events(
     return kept, _report(stats, conf, time.perf_counter() - started)
 
 
+# ------------------------------------------------------------------------------- causal signals (review control R6)
+@functools.lru_cache(maxsize=1024)
+def _causal_coeffs(length: int, order: int) -> tuple[float, ...]:
+    m, p = int(length), min(int(order), int(length) - 1)
+    tau = np.arange(-(m - 1), 1, dtype=np.float64)  # sample positions relative to the last one
+    return tuple(np.linalg.pinv(np.vander(tau, p + 1, increasing=True))[0])  # fitted value at tau = 0
+
+
+def causal_savgol_coeffs(length: int, order: int) -> np.ndarray:
+    """(length,) weights of the causal Savitzky-Golay filter: the least-squares polynomial of degree
+    ``min(order, length - 1)`` fitted to the trailing ``length`` samples and evaluated at the LAST one,
+    ``y[t] = sum_j w[j] x[t - length + 1 + j]`` (the weights sum to 1 and reproduce polynomials up to the order)."""
+    if int(length) < 1 or int(order) < 0:
+        raise ValueError(f"need length >= 1 and order >= 0, got {length}, {order}")
+    return np.array(_causal_coeffs(int(length), int(order)))
+
+
+def causal_savgol(x: np.ndarray, window: int, order: int = 2) -> np.ndarray:
+    """Causal (one-sided) Savitzky-Golay filter along the last axis of ``x`` (n,) or (k, n), float64.
+
+    ``y[t]`` = the least-squares polynomial of degree ``order`` over ``x[t - window + 1 .. t]`` evaluated at ``t``
+    (``causal_savgol_coeffs``): it uses past and present samples only. The first ``window - 1`` samples of an event
+    use the samples available, ``x[0 .. t]`` (degree ``min(order, t)``; ``y[0] = x[0]``), so nothing is dropped and the
+    output stays causal. Unlike the centred filter it has no look-ahead, at the price of a larger noise gain.
+    """
+    x = np.asarray(x, dtype=np.float64)
+    window, n = int(window), x.shape[-1]
+    if window < 1 or int(order) < 0:
+        raise ValueError(f"need window >= 1 and order >= 0, got {window}, {order}")
+    out = np.empty_like(x)
+    if n >= window:
+        out[..., window - 1 :] = np.lib.stride_tricks.sliding_window_view(x, window, axis=-1) @ causal_savgol_coeffs(window, order)
+    for t in range(min(window - 1, n)):
+        out[..., t] = x[..., : t + 1] @ causal_savgol_coeffs(t + 1, order)
+    return out
+
+
+@dataclass
+class TargetSpeedEvent(Event):
+    """An Event whose speed-based targets (``mean_1s``, ``fwd_diff``) and their ``y_prev`` come from ``v_target``
+    instead of ``v`` (``cf_unc.data.windows.target_speed``): the inputs are processed signals, the target the
+    recorded speed (``train.target_from: recorded``, review control R6). ``v_target`` is a transient array: it is not
+    one of the parquet fields and is never written; everything else is the Event."""
+
+    v_target: np.ndarray | None = None
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if self.v_target is not None:
+            self.v_target = np.ascontiguousarray(self.v_target, dtype=np.float64)
+            if self.v_target.shape != self.v.shape:
+                raise ValueError(f"{self.event_id}: v_target has shape {self.v_target.shape}, v {self.v.shape}")
+
+
+def with_recorded_targets(events: Iterable[Event], recorded: Iterable[Event]) -> EventSet:
+    """``TargetSpeedEvent`` copies of ``events`` whose ``v_target`` is the speed of the event with the same id in
+    ``recorded`` (the stored events before any signal processing; every id must be there with the same length).
+    The arrays are shared, not copied."""
+    speed = {ev.event_id: ev.v for ev in recorded}
+    out = []
+    for ev in events:
+        if ev.event_id not in speed:
+            raise KeyError(f"event {ev.event_id!r} has no recorded counterpart")
+        fields_ = {f.name: getattr(ev, f.name) for f in fields(Event)}
+        out.append(TargetSpeedEvent(**fields_, v_target=speed[ev.event_id]))
+    return EventSet(out)
+
+
+def _causal_arrays(s: np.ndarray, v: np.ndarray, v_lead: np.ndarray, x0: np.ndarray, cfg: HarmoniseConfig) -> dict[str, np.ndarray]:
+    """Causal processing of k events of equal length n ((k, n) stored gap, follower and leader speed; x0 (k,)):
+    every input signal smoothed with ``causal_savgol(window, order)``, speeds floored at 0, the gap floored at
+    ``cfg.min_gap`` (the endpoint of a long trailing quadratic can overshoot a recorded gap that stays above it),
+    ``dv = v - v_lead``, ``a`` = central differences of the smoothed speed (``a[t-1]``, the regime input, uses samples
+    <= t), positions integrated from the smoothed speed so that ``s = x_lead - x_follower`` holds exactly."""
+    k, n = s.shape
+    v_c = np.maximum(causal_savgol(v, cfg.window, cfg.order), 0.0)
+    vl_c = np.maximum(causal_savgol(v_lead, cfg.window, cfg.order), 0.0)
+    s_raw = causal_savgol(s, cfg.window, cfg.order)
+    s_c = np.maximum(s_raw, cfg.min_gap)
+    move = np.zeros((k, n))
+    move[:, 1:] = v_c[:, 1:] * DT
+    x_f = x0[:, None] + _shift_cumsum(move)
+    resid = s - s_c
+    finite = np.isfinite(s).all(axis=1) & np.isfinite(v).all(axis=1) & np.isfinite(v_lead).all(axis=1) & np.isfinite(x0)
+    return {
+        "s": s_c, "dv": v_c - vl_c, "v": v_c, "a": central_differences(v_c, DT), "v_lead": vl_c, "x_lead": x_f + s_c,
+        "x_follower": x_f, "gap_rms": np.sqrt(np.mean(resid * resid, axis=1)),
+        "min_gap_recorded": s.min(axis=1) if n else np.full(k, np.nan), "gap_floored": (s_raw < cfg.min_gap).sum(axis=1),
+        "finite": finite,
+    }  # fmt: skip
+
+
+def causal_events(
+    events: Iterable[Event], cfg: "Mapping[str, Any] | HarmoniseConfig | None" = None
+) -> tuple[EventSet, dict[str, Any]]:
+    """Causally processed EventSet (signal ``causal``, review control R6, design.md 18.5) and its report.
+
+    Per event: ``s``, ``v``, ``v_lead`` smoothed with ``causal_savgol(cfg.window, cfg.order)`` (the gap with the same
+    filter: the kinematic gap reconstruction of section 12 fits an offset and a slope over the whole event and is not
+    causal), ``dv = v - v_lead``, ``a`` = central differences of the smoothed speed, positions integrated from it.
+    Drop rules: ``non_finite``, ``min_gap`` (``min(s) <= cfg.min_gap`` of the RECORDED gap: data cleaning that does
+    not depend on the filter, so every window keeps the same events; the smoothed gap is floored at ``cfg.min_gap``
+    where the endpoint of the trailing quadratic overshoots, counted as ``gap_floored``) and ``short_event`` (fewer
+    samples than the window; the rule of 15.1). ``max_abs_c`` and ``max_gap_rms`` belong to the offset fit of the
+    harmonisation and are not applied (counted as 0). Kept events get the meta ``signal = "causal"``, ``causal_window``,
+    ``gap_rms`` (rms of the stored minus the smoothed gap), ``gap_floored`` and ``a_source = "causal_savgol"``. The
+    report has the keys of ``harmonise_events`` (quantities of the offset fit are None) plus ``filter = "causal"`` and
+    ``gap_floored`` (samples and events among the kept).
+    """
+    conf = HarmoniseConfig.from_config(cfg)
+    started = time.perf_counter()
+    evs = list(events)
+    m = len(evs)
+    lengths = np.array([len(ev) for ev in evs], dtype=np.int64)
+    violations = np.zeros((m, len(DROP_REASONS)), dtype=bool)
+    gap_rms = np.full(m, np.nan)
+    floored = np.zeros(m, dtype=np.int64)
+    out: list[Event | None] = [None] * m
+    for n in np.unique(lengths):
+        same = np.flatnonzero(lengths == n)
+        if int(n) < conf.window:
+            violations[same, _SHORT] = True
+            continue
+        size = max(1, _BATCH_SAMPLES // max(int(n), 1))
+        for start in range(0, same.size, size):
+            idx = same[start : start + size]
+            batch = [evs[i] for i in idx]
+            arr = _causal_arrays(np.stack([ev.s for ev in batch]), np.stack([ev.v for ev in batch]),
+                                 np.stack([ev.v_lead for ev in batch]),
+                                 np.array([ev.x_follower[0] if len(ev) else np.nan for ev in batch]), conf)  # fmt: skip
+            gap_rms[idx] = arr["gap_rms"]
+            floored[idx] = arr["gap_floored"]
+            finite = arr["finite"]
+            with np.errstate(invalid="ignore"):
+                violations[idx, DROP_REASONS.index("non_finite")] = ~finite
+                violations[idx, DROP_REASONS.index("min_gap")] = finite & ~(arr["min_gap_recorded"] > conf.min_gap)
+            for j, (i, ev) in enumerate(zip(idx, batch)):
+                if violations[i].any():
+                    continue
+                meta = dict(ev.meta)
+                meta["a_source_original"] = meta.get("a_source_original", meta.get("a_source"))
+                meta.update(a_source="causal_savgol", signal="causal", causal_window=int(conf.window),
+                            gap_rms=float(arr["gap_rms"][j]), gap_floored=int(arr["gap_floored"][j]))  # fmt: skip
+                out[i] = Event(
+                    event_id=ev.event_id, dataset=ev.dataset, site=ev.site, follower_id=ev.follower_id,
+                    leader_id=ev.leader_id, t=ev.t, meta=meta, **{name: arr[name][j] for name in ARRAYS},
+                )  # fmt: skip
+    kept = ~violations.any(axis=1)
+    first = np.where(violations.any(axis=1), violations.argmax(axis=1), -1)
+    report = {
+        "filter": "causal",
+        "n_in": m,
+        "n_out": int(kept.sum()),
+        "n_dropped": int(m - kept.sum()),
+        "share_dropped": float((m - kept.sum()) / m) if m else 0.0,
+        "dropped": {r: int(np.sum(first == i)) for i, r in enumerate(DROP_REASONS)},
+        "violations": {r: int(violations[:, i].sum()) for i, r in enumerate(DROP_REASONS)},
+        "gap_rms_m": _quantiles(gap_rms),
+        "abs_c_mps": {f"q{round(100 * q):02d}": None for q in QUANTILES},
+        "gap_offset_m": {f"q{round(100 * q):02d}": None for q in QUANTILES},
+        "gap_floored": {"samples": int(floored[kept].sum()), "events": int(np.sum(floored[kept] > 0)),
+                        "share_samples": float(floored[kept].sum() / max(int(lengths[kept].sum()), 1))},
+        "settings": conf.to_dict(),
+        "seconds": round(float(time.perf_counter() - started), 3),
+    }
+    return EventSet(ev for ev in out if ev is not None), report
+
+
 # ------------------------------------------------------------------------------------ matched signals (15.1)
 # flags of a matched window (choose_window); the last one marks a reference whose short-event share is not below the
 # limit (reported by scripts/match_roughness.py, the reference keeps its window)
@@ -458,16 +650,35 @@ def read_matching(path: str | Path) -> dict[str, Any]:
     return copy.deepcopy(_MATCHING_CACHE[key])
 
 
+# how a matching file of each matched variant was computed: the filter and the part of every data set it used
+# (files written before the causal variant hold neither key: they are centred, all events)
+MATCHING_KIND: dict[str, dict[str, str]] = {"matched": {"filter": "centred", "part": "all"},
+                                            "matched_causal": {"filter": "causal", "part": "val"}}  # fmt: skip
+
+
+def matching_kind(content: Mapping[str, Any]) -> dict[str, str]:
+    """``filter`` and ``part`` of a matching file's content (defaults of the files of section 15: centred, all)."""
+    return {"filter": str(content.get("filter", "centred")), "part": str(content.get("part", "all"))}
+
+
 def matched_windows(
     path: str | Path,
     harmonise: "Mapping[str, Any] | HarmoniseConfig | None" = None,
     match: "Mapping[str, Any] | MatchConfig | None" = None,
+    variant: str = "matched",
 ) -> dict[str, int]:
     """Window [samples] per data set of the matching file ``path``, checked against the experiment's settings: the
     harmonisation settings, ``reference``, ``grid``, ``tolerance`` and ``max_short_share`` must be those the file
-    was computed with, the reference must keep ``harmonise.window`` and every other window must be a grid window.
-    MatchingError otherwise (and when the file is missing)."""
+    was computed with, the reference must keep ``harmonise.window`` and every other window must be a grid window;
+    the file must be of the kind of ``variant`` (``MATCHING_KIND``: ``matched`` a centred matching over all events,
+    ``matched_causal`` a causal matching over the validation folds). MatchingError otherwise (and when the file is
+    missing)."""
     content = read_matching(path)
+    if variant not in MATCHING_KIND:
+        raise ValueError(f"variant must be one of {sorted(MATCHING_KIND)}, got {variant!r}")
+    if matching_kind(content) != MATCHING_KIND[variant]:
+        raise MatchingError(f"{path} is a matching of the kind {matching_kind(content)}, the signal {variant} needs "
+                            f"{MATCHING_KIND[variant]}; compute it with scripts/match_roughness.py for that signal")  # fmt: skip
     conf, mconf = HarmoniseConfig.from_config(harmonise), MatchConfig.from_config(match)
     expected = {"harmonise": conf.to_dict(), **mconf.settings()}
     stored = {k: content.get(k) for k in expected}

@@ -60,6 +60,10 @@ MODEL_LABEL = {
     "gp_residual_idm": "GP residual on IDM",
     "quantile_pidl": "Quantile PIDL",
     "diffusion_cf": "Diffusion",
+    # review controls of the v4 revision (docs/design.md 18)
+    "diffusion_cf_hist": "Diffusion, history only",
+    "idm_ar_noise": "IDM + AR(1) noise",
+    "lstm_hetero_frozen": "LSTM frozen mean, sigma(x)",
     # sampler-mode variants of the rollout experiment (configs/experiment/e2.yaml, `variants`)
     "deep_ensemble__traj": "Deep ensemble (kept member)",
     "mc_dropout__traj": "MC dropout (kept masks)",

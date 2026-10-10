@@ -100,7 +100,8 @@ def _files(root: Path) -> dict[str, int]:
 def test_pilot_config_and_profile_sets(setup: dict[str, Path]) -> None:
     cfg = load_config(pilot=True)
     assert cfg.root == "artifacts/e3_pilot" and list(cfg.seeds) == [0] and cfg.run_profiles == "headline"
-    assert cfg.platoon.n_rollouts == 20 and cfg.platoon.n_rollouts_sampled == 20 and len(cfg.models) == 6
+    # the six models of 13.2 and the two review controls of design.md 18 (idm_ar_noise, diffusion_cf_hist)
+    assert cfg.platoon.n_rollouts == 20 and cfg.platoon.n_rollouts_sampled == 20 and len(cfg.models) == 8
     assert load_config(pilot=True, overrides=["platoon.max_batch=5000"]).platoon.max_batch == 5000
     profiles, _ = load_profiles(setup["profiles"])
     assert select_profile_ids(profiles, "headline", {"headline": 2, "extended": None}) == ["p01", "p02"]

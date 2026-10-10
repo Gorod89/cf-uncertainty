@@ -216,27 +216,49 @@ def load_events(
     signal: str = "raw",
     harmonise: Any = None,
     return_report: bool = False,
+    target_from: str | None = None,
 ) -> EventSet | tuple[EventSet, dict[str, Any] | None]:
     """EventSet of a parquet directory, with the common acceleration definition when ``unify``.
 
-    ``signal``: ``"raw"`` (the stored signals) or ``"harmonised"`` (one signal processing for every data set,
+    ``signal``: ``"raw"`` (the stored signals), ``"harmonised"`` (one signal processing for every data set,
     ``cf_unc.data.harmonise.harmonise_events`` with the settings ``harmonise``, a mapping or
-    ``HarmoniseConfig``; dropped events are left out). The variant ``"matched"`` (design.md 15.1) is the harmonised
-    processing with the data set's matched window: the caller resolves it (``cf_unc.experiments.e1.signal_key``)
-    and passes ``"harmonised"`` with that window; ``"matched"`` itself is refused here. The stored events are never
-    modified. With ``return_report`` the result is ``(events, report)``, report None for raw signals.
+    ``HarmoniseConfig``; dropped events are left out) or ``"causal"`` (one-sided Savitzky-Golay smoothing of the
+    inputs, ``cf_unc.data.harmonise.causal_events`` with the window and order of ``harmonise``; review control R6). The
+    variants ``"matched"`` / ``"matched_causal"`` (design.md 15.1, 18.5) are these processings with the data set's
+    matched window: the caller resolves them (``cf_unc.experiments.e1.signal_key``) and passes ``"harmonised"`` /
+    ``"causal"`` with that window; the matched names themselves are refused here. ``target_from="recorded"`` (only
+    with a processed signal): the events carry the stored speed as ``v_target`` (``TargetSpeedEvent``), from which the
+    speed-based targets are cut. The stored events are never modified. With ``return_report`` the result is
+    ``(events, report)``, report None for raw signals.
     """
-    from cf_unc.data.harmonise import check_signal, harmonise_events  # harmonise imports this module
+    from cf_unc.data.harmonise import (  # harmonise imports this module
+        MATCHED_SIGNALS,
+        causal_events,
+        check_signal,
+        check_target_from,
+        harmonise_events,
+        with_recorded_targets,
+    )
 
-    if check_signal(str(signal)) == "matched":
-        raise ValueError("signal 'matched' needs the window of the data set: pass signal='harmonised' with the matched "
-                         "window (cf_unc.experiments.e1.signal_key resolves it from the matching file)")  # fmt: skip
+    if check_signal(str(signal)) in MATCHED_SIGNALS:
+        raise ValueError(f"signal {signal!r} needs the window of the data set: pass signal="
+                         f"{MATCHED_SIGNALS[str(signal)]!r} with the matched window (cf_unc.experiments.e1.signal_key "
+                         "resolves it from the matching file)")  # fmt: skip
+    recorded = check_target_from(target_from) == "recorded"
+    if recorded and str(signal) == "raw":
+        raise ValueError("target_from='recorded' needs a processed signal (the raw signal is the recorded one)")
     events = EventSet.from_parquet(Path(directory))
     if unify:
         unify_acceleration(events)
     report = None
+    stored = events
     if str(signal) == "harmonised":
         events, report = harmonise_events(events, harmonise)
+    elif str(signal) == "causal":
+        events, report = causal_events(events, harmonise)
+    if recorded:
+        events = with_recorded_targets(events, stored)
+        report = {**(report or {}), "target_from": "recorded"}
     return (events, report) if return_report else events
 
 

@@ -38,9 +38,16 @@ MODEL_LABEL_E3 = {
     "deep_ensemble__step": "Deep ensemble (per-step draws)",  # sensitivity of design.md 13.5 (artifacts/e3_step)
 }
 VARIANT_LABEL = {"raw": "signals as recorded", "harmonised": "harmonised signals",
-                 "pool": "pooled domain, OpenACC seen", "lodo_openacc": "pooled domain, OpenACC held out"}  # 17.1
-VARIANT_ORDER = ("raw", "harmonised", "pool", "lodo_openacc")  # order of the summaries; other variants follow
-ONE_STEP_VARIANTS = ("pool", "lodo_openacc")  # every model on its target-a checkpoint (design.md 17.1)
+                 "pool": "pooled domain, OpenACC seen", "lodo_openacc": "pooled domain, OpenACC held out",  # 17.1
+                 # the 2 x 2 matrix training domain x leader smoothing of the review control R3 (design.md 18.2)
+                 "raw_w61": "recorded signals, leader window 61",
+                 "raw_a": "recorded signals, Quantile PIDL on target a",
+                 "pool_w11": "pooled domain, OpenACC seen, leader window 11",
+                 "lodo_openacc_w11": "pooled domain, OpenACC held out, leader window 11"}  # fmt: skip
+VARIANT_ORDER = ("raw", "harmonised", "pool", "lodo_openacc", "raw_w61", "raw_a", "pool_w11",
+                 "lodo_openacc_w11")  # order of the summaries; other variants follow
+# every model on its target-a checkpoint, QuantilePIDL included (design.md 17.1; the R3 variants of 18.2)
+ONE_STEP_VARIANTS = ("pool", "lodo_openacc", "raw_w61", "raw_a", "pool_w11", "lodo_openacc_w11")
 MODEL_LABEL_E3_ONE_STEP = {**MODEL_LABEL_E3, "quantile_pidl": "Quantile PIDL (one-step target)"}
 MODE_LABEL = {"ACC": "ACC platoons", "Human": "Human-driven platoons", "mixed": "Mixed platoon", "all": "All profiles"}
 BAR_FILL = "#d6d5ce"  # grey fill of the model bars (between GRID and AXIS of the house palette)
@@ -290,9 +297,17 @@ def plot_growth(
     log = _value_axis(axes[0], shown)
     axes[0].set_ylabel("speed standard deviation, m/s" + (", log scale" if log else ""))
 
-    def beta(model: str, window: str = "response") -> str:
-        rows = sel[(sel["model"] == model) & (sel["window"] == window)]
-        return "" if rows.empty or not np.isfinite(rows["beta"].iloc[0]) else f", beta {rows['beta'].iloc[0]:.2f}"
+    def common(rows: pd.DataFrame) -> str:
+        """The exponent on the common support of the measured platoons (R11), when the table has it."""
+        if rows.empty or "beta_common" not in rows.columns or not np.isfinite(rows["beta_common"].iloc[0]):
+            return ""
+        return f", common support (1-4) {rows['beta_common'].iloc[0]:.2f}"
+
+    def beta(model: str) -> str:
+        rows = sel[(sel["model"] == model) & (sel["window"] == "response")]
+        text = "" if rows.empty or not np.isfinite(rows["beta"].iloc[0]) else \
+            f", beta_extrapolated (1-20) {rows['beta'].iloc[0]:.2f}"  # fmt: skip
+        return text + common(sel[(sel["model"] == model) & (sel["window"] == "profile")])
 
     handles = [
         Line2D([], [], color=GREY, lw=1.2, marker=_marker(m, models), ms=4.5, mfc=SURFACE, mec=GREY, mew=1.1,
@@ -302,7 +317,7 @@ def plot_growth(
     if not emp.empty:
         b = emp["beta"].iloc[0]
         handles.insert(0, Line2D([], [], color=BLUE, lw=2.0, marker="o", ms=6.0, mfc=BLUE, mec=SURFACE,
-                                 label="measured platoons" + (f", beta {b:.2f}" if np.isfinite(b) else "")))  # fmt: skip
+                                 label="measured platoons" + (f", beta {b:.2f}" if np.isfinite(b) else "") + common(emp)))  # fmt: skip
     for name, rows in lit.groupby("model", sort=False):
         handles.append(Line2D([], [], color=INK_2, lw=1.2, ls="--", marker="x", ms=5.0,
                               label=f"literature: {name}, beta {rows['beta'].iloc[0]:.2f}"))  # fmt: skip
@@ -310,7 +325,9 @@ def plot_growth(
     _finish(
         fig, f"Growth of the speed variability along the platoon: {VARIANT_LABEL.get(variant, variant)}",
         f"{set_name.capitalize()} set ({n_total} profiles); mean over rollouts, seeds and profiles. Blue band: 95 % "
-        "bootstrap interval over the profiles that measured the index. beta of the models: profile + tail window.",
+        "bootstrap interval over the profiles that measured the index. beta_extrapolated: models fitted over vehicles "
+        "1-20 (profile + tail window), beyond the measured indices; common support: the profiles with at least four "
+        "measured followers, vehicles 1-4, window of the measured data, for models and measurements alike.",
         handles, ncol=min(4, len(handles)),
     )  # fmt: skip
     return _save(fig, path)

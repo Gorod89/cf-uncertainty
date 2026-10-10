@@ -21,6 +21,8 @@ main run & ACC (6) & IDM + white noise & 4.40 [2.85, 5.96] & -- & reference \\
  &  & GP residual on IDM & 1.91 [1.14, 3.01] & 0.57 [0.34, 0.74] & supported \\
  &  & Quantile PIDL (1 s target) & 4.84 [3.43, 5.96] & $-$0.10 [$-$0.78, 0.31] & inconclusive \\
  &  & Diffusion & 3.63 [1.89, 5.57] & 0.18 [$-$0.70, 0.66] & inconclusive \\
+ &  & Diffusion, history only & 11.9 [8.3, 15.0] & $-$1.71 [$-$3.24, $-$0.97] & refuted \\
+ &  & IDM + AR(1) noise & 2.91 [2.23, 3.50] & 0.34 [0.03, 0.50] & inconclusive \\
 \midrule
  & Human (3) & IDM + white noise & 0.742 [0.676, 0.856] & -- & reference \\
  &  & LSTM, constant sigma & 35.4 [5.9, 51.7] & $-$46.7 [$-$75.4, $-$7.6] & not judged \\
@@ -28,6 +30,8 @@ main run & ACC (6) & IDM + white noise & 4.40 [2.85, 5.96] & -- & reference \\
  &  & GP residual on IDM & 3.81 [1.30, 5.07] & $-$4.13 [$-$6.49, $-$0.88] & not judged \\
  &  & Quantile PIDL (1 s target) & 6.19 [3.66, 7.85] & $-$7.33 [$-$10.61, $-$4.26] & not judged \\
  &  & Diffusion & 1.41 [0.71, 1.82] & $-$0.90 [$-$1.68, $-$0.02] & not judged \\
+ &  & Diffusion, history only & 13.4 [4.0, 18.7] & $-$17.1 [$-$26.6, $-$4.8] & not judged \\
+ &  & IDM + AR(1) noise & 2.23 [1.30, 2.74] & $-$2.00 [$-$3.05, $-$0.87] & not judged \\
 \midrule
  & all (10) & IDM + white noise & 3.11 [1.76, 4.63] & -- & reference \\
  &  & LSTM, constant sigma & 33.3 [19.1, 47.4] & $-$9.68 [$-$18.11, $-$4.87] & refuted \\
@@ -35,6 +39,8 @@ main run & ACC (6) & IDM + white noise & 4.40 [2.85, 5.96] & -- & reference \\
  &  & GP residual on IDM & 2.38 [1.47, 3.41] & 0.23 [$-$0.52, 0.60] & inconclusive \\
  &  & Quantile PIDL (1 s target) & 5.39 [4.27, 6.35] & $-$0.73 [$-$2.20, $-$0.08] & refuted \\
  &  & Diffusion & 2.67 [1.37, 4.18] & 0.14 [$-$0.59, 0.57] & inconclusive \\
+ &  & Diffusion, history only & 12.7 [9.8, 15.7] & $-$3.09 [$-$6.49, $-$1.67] & refuted \\
+ &  & IDM + AR(1) noise & 2.72 [2.24, 3.21] & 0.13 [$-$0.39, 0.36] & inconclusive \\
 \midrule
  & mixed (1) & IDM + white noise & 2.51 [2.51, 2.51] & -- & reference \\
  &  & LSTM, constant sigma & 55.1 [55.1, 55.1] & $-$21.0 [$-$21.0, $-$21.0] & not judged \\
@@ -42,6 +48,8 @@ main run & ACC (6) & IDM + white noise & 4.40 [2.85, 5.96] & -- & reference \\
  &  & GP residual on IDM & 0.946 [0.946, 0.946] & 0.62 [0.62, 0.62] & not judged \\
  &  & Quantile PIDL (1 s target) & 6.26 [6.26, 6.26] & $-$1.50 [$-$1.50, $-$1.50] & not judged \\
  &  & Diffusion & 0.698 [0.698, 0.698] & 0.72 [0.72, 0.72] & not judged \\
+ &  & Diffusion, history only & 15.5 [15.5, 15.5] & $-$5.20 [$-$5.20, $-$5.20] & not judged \\
+ &  & IDM + AR(1) noise & 3.08 [3.08, 3.08] & $-$0.23 [$-$0.23, $-$0.23] & not judged \\
 \midrule
 speed cap 35.9 m/s & ACC (6) & IDM + white noise & 4.40 [2.82, 5.96] & -- & reference \\
  &  & LSTM, constant sigma & 4.17 [3.32, 4.99] & 0.05 [$-$0.52, 0.34] & inconclusive \\

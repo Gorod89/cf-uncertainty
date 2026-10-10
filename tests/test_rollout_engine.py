@@ -339,6 +339,7 @@ def test_v_lead_is_offered_to_samplers_that_take_it() -> None:
 LABELS = [
     "idm_white_noise", "idm_white_noise_mle", "lstm_const_sigma", "hetero_mdn", "hetero_mdn_mix3", "deep_ensemble",
     "mc_dropout", "gp_residual_idm", "quantile_pidl", "diffusion_cf",
+    "idm_ar_noise", "diffusion_cf_hist",  # review controls (design.md 18); lstm_hetero_frozen needs a stored mean
 ]  # fmt: skip
 
 
@@ -347,7 +348,7 @@ def _tiny_model(label: str, idm: IDMParams, small: DataBundle, small_seq: DataBu
     cfg = load_config()
     cfg.train.overrides = {"max_epochs": 1, "batch_size": 128}
     cfg.model_overrides = {"gp_residual_idm": {"max_epochs": 1, "batch_size": 256, "n_inducing": 16},
-                           "diffusion_cf": {"n_sampling_steps": 5}}  # fmt: skip
+                           "diffusion_cf": {"n_sampling_steps": 5}, "diffusion_cf_hist": {"n_sampling_steps": 5}}  # fmt: skip
     spec = model_spec(cfg, label, lambda name: (idm, {"name": name}))
     data = small_seq if spec.sequences else small
     rows = np.arange(min(400, len(data.windows["train"])))

@@ -1,0 +1,38 @@
+# Review control R6 (docs/design.md 18.5): causal preprocessing and a fixed physical target as a control of the main
+# reading of E5 (e1m_mean1s.yaml, inherited through `base`: target mean_1s, harmonise settings, data sets and strides).
+#   inputs   every input signal (s, v, v_lead) of every data set smoothed by the ONE-SIDED Savitzky-Golay filter
+#            (least-squares quadratic over the trailing window, evaluated at its last sample: no look-ahead), window per
+#            data set by the roughness rule of E5 (15.1), computed on the VALIDATION fold of every data set only;
+#            highD (the reference and the training data) keeps the window 11 of harmonise.window
+#   target   mean_1s = (v[t+10] - v[t]) / 1 s of the RECORDED (stored, unsmoothed) speed (train.target_from: recorded),
+#            the same physical quantity for every data set and every processing of the inputs
+#   folds    the shifted sets are evaluated on every event OUTSIDE their validation fold (split all_but_val): the
+#            fold that chose their window is never evaluated; highD: test fold (and the validation fold, as in E1)
+# Not a reuse of the e1h_mean1s checkpoints: they were trained on centred-filter inputs and the processed target, the
+# training key of highD differs (signal causal, target_from recorded) and the reuse check refuses them (shown by
+# `--dry-run --set reuse_checkpoints.lstm_const_sigma=artifacts/e1h_mean1s/checkpoints`). The history-based models are
+# therefore retrained on the causal highD windows, 5 seeds, with the frozen IDM prior of e1h_mean1s for the GP.
+#   python scripts/match_roughness.py --config configs/experiment/e1m_causal.yaml --causal   # -> match.file
+#   python scripts/run_e1.py --config configs/experiment/e1m_causal.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e1m_causal/logs/run.out 8 --config configs/experiment/e1m_causal.yaml
+base: e1m_mean1s.yaml
+root: artifacts/e1m_causal
+signal: matched_causal        # experiment level: one-sided filter, the windows of match.file
+match:
+  reference: highd            # keeps harmonise.window (11, causal); the training data set
+  grid: [11, 15, 21, 25, 31, 41, 51, 61, 81, 101]
+  tolerance: 0.1
+  file: artifacts/e1m_causal/matching.json   # causal matching on the validation folds (scripts/match_roughness.py --causal)
+train:
+  target: mean_1s
+  target_from: recorded       # the speed-based target from the stored speed, the inputs from the causal signals
+  idm_from: artifacts/e1h_mean1s/idm.json   # frozen IDM prior of the compared e1h_mean1s models (GP residual), not fitted
+models: [lstm_const_sigma, hetero_mdn, deep_ensemble, mc_dropout, gp_residual_idm]
+reuse_checkpoints: null       # retrained (the inherited e1h_mean1s sources fail the signal check)
+eval:
+  datasets:                   # inherited highd (test) and highd_val (val); the shifted sets without their validation fold
+    ngsim:       {split: all_but_val}
+    ngsim_us101: {split: all_but_val}
+    ngsim_fn:    {split: all_but_val}
+    waymo:       {split: all_but_val}
+    openacc:     {split: all_but_val}

@@ -11,10 +11,13 @@ writes (docs/design.md, section 10)::
     tables/h31e_verdicts.csv       H3.1e (epistemic part only, design.md section 12): in-domain concentration and
                                    growth verdict per model, kind and pair (from rare_concentration and h31_verdicts)
     tables/h31e_summary.csv        per model and kind (main verdict: kind "model", own epistemic output)
-    tables/rare_concentration.csv  mean(x | rule) / mean(x | not rule): rare_freq, rare_mass, small_gap, large_dv
+    tables/rare_concentration.csv  mean(x | rule) / mean(x | not rule): rare_freq, rare_mass, small_gap, large_dv; next to
+                                   it the mass-share concentration conc_mass_* = share of the mass / share of the
+                                   windows = mean(x | rule) / mean(x) (both > 1 together)
     tables/regime_stats.csv        statistics per regime
     tables/regime_ordering.csv     ratio of every regime to the reference regime (Holm per model, data set, subset)
-    tables/h33_nll.csv             NLL of hetero_mdn minus lstm_const_sigma (Holm over the whole table)
+    tables/h33_nll.csv             NLL of hetero_mdn minus lstm_const_sigma (Holm over the whole table); other pairs
+                                   with ``h33_pairs`` (e.g. lstm_hetero_frozen vs lstm_const_sigma, review control R13)
     tables/maps_long.csv           every map in long format
     tables/analysis_info.json      settings, seeds per model and data set, run time
     maps/<model>__<kind>/<dataset>.npz, <dataset>__<subset>.npz
@@ -136,7 +139,7 @@ _METRICS = ("nll", "crps", "picp90", "width90", "rmse", "var", "aleatoric", "epi
 TABLE_COLUMNS: dict[str, list[str]] = {
     "one_step_metrics": [
         "model", "dataset", "subset", "seed", "n_seeds", "n_windows", "n_events", *_METRICS,
-        "nll_lo", "nll_hi", "crps_lo", "crps_hi", "picp90_lo", "picp90_hi", "unit",
+        "nll_lo", "nll_hi", "crps_lo", "crps_hi", "picp90_lo", "picp90_hi", "unit", "n_followers",
     ],
     "shift_ratios": [
         "model", "kind", "dataset", "subset", "pair", "quantity", "estimate", "lo", "hi", "se", "seed_sd",
@@ -155,7 +158,8 @@ TABLE_COLUMNS: dict[str, list[str]] = {
     "rare_concentration": [
         "model", "kind", "dataset", "subset", "rule", "share_windows", "ratio_epistemic", "ratio_epistemic_lo",
         "ratio_epistemic_hi", "ratio_aleatoric", "ratio_aleatoric_lo", "ratio_aleatoric_hi", "share_mass_epistemic",
-        "share_mass_aleatoric", "n_events", "n_seeds", "unit",
+        "share_mass_aleatoric", "n_events", "n_seeds", "unit", "conc_mass_epistemic", "conc_mass_epistemic_lo",
+        "conc_mass_epistemic_hi", "conc_mass_aleatoric", "conc_mass_aleatoric_lo", "conc_mass_aleatoric_hi",
     ],
     "regime_stats": ["model", "dataset", "subset", *REGIME_TABLE_COLUMNS, "unit"],
     "regime_ordering": ["model", "dataset", "subset", *ORDERING_COLUMNS, "unit"],
@@ -258,7 +262,8 @@ def holm_replicates(n_boot: int, n_tests: int, alpha: float = ALPHA, factor: flo
 # --------------------------------------------------------------------------------- windows
 @dataclass
 class _View:
-    """Arrays of one data set or subset: y (n,) float64, s, dv (n,), bins (n,), labels (n,) | None, units (n,)."""
+    """Arrays of one data set or subset: y (n,) float64, s, dv (n,), bins (n,), labels (n,) | None, units (n,) (the
+    bootstrap units), events and drivers (n,) (the event and follower codes, whatever the unit; None if absent)."""
 
     y: np.ndarray
     s: np.ndarray
@@ -266,6 +271,8 @@ class _View:
     bins: np.ndarray
     labels: np.ndarray | None
     units: np.ndarray
+    events: np.ndarray | None = None
+    drivers: np.ndarray | None = None
 
 
 @dataclass
@@ -284,7 +291,8 @@ class _Windows:
             return self.full
         f = self.full
         return _View(
-            f.y[rows], f.s[rows], f.dv[rows], f.bins[rows], None if f.labels is None else f.labels[rows], f.units[rows]
+            f.y[rows], f.s[rows], f.dv[rows], f.bins[rows], None if f.labels is None else f.labels[rows], f.units[rows],
+            None if f.events is None else f.events[rows], None if f.drivers is None else f.drivers[rows],
         )
 
 
@@ -308,6 +316,8 @@ def _load_windows(
         bins=grid.bin_index(s, dv),
         labels=labels,
         units=frame[unit].to_numpy(),
+        events=frame["event"].to_numpy() if "event" in frame.columns else None,
+        drivers=frame["driver"].to_numpy() if "driver" in frame.columns else None,
     )
     views: list[tuple[str, np.ndarray | None]] = [("all", None)]
     if "subset" in frame.columns and n:
@@ -421,7 +431,8 @@ def _one_step_rows(
     for k, seed_k in enumerate(sv.seeds):
         v = valid[k]
         row: dict[str, Any] = {**keys, "seed": str(seed_k), "n_seeds": 1, "n_windows": int(v.sum())}
-        row["n_events"] = _n_units(wv.units[v])
+        row["n_events"] = _n_units((wv.events if wv.events is not None else wv.units)[v])
+        row["n_followers"] = _n_units(wv.drivers[v]) if wv.drivers is not None else float("nan")
         for name, arr in columns.items():
             row[name] = _mean_of(arr[k], v)
         row["rmse"] = float(np.sqrt(_mean_of(sq[k], v)))
@@ -432,7 +443,8 @@ def _one_step_rows(
         rows.append(row)
     any_valid = valid.any(axis=0)
     mean_row: dict[str, Any] = {**keys, "seed": "mean", "n_seeds": sv.n_seeds, "n_windows": int(any_valid.sum())}
-    mean_row["n_events"] = _n_units(wv.units[any_valid])
+    mean_row["n_events"] = _n_units((wv.events if wv.events is not None else wv.units)[any_valid])
+    mean_row["n_followers"] = _n_units(wv.drivers[any_valid]) if wv.drivers is not None else float("nan")
     for name in _METRICS:
         values = np.array([r[name] for r in rows], dtype=np.float64)
         values = values[np.isfinite(values)]
@@ -482,6 +494,12 @@ def _concentration_rows(
                 "share_mass_aleatoric": alea["share_mass"],
                 "n_events": alea["n_events"],
                 "n_seeds": q["aleatoric"].shape[0],
+                "conc_mass_epistemic": epi.get("mass_ratio", nan),
+                "conc_mass_epistemic_lo": epi.get("mass_ratio_lo", nan),
+                "conc_mass_epistemic_hi": epi.get("mass_ratio_hi", nan),
+                "conc_mass_aleatoric": alea["mass_ratio"],
+                "conc_mass_aleatoric_lo": alea["mass_ratio_lo"],
+                "conc_mass_aleatoric_hi": alea["mass_ratio_hi"],
             }
         )
     return rows
@@ -619,6 +637,8 @@ def analyze_e1(
     train_data: Sequence[str] | None = None,
     write: bool = True,
     verbose: bool = False,
+    h33_pairs: Sequence[Sequence[str]] | None = None,
+    tables_dir: str = "tables",
 ) -> dict[str, pd.DataFrame]:
     """Analyse the E1 prediction tables under ``root`` and write the tables and maps (module docstring).
 
@@ -630,7 +650,11 @@ def analyze_e1(
     ``pair = "cross_check"`` (second extraction of a counted data set; default: ``cross_check`` of the
     config), reported but not counted for H3.1; train_data: training data sets of the root (default: ``pool.data``
     of ``train_density.npz`` for a pooled root, else the in-domain sources), whose data sets get no shift pair
-    (``pair_roles``). Returns the tables by name (``TABLE_COLUMNS`` plus ``maps_long``).
+    (``pair_roles``). h33_pairs: the (heteroscedastic, homoscedastic) model pairs of the H3.3 NLL table (default
+    ``[H33_MODELS]``; every pair's rows in one table with one Holm family, the bootstrap seeds of a data set and subset
+    shared by the pairs). tables_dir: directory below ``root`` for the tables (the maps are written only with the
+    default ``tables``: they do not depend on the bootstrap unit). Returns the tables by name (``TABLE_COLUMNS`` plus
+    ``maps_long``).
     """
     started = time.perf_counter()
     root = Path(root)
@@ -688,7 +712,10 @@ def analyze_e1(
 
     rows: dict[str, list[Any]] = {name: [] for name in [*TABLE_COLUMNS, "maps_long"]}
     seeds_info: dict[str, dict[str, list[int]]] = {}
-    h33: dict[str, dict[str, tuple[np.ndarray, int]]] = {m: {} for m in H33_MODELS}
+    pairs33 = [tuple(str(m) for m in pair) for pair in (h33_pairs or [H33_MODELS])]
+    if any(len(pair) != 2 or pair[0] == pair[1] for pair in pairs33):
+        raise ValueError(f"h33_pairs must hold pairs of two different models, got {pairs33}")
+    h33: dict[str, dict[str, tuple[np.ndarray, int]]] = {m: {} for pair in pairs33 for m in pair}
     maps_dir = root / "maps"
 
     for model in model_names:
@@ -726,7 +753,7 @@ def analyze_e1(
                     umap = map_from_arrays(
                         wv.bins, q, sv.valid.any(axis=0), grid, train_counts, rare=rare, n_seeds=sv.n_seeds, meta=info
                     )
-                    if write:
+                    if write and tables_dir == "tables":
                         stem = d if subset == "all" else f"{d}__{_safe(subset)}"
                         umap.save(maps_dir / f"{_safe(model)}__{kind}" / f"{stem}.npz")
                     long = umap.to_frame()
@@ -771,7 +798,8 @@ def analyze_e1(
             say(f"  {model} / {d}: {stack.n_seeds} seeds, {win.n:,} windows, {time.perf_counter() - t0:.1f} s")
             del stack
 
-    h33_rows, n_boot_h33 = _h33_rows(h33, windows, [d for d in order if d in report], n_boot, base_seed, ci, unit)
+    h33_rows, n_boot_h33 = _h33_rows(h33, windows, [d for d in order if d in report], n_boot, base_seed, ci, unit,
+                                     pairs33)  # fmt: skip
     derived = ("h31_summary", "h31e_verdicts", "h31e_summary", "h33_nll")
     tables = {name: _frame(rows[name], name) for name in TABLE_COLUMNS if name not in derived}
     tables["h33_nll"] = h33_rows
@@ -783,7 +811,7 @@ def analyze_e1(
     tables["maps_long"] = maps_long
     elapsed = time.perf_counter() - started
     if write:
-        out_dir = root / "tables"
+        out_dir = root / tables_dir
         out_dir.mkdir(parents=True, exist_ok=True)
         for name, frame in tables.items():
             frame.to_csv(out_dir / f"{name}.csv", index=False)
@@ -805,6 +833,7 @@ def analyze_e1(
             "v0": v0,
             "n_boot": n_boot,
             "n_boot_tests": {"regime_ordering": n_boot_order, "h33_nll": n_boot_h33},
+            **({} if pairs33 == [H33_MODELS] else {"h33_pairs": [list(p) for p in pairs33]}),
             "config": conf,
             "seconds": round(elapsed, 2),
         }
@@ -815,35 +844,40 @@ def analyze_e1(
 
 def _h33_rows(
     h33: Mapping[str, Mapping[str, tuple[np.ndarray, int]]], windows: Mapping[str, _Windows], datasets: Sequence[str],
-    n_boot: int, base_seed: int, ci: float, unit: str,
+    n_boot: int, base_seed: int, ci: float, unit: str, pairs: Sequence[Sequence[str]] = (H33_MODELS,),
 ) -> tuple[pd.DataFrame, int]:  # fmt: skip
-    """NLL of the heteroscedastic against the homoscedastic model per data set, subset and regime; Holm over all
-    rows. Returns the table and the number of bootstrap replicates used (:func:`holm_replicates` of the family)."""
-    name_a, name_b = H33_MODELS
-    common = [d for d in datasets if d in h33[name_a] and d in h33[name_b]]
-    if not common:
-        absent = [m for m in H33_MODELS if not h33[m]]
-        warnings.warn(f"H3.3 NLL comparison skipped: no data set with predictions of both {H33_MODELS}"
-                      + (f" (missing: {absent})" if absent else ""), RuntimeWarning, stacklevel=3)  # fmt: skip
+    """NLL of the heteroscedastic against the homoscedastic model of every pair (default ``H33_MODELS``) per data
+    set, subset and regime; Holm over all rows of all pairs. Returns the table and the number of bootstrap replicates
+    used (:func:`holm_replicates` of the family)."""
+    common = {}
+    for name_a, name_b in pairs:
+        common[(name_a, name_b)] = [d for d in datasets if d in h33[name_a] and d in h33[name_b]]
+        if not common[(name_a, name_b)]:
+            absent = [m for m in (name_a, name_b) if not h33[m]]
+            warnings.warn(f"H3.3 NLL comparison skipped: no data set with predictions of both {(name_a, name_b)}"
+                          + (f" (missing: {absent})" if absent else ""), RuntimeWarning, stacklevel=3)  # fmt: skip
+    if not any(common.values()):
         return _frame([], "h33_nll"), int(n_boot)
     family = sum(
-        len(windows[d].views) * (1 + (len(REGIMES) if windows[d].full.labels is not None else 0)) for d in common
+        len(windows[d].views) * (1 + (len(REGIMES) if windows[d].full.labels is not None else 0))
+        for ds in common.values() for d in ds
     )
     n_boot_h33 = holm_replicates(n_boot, family)
     frames = []
-    for d in common:
-        (nll_a, k_a), (nll_b, k_b) = h33[name_a][d], h33[name_b][d]
-        win = windows[d]
-        for subset, sub_rows in win.views:
-            wv = win.view(sub_rows)
-            a = nll_a if sub_rows is None else nll_a[sub_rows]
-            b = nll_b if sub_rows is None else nll_b[sub_rows]
-            res = nll_comparison(a, b, wv.units, wv.labels, n_boot_h33, _seed(base_seed, "h33", d, subset), ci)
-            res = res.assign(n_seeds_a=k_a, n_seeds_b=k_b, unit=unit)
-            keys = (("dataset", d), ("subset", subset), ("model_a", name_a), ("model_b", name_b))
-            for i, (key, value) in enumerate(keys):
-                res.insert(i, key, value)
-            frames.append(res)
+    for (name_a, name_b), ds in common.items():
+        for d in ds:
+            (nll_a, k_a), (nll_b, k_b) = h33[name_a][d], h33[name_b][d]
+            win = windows[d]
+            for subset, sub_rows in win.views:
+                wv = win.view(sub_rows)
+                a = nll_a if sub_rows is None else nll_a[sub_rows]
+                b = nll_b if sub_rows is None else nll_b[sub_rows]
+                res = nll_comparison(a, b, wv.units, wv.labels, n_boot_h33, _seed(base_seed, "h33", d, subset), ci)
+                res = res.assign(n_seeds_a=k_a, n_seeds_b=k_b, unit=unit)
+                keys = (("dataset", d), ("subset", subset), ("model_a", name_a), ("model_b", name_b))
+                for i, (key, value) in enumerate(keys):
+                    res.insert(i, key, value)
+                frames.append(res)
     frame = pd.concat(frames, ignore_index=True)
     adjusted, reject = holm(frame["pvalue"].to_numpy(dtype=np.float64), alpha=ALPHA)
     frame["p_holm"] = adjusted
@@ -875,12 +909,15 @@ def format_report(tables: Mapping[str, pd.DataFrame]) -> str:
         parts += ["", "H3.1e summary (epistemic part only: concentration in rare_mass states on the in-domain test set, "
                   "growth under shift; main verdict: kind model)", summary_e[cols].to_string(index=False, float_format=_fmt)]  # fmt: skip
     h33 = tables.get("h33_nll")
-    title = f"H3.3 NLL, {H33_MODELS[0]} minus {H33_MODELS[1]} (negative: heteroscedastic better; Holm over the table)"
-    parts += ["", title]
-    if h33 is not None and len(h33):
-        cols = ["dataset", "subset", "group", "n_windows", "nll_a", "nll_b", "diff", "diff_lo", "diff_hi", "p_holm",
-                "ci_overlap"]  # fmt: skip
-        parts.append(h33[cols].to_string(index=False, float_format=_fmt))
-    else:
-        parts.append("  (not available)")
+    cols = ["dataset", "subset", "group", "n_windows", "nll_a", "nll_b", "diff", "diff_lo", "diff_hi", "p_holm",
+            "ci_overlap"]  # fmt: skip
+    pairs = list(dict.fromkeys(zip(h33["model_a"], h33["model_b"]))) if h33 is not None and len(h33) else [H33_MODELS]
+    for name_a, name_b in pairs:
+        title = f"H3.3 NLL, {name_a} minus {name_b} (negative: heteroscedastic better; Holm over the table)"
+        parts += ["", title]
+        if h33 is not None and len(h33):
+            sel = h33[(h33["model_a"] == name_a) & (h33["model_b"] == name_b)]
+            parts.append(sel[cols].to_string(index=False, float_format=_fmt))
+        else:
+            parts.append("  (not available)")
     return "\n".join(parts)

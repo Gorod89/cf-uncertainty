@@ -1,0 +1,22 @@
+# Review controls (docs/design.md 18.1, 18.4): closed-loop rollouts of E2 (e2.yaml, inherited through `base`: rollout,
+# calibration, bootstrap and H3.4 settings) for the control models of artifacts/e1_ctrl, target a only. The events,
+# rollout seeds and random streams are those of artifacts/e2 (the selection depends on the data set and the seeds
+# only), so diffusion_cf_hist is paired event by event with diffusion_cf of artifacts/e2 (32 rollouts per event both).
+# highd_val stays: it is the calibration set of the conformal corrections of scripts/analyze_e2.py.
+#   python scripts/run_e2.py --config configs/experiment/e2_ctrl.yaml --dry-run
+#   bash scripts/run_e2_retry.sh artifacts/e2_ctrl/logs/run.out 8 --config configs/experiment/e2_ctrl.yaml
+#   python scripts/analyze_e2.py --root artifacts/e2_ctrl
+base: e2.yaml
+root: artifacts/e2_ctrl
+targets:
+  a: {checkpoints: artifacts/e1_ctrl/checkpoints, hold_steps: 1}
+  mean_1s: null               # target a only
+models: [diffusion_cf_hist, lstm_hetero_frozen]   # lstm_hetero_frozen: optional (H3.3 is one-step); --models diffusion_cf_hist
+variants:                     # the sampler-mode sensitivities of e2.yaml concern other models: removed
+  deep_ensemble__traj: null
+  mc_dropout__traj: null
+  gp_residual_idm__step: null
+datasets:                     # inherited: highd_val (calibration set), highd (test fold), ngsim, openacc
+  ngsim_us101: null
+  waymo: null
+e1_roots: {a: artifacts/e1_ctrl, mean_1s: null}   # E1 prediction tables of the one-step conformal analysis

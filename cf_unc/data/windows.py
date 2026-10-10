@@ -21,6 +21,14 @@ TARGET_STEPS: dict[str, int] = {"a": 1, "fwd_diff": 1, "mean_1s": MEAN_TARGET_ST
 TARGET_LOOKAHEAD: dict[str, int] = {"a": 0, "fwd_diff": 1, "mean_1s": MEAN_TARGET_STEPS}
 
 
+def target_speed(event: "Event") -> np.ndarray:
+    """Speed [m/s] from which the speed-based targets (``fwd_diff``, ``mean_1s``) of ``event`` are cut: its
+    ``v_target`` when it carries one (``cf_unc.data.harmonise.TargetSpeedEvent``: processed inputs, recorded target,
+    review control R6), else ``v``."""
+    v_target = getattr(event, "v_target", None)
+    return event.v if v_target is None else v_target
+
+
 def check_target(target: str) -> str:
     """``target`` if it is one of ``TARGETS``, else ValueError."""
     if target not in TARGETS:
@@ -160,7 +168,8 @@ def make_windows(
     ``X[i] = (s, dv, v)[t-hist_len+1 : t+1]``; ``y[i]`` = ``target_values`` at t: ``a[t]``, ``(v[t+1]-v[t]) / DT``
     or ``(v[t+10]-v[t]) / (10 DT)``; with ``seq_len = L > 0`` also ``y_seq[i] = a[t : t+L]`` and
     ``v_lead_future[i] = v_lead[t+1 : t+L+1]`` (whatever the target). Driver codes index the sorted
-    ``driver_names`` of all events (``driver_key``).
+    ``driver_names`` of all events (``driver_key``). The speed-based targets come from ``target_speed`` of every event
+    (``v`` unless the event carries a separate ``v_target``).
     """
     if hist_len < 1 or stride < 1 or seq_len < 0:
         raise ValueError("need hist_len >= 1, stride >= 1, seq_len >= 0")
@@ -203,7 +212,10 @@ def make_windows(
         [sliding_window_view(cat(name).astype(np.float32), hist_len)[starts] for name in ("s", "dv", "v")],
         axis=-1,
     )
-    y = cat("a")[g] if target == "a" else target_values(None, cat("v"), g, target)
+    if target == "a":
+        y = cat("a")[g]
+    else:
+        y = target_values(None, np.concatenate([target_speed(ev) for ev in evs]), g, target)
     y_seq = v_lead_future = None
     if seq_len > 0:
         y_seq = np.ascontiguousarray(sliding_window_view(cat("a").astype(np.float32), seq_len)[g])

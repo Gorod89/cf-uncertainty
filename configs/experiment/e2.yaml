@@ -15,7 +15,9 @@ targets:                      # a target whose checkpoint directory does not exi
 train:
   data: highd                 # training data set of the checkpoints (E1 train.data): every checkpoint must have been
                               # trained on its signal key (design.md 15.1; raw / harmonised: the experiment-level key)
-models: [idm_white_noise, idm_white_noise_mle, lstm_const_sigma, hetero_mdn, hetero_mdn_mix3, deep_ensemble, mc_dropout, gp_residual_idm, quantile_pidl, diffusion_cf]
+models: [idm_white_noise, idm_white_noise_mle, lstm_const_sigma, hetero_mdn, hetero_mdn_mix3, deep_ensemble, mc_dropout, gp_residual_idm, quantile_pidl, diffusion_cf, idm_ar_noise]
+# idm_ar_noise (review control R10, design.md 18.3): rolled like idm_white_noise once its checkpoint exists in the E1
+# root of the target (a: artifacts/e1, mean_1s: artifacts/e1_mean1s; derived configs: their own E1 roots)
 seeds: [0, 1, 2, 3, 4]
 datasets:                     # data: data config (configs/data/<name>.yaml); split: all | train | val | test
   highd_val:   {data: highd,       split: val,  n_events: 500}   # calibration set of the conformal corrections

@@ -168,7 +168,7 @@ def run_training(cfg: DictConfig, bundles: dict[str, DataBundle] | None = None, 
     model = build_model(str(cfg.model.name), **model_kwargs(cfg, idm)).to(device)
     log = model.fit(bundle.windows["train"], bundle.windows["val"], seed=int(cfg.seed), verbose=bool(cfg.get("verbose", False)))
 
-    max_rows = cfg.get("eval_max_rows_sampled", 2000) if model.needs_leader_future else cfg.get("eval_max_rows", None)
+    max_rows = cfg.get("eval_max_rows_sampled", 2000) if model.plan_sampler else cfg.get("eval_max_rows", None)
     result: dict[str, Any] = {
         "model": str(cfg.model.name),
         "config_name": str(cfg.get("model_label", cfg.model.name)),

@@ -75,7 +75,8 @@ def test_model_configs_are_constructible(path, true_idm):
         assert not cfg.get("train"), "train overrides for a model without a `train` argument"
     model = build_model(cfg["name"], **kwargs)
     assert model.name == cfg["name"]
-    assert bool(cfg.get("needs_sequences", False)) == model.needs_leader_future
+    assert bool(cfg.get("needs_sequences", False)) == model.plan_sampler  # sequence models are the plan samplers
+    assert model.needs_leader_future <= model.plan_sampler  # only a plan sampler may take the leader's future
 
 
 def test_run_training_smoke(tmp_path):

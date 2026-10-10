@@ -24,6 +24,10 @@ Conventions (choices the contract leaves open are marked *):
   profiles (the mean curve and the fit are recomputed for every replicate); concavity: the share of negative second
   differences ``sd_{i+1} - 2 sd_i + sd_{i-1}`` of the mean curve. Empirical curve: mean over the profiles that measured
   the index; fitted over the indices measured in at least ``min_profiles`` (3) profiles*.
+* Clusters (review item R4): the profiles come from 26 recording files (several profiles per file), so every interval
+  of a mean over profiles, of a reduction and of a growth exponent has a second, paired cluster-bootstrap version
+  that resamples files and keeps all profiles of a drawn file (``groups`` = file labels; the functions above take
+  any grouping): the estimand stays the profile-weighted one, so the point estimates do not change.
 """
 
 from __future__ import annotations
@@ -46,6 +50,7 @@ __all__ = [
     "fair_crps",
     "growth_curve",
     "growth_exponent",
+    "growth_exponents",
     "h32_verdict",
     "loo_static_correction",
     "mean_with_ci",
@@ -168,13 +173,15 @@ def profile_order(ids: Sequence[str], seed: int) -> list[str]:
 
 def coverage_by_method(
     y: ArrayLike, lo: ArrayLike, mid: ArrayLike, hi: ArrayLike, order: Sequence[int], alpha: float = 0.1,
-    gamma: float = 0.01, n_min: int = 5,
+    gamma: float = 0.01, n_min: int = 5, finite_quantile: bool = False,
 ) -> dict[str, dict[str, np.ndarray]]:  # fmt: skip
     """Covered indicators and widths (P,) of the raw, leave-one-out static and ACI-online corrected intervals.
 
     y (P,) empirical values (NaN: not measured, the row gets NaN), lo / mid / hi (P,) q05 / q50 / q95 of the model
-    law, order: positions of the profiles in ACI order (a permutation of the rows). Returns
-    ``{method: {"covered", "width", "q"}}`` for ``raw``, ``static_loo`` and ``aci_online``.
+    law, order: positions of the profiles in ACI order (a permutation of the rows); finite_quantile: the heuristic
+    finite ACI of the submitted tables (``cf_unc.rollout.calibration``). Returns ``{method: {"covered", "width",
+    "q"}}`` for ``raw``, ``static_loo`` and ``aci_online``; ``q = +inf`` is an infinite interval (width +inf), ``q =
+    -inf`` an empty one (width 0).
     """
     y, lo, mid, hi = (np.asarray(a, dtype=np.float64) for a in (y, lo, mid, hi))
     ok = np.isfinite(y)
@@ -182,7 +189,7 @@ def coverage_by_method(
 
     def pack(q: np.ndarray) -> dict[str, np.ndarray]:
         a, b = corrected_interval(lo, mid, hi, np.where(np.isfinite(q), q, 0.0))
-        width = np.where(np.isinf(q), np.inf, np.maximum(b - a, 0.0))
+        width = np.where(np.isposinf(q), np.inf, np.where(np.isneginf(q), 0.0, np.maximum(b - a, 0.0)))
         return {"covered": np.where(ok, (score <= q).astype(np.float64), np.nan), "width": np.where(ok, width, np.nan),
                 "q": np.where(ok, q, np.nan)}  # fmt: skip
 
@@ -191,7 +198,7 @@ def coverage_by_method(
     seq = [int(i) for i in order if ok[int(i)]]
     q_aci = np.full(score.shape, np.nan)
     if seq:
-        run = aci_run(score[seq], alpha, gamma, n_min)
+        run = aci_run(score[seq], alpha, gamma, n_min, finite_quantile=finite_quantile)
         q_aci[seq] = run["q"]
     out["aci_online"] = pack(q_aci)
     return out
@@ -212,6 +219,25 @@ def growth_exponent(curve: ArrayLike, index: ArrayLike | None = None) -> tuple[f
     return beta, float(z.mean() - beta * x.mean())
 
 
+def growth_exponents(curves: ArrayLike, index: ArrayLike | None = None) -> np.ndarray:
+    """Row-wise :func:`growth_exponent` of curves (B, V): (B,) exponents, NaN for a row with fewer than two finite
+    positive entries (vectorised for the bootstrap replicates)."""
+    c = np.asarray(curves, dtype=np.float64)
+    c = c[None, :] if c.ndim == 1 else c
+    i = np.arange(1, c.shape[1] + 1, dtype=np.float64) if index is None else np.asarray(index, dtype=np.float64)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        ok = np.isfinite(c) & (c > 0) & np.isfinite(i)[None, :] & (i > 0)[None, :]
+        x = np.where(ok, np.log(np.where(i > 0, i, 1.0))[None, :], 0.0)
+        z = np.where(ok, np.log(np.where(ok, c, 1.0)), 0.0)
+        n = ok.sum(axis=1)
+        xm = x.sum(axis=1) / np.maximum(n, 1)
+        zm = z.sum(axis=1) / np.maximum(n, 1)
+        xc = np.where(ok, x - xm[:, None], 0.0)
+        sxx = (xc * xc).sum(axis=1)
+        beta = (xc * np.where(ok, z - zm[:, None], 0.0)).sum(axis=1) / sxx
+    return np.where((n >= 2) & (sxx > 0), beta, np.nan)
+
+
 def second_difference_share(curve: ArrayLike) -> float:
     """Share of negative second differences ``c[i+1] - 2 c[i] + c[i-1]`` among the finite ones (NaN if none)."""
     c = np.asarray(curve, dtype=np.float64)
@@ -222,7 +248,7 @@ def second_difference_share(curve: ArrayLike) -> float:
 
 def growth_curve(
     curves: ArrayLike, n_boot: int = 1000, seed: int = 0, ci: float = 0.95, min_profiles: int = 1,
-    fit_min_profiles: int | None = None,
+    fit_min_profiles: int | None = None, groups: ArrayLike | None = None,
 ) -> dict[str, Any]:
     """Mean growth curve of per-profile curves (P, V) (NaN = index not available) with bootstrap over profiles.
 
@@ -230,7 +256,9 @@ def growth_curve(
     ``n_profiles`` (V,), ``beta`` / ``beta_lo`` / ``beta_hi``, ``log_sd1`` and ``share_neg_d2`` of the mean curve,
     ``fitted`` (V,) bool: the indices that entered the exponent fit. The exponent is fitted over the indices held by
     at least ``fit_min_profiles`` profiles (default ``min_profiles``): a ragged set of measured platoons would
-    otherwise mix the level of the few long platoons into the slope (composition effect).
+    otherwise mix the level of the few long platoons into the slope (composition effect). groups (P,): resample these
+    clusters instead of the profiles (all profiles of a drawn cluster, as often as it is drawn; review item R4); the
+    estimate does not depend on it.
     """
     c = np.asarray(curves, dtype=np.float64)
     n_p, n_v = c.shape
@@ -244,10 +272,20 @@ def growth_curve(
     out: dict[str, Any] = {"curve": mean, "lo": np.full(n_v, np.nan), "hi": np.full(n_v, np.nan), "n_profiles": count,
                            "beta": beta, "beta_lo": np.nan, "beta_hi": np.nan, "log_sd1": log_sd1,
                            "share_neg_d2": second_difference_share(mean), "fitted": fitted}  # fmt: skip
-    if n_p < 2:
-        return out
     rng = np.random.default_rng(seed)
-    w = np.stack([np.bincount(rng.integers(0, n_p, n_p), minlength=n_p) for _ in range(int(n_boot))]).astype(np.float64)
+    if groups is not None:
+        _, codes = np.unique(np.asarray(groups).ravel(), return_inverse=True)
+        codes = codes.ravel()
+        n_g = int(codes.max()) + 1 if codes.size else 0
+        if n_g < 2:
+            return out
+        draws = rng.integers(0, n_g, size=(int(n_boot), n_g))
+        counts = np.stack([np.bincount(d, minlength=n_g) for d in draws]).astype(np.float64)
+        w = counts[:, codes]  # (B, P): a profile weighs as often as its cluster was drawn
+    elif n_p < 2:
+        return out
+    else:
+        w = np.stack([np.bincount(rng.integers(0, n_p, n_p), minlength=n_p) for _ in range(int(n_boot))]).astype(np.float64)
     num = w @ np.where(ok, c, 0.0)  # (B, V)
     den = w @ ok.astype(np.float64)
     with np.errstate(invalid="ignore", divide="ignore"):
@@ -257,7 +295,7 @@ def growth_curve(
     cols = np.flatnonzero(usable & np.isfinite(reps).any(axis=0))
     if cols.size:
         out["lo"][cols], out["hi"][cols] = np.nanpercentile(reps[:, cols], [lo_q, hi_q], axis=0)
-    betas = np.array([growth_exponent(np.where(fitted, r, np.nan))[0] for r in reps])
+    betas = growth_exponents(np.where(fitted[None, :], reps, np.nan))
     betas = betas[np.isfinite(betas)]
     if betas.size:
         out["beta_lo"], out["beta_hi"] = (float(x) for x in np.percentile(betas, [lo_q, hi_q]))

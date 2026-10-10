@@ -74,6 +74,16 @@ baselines) on the training windows.
 An entry of ``eval.datasets``, ``datasets``, ``targets``, ``e1_roots``, ``variants`` or ``reuse_checkpoints`` that is
 set to null is removed (``load_config``): a config inheriting another one with ``base:`` drops an entry this way, and
 ``reuse_checkpoints: null`` drops every inherited reuse.
+
+Causal signals and recorded targets (review control R6, design.md 18.5): ``signal: causal`` smooths the inputs of every
+data set with the one-sided Savitzky-Golay filter of ``cf_unc.data.harmonise.causal_events`` (window and order of
+``harmonise``); ``signal: matched_causal`` uses one window per data set from a causal matching file (computed on the
+validation folds only, ``scripts/match_roughness.py``; checked like the file of ``matched``, and refused when it is a
+centred matching). Its per-data-set key is the ``causal`` key with that window. ``train.target_from: recorded`` cuts the
+speed-based targets (``mean_1s``) from the stored speed while the inputs are the processed signals; it is part of every
+signal key (``target_from``), so nothing of a root with the processed target is accepted by such a config. The evaluated
+split ``all_but_val`` is every event outside the validation fold of the data set's split file (the shifted sets of a
+causal matching: their validation fold calibrated the window and is not evaluated).
 """
 
 from __future__ import annotations
@@ -100,10 +110,13 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 from cf_unc.constants import HIST_LEN, SEQ_LEN
 from cf_unc.data.harmonise import (
     DEFAULT_SIGNAL,
+    DEFAULT_TARGET_FROM,
+    MATCHED_SIGNALS,
     HarmoniseConfig,
     MatchConfig,
     MatchingError,
     check_signal,
+    check_target_from,
     matched_windows,
     read_matching,
 )
@@ -113,7 +126,7 @@ from cf_unc.data.splits import split_by_folds
 from cf_unc.data.windows import DEFAULT_TARGET, WindowSet, check_target, concat_windows, count_windows, make_windows
 from cf_unc.eval.metrics import summarize
 from cf_unc.maps import io as tables
-from cf_unc.models import CFModel, build_model, load_model, resolve_device
+from cf_unc.models import CFModel, build_model, constructor_accepts, load_model, resolve_device
 from cf_unc.physics.idm import IDMParams, calibrate_idm, evaluate_idm
 from cf_unc.train.run import ROOT, _path, _plain, model_kwargs, write_json
 
@@ -316,10 +329,21 @@ def data_signal(cfg: DictConfig | Mapping[str, Any], name: str) -> str:
     value = cfg.get("signal")
     if value is None:
         value = data_config(cfg, name).get("signal")
-        if value is not None and str(value) == "matched":
-            raise ValueError(f"data config {name!r}: signal 'matched' is an experiment-level variant (it needs the "
-                             "experiment's match settings); set `signal: matched` in the experiment config")  # fmt: skip
+        if value is not None and str(value) in MATCHED_SIGNALS:
+            raise ValueError(f"data config {name!r}: signal {value!r} is an experiment-level variant (it needs the "
+                             f"experiment's match settings); set `signal: {value}` in the experiment config")  # fmt: skip
     return check_signal(str(DEFAULT_SIGNAL if value is None else value))
+
+
+def target_from(cfg: DictConfig | Mapping[str, Any]) -> str:
+    """``train.target_from`` (``signal``: the speed-based targets are cut from the processed speed, the default;
+    ``recorded``: from the stored speed, review control R6). ValueError for ``recorded`` with target ``a`` (the
+    one-step target is the processed acceleration; use ``mean_1s``)."""
+    value = check_target_from((cfg.get("train") or {}).get("target_from"))
+    if value != DEFAULT_TARGET_FROM and config_target(cfg) == "a":
+        raise ValueError("train.target_from: recorded needs a speed-based target (mean_1s); target a is the "
+                         "acceleration of the processed signal")  # fmt: skip
+    return value
 
 
 def match_config(cfg: DictConfig | Mapping[str, Any]) -> MatchConfig:
@@ -338,7 +362,9 @@ def matching_path(cfg: DictConfig | Mapping[str, Any]) -> Path:
 def matching_windows(cfg: DictConfig | Mapping[str, Any]) -> dict[str, int]:
     """Matched window per data set of the config's matching file, checked against its ``harmonise`` and ``match``
     settings (``cf_unc.data.harmonise.matched_windows``; MatchingError when missing or computed otherwise)."""
-    return matched_windows(matching_path(cfg), cfg.get("harmonise"), cfg.get("match"))
+    variant = str(cfg.get("signal") or "matched")
+    return matched_windows(matching_path(cfg), cfg.get("harmonise"), cfg.get("match"),
+                           variant=variant if variant in MATCHED_SIGNALS else "matched")  # fmt: skip
 
 
 def signal_key(cfg: DictConfig | Mapping[str, Any], name: str | None = None) -> dict[str, Any] | None:
@@ -354,18 +380,23 @@ def signal_key(cfg: DictConfig | Mapping[str, Any], name: str | None = None) -> 
     when it is not None, so that the files written before the option count as raw.
     """
     signal = data_signal(cfg, name) if name is not None else check_signal(str(cfg.get("signal") or DEFAULT_SIGNAL))
+    source = target_from(cfg)
     if signal == DEFAULT_SIGNAL:
+        if source != DEFAULT_TARGET_FROM:
+            raise ValueError("train.target_from: recorded needs a processed signal (the raw signal is the recorded one)")
         return None
     settings = HarmoniseConfig.from_config(cfg.get("harmonise")).to_dict()
-    if signal == "harmonised":
-        return _jsonable({"signal": signal, "harmonise": settings})
+    extra = {} if source == DEFAULT_TARGET_FROM else {"target_from": source}  # absent: keys written before R6 stay valid
+    if signal in ("harmonised", "causal"):
+        return _jsonable({"signal": signal, "harmonise": settings, **extra})
     windows = matching_windows(cfg)
     if name is None:
-        return _jsonable({"signal": signal, "harmonise": settings, "match": {**match_config(cfg).settings(), "windows": windows}})
+        return _jsonable({"signal": signal, "harmonise": settings, "match": {**match_config(cfg).settings(), "windows": windows},
+                          **extra})  # fmt: skip
     if name not in windows:
         raise MatchingError(f"data set {name!r} has no matched window in {matching_path(cfg)} (it holds "
                             f"{sorted(windows)}); compute the file with a config that uses the data set")  # fmt: skip
-    return _jsonable({"signal": "harmonised", "harmonise": {**settings, "window": int(windows[name])}})
+    return _jsonable({"signal": MATCHED_SIGNALS[signal], "harmonise": {**settings, "window": int(windows[name])}, **extra})
 
 
 def training_signal_key(cfg: DictConfig | Mapping[str, Any]) -> dict[str, Any] | list[Any] | None:
@@ -389,7 +420,8 @@ def describe_signal(key: Mapping[str, Any] | Sequence[Any] | None) -> str:
     settings = ", ".join(f"{k} {v:g}" if isinstance(v, (int, float)) else f"{k} {v}" for k, v in (key.get("harmonise") or {}).items())
     text = f"{key.get('signal')} ({settings})" if settings else str(key.get("signal"))
     windows = (key.get("match") or {}).get("windows")
-    return text + (" with the windows " + ", ".join(f"{k} {v}" for k, v in windows.items()) if windows else "")
+    text += " with the windows " + ", ".join(f"{k} {v}" for k, v in windows.items()) if windows else ""
+    return text + (f", targets from the {key['target_from']} speed" if key.get("target_from") else "")
 
 
 def describe_pool(key: Mapping[str, Any] | None) -> str:
@@ -451,7 +483,7 @@ def check_matching(cfg: DictConfig | Mapping[str, Any], names: Sequence[str] | N
     ``matched`` (None otherwise). MatchingError when the matching file is missing, was computed with other settings,
     lacks one of the data sets, or lists a data set from another event directory than its data config; the runners
     call it before anything else and refuse to run."""
-    if str(cfg.get("signal") or DEFAULT_SIGNAL) != "matched":
+    if str(cfg.get("signal") or DEFAULT_SIGNAL) not in MATCHED_SIGNALS:
         return None
     names = data_names(cfg) if names is None else list(dict.fromkeys(str(n) for n in names))
     windows = {n: int(signal_key(cfg, n)["harmonise"]["window"]) for n in names}  # type: ignore[index]
@@ -678,17 +710,21 @@ class Data:
                 self.log(f"data {name}: {len(self._events[key]):,} events loaded in {time.perf_counter() - started:.1f} s")
             else:
                 events, report = load_events(
-                    _path(dcfg.path), unify=key[1], signal=sig["signal"], harmonise=sig["harmonise"], return_report=True
+                    _path(dcfg.path), unify=key[1], signal=sig["signal"], harmonise=sig["harmonise"], return_report=True,
+                    target_from=sig.get("target_from"),
                 )  # fmt: skip
                 rep = dict(report or {})
                 self._events[key], self._reports[key] = events, rep
                 dropped = ", ".join(f"{k} {v}" for k, v in rep.get("dropped", {}).items() if v)
                 gap, c = rep.get("gap_rms_m", {}).get("q50"), rep.get("abs_c_mps", {}).get("q50")
+                what = "causal smoothing" if sig["signal"] == "causal" else "harmonisation"
+                matched = ", matched" if self.signal(name) in MATCHED_SIGNALS else ""
+                recorded = "; targets from the recorded speed" if sig.get("target_from") == "recorded" else ""
                 self.log(
-                    f"data {name}: {len(events):,} of {rep.get('n_in', 0):,} events kept after harmonisation (window "
-                    f"{sig['harmonise']['window']}{', matched' if self.signal(name) == 'matched' else ''}; dropped: "
-                    f"{dropped or 'none'}; gap rms median {'-' if gap is None else f'{gap:.3f}'} m, |c| median "
-                    f"{'-' if c is None else f'{c:.4f}'} m/s) in {time.perf_counter() - started:.1f} s"
+                    f"data {name}: {len(events):,} of {rep.get('n_in', 0):,} events kept after {what} (window "
+                    f"{sig['harmonise']['window']}{matched}; dropped: {dropped or 'none'}; gap rms median "
+                    f"{'-' if gap is None else f'{gap:.3f}'} m, |c| median {'-' if c is None else f'{c:.4f}'} m/s"
+                    f"{recorded}) in {time.perf_counter() - started:.1f} s"
                 )
         return self._events[key]
 
@@ -700,7 +736,7 @@ class Data:
     def match_info(self, name: str) -> dict[str, Any] | None:
         """Provenance of the matched window of data set ``name`` (signal ``matched``, design.md 15.1): the matching
         file, the window and the file's entry of the data set (role, roughness, flags, ...); None otherwise."""
-        if self.signal(name) != "matched":
+        if self.signal(name) not in MATCHED_SIGNALS:
             return None
         path = matching_path(self.cfg)
         content = read_matching(path)
@@ -727,10 +763,14 @@ class Data:
         return {str(k): int(v) for k, v in json.loads(file.read_text(encoding="utf-8"))["folds"].items()}
 
     def split(self, name: str, part: str) -> EventSet:
-        """Events of ``part`` (all | train | val | test; fold rule of cf-stability)."""
+        """Events of ``part`` (all | train | val | test; fold rule of cf-stability; ``all_but_val``: every event outside
+        the validation fold, in the order of the data set, review control R6)."""
         events = self.events(name)
         if part == "all":
             return events
+        if part == "all_but_val":
+            val = {ev.event_id for ev in self.split(name, "val")}
+            return EventSet(ev for ev in events if ev.event_id not in val)
         if name not in self._parts:
             file = self.fold_file(name)
             if file is None:
@@ -944,7 +984,9 @@ def model_config(cfg: DictConfig, label: str) -> DictConfig:
 
 def model_spec(cfg: DictConfig, label: str, calibration: Calibration | None = None) -> ModelSpec:
     """Constructor kwargs exactly as ``cf_unc.train.run.model_kwargs`` builds them (model config, train config,
-    IDM), then ``train.overrides`` (models with a ``train`` argument) and ``model_overrides[label]`` (deep merge).
+    IDM), then ``train.overrides`` (models with a ``train`` argument), the experiment's target as ``target`` (one-step
+    models whose constructor has that parameter: IDMARNoise, LSTMHeteroFrozen; no model of the original set has it, so
+    their kwargs are unchanged) and ``model_overrides[label]`` (deep merge).
 
     A model config with ``needs_idm`` gets the IDM calibration named by its ``idm`` key (default ``closed_loop``)
     from ``calibration(name) -> (params, key)``.
@@ -962,8 +1004,10 @@ def model_spec(cfg: DictConfig, label: str, calibration: Calibration | None = No
     overrides = _plain(cfg.train.get("overrides")) or {}
     if overrides and "train" in kwargs:
         kwargs["train"] = {**kwargs["train"], **overrides}
-    kwargs = _deep_merge(kwargs, _plain((cfg.get("model_overrides") or {}).get(label)) or {})
     sequences = bool(mcfg.get("needs_sequences", False))
+    if not sequences and constructor_accepts(str(mcfg.name), "target"):  # models whose law depends on the target
+        kwargs["target"] = config_target(cfg)  # (IDMARNoise: the lag of its AR state; LSTMHeteroFrozen: its source)
+    kwargs = _deep_merge(kwargs, _plain((cfg.get("model_overrides") or {}).get(label)) or {})
     return ModelSpec(
         label=label,
         name=str(mcfg.name),
@@ -1583,7 +1627,7 @@ class Runner:
         self.check_windows(dataset, ev)
         ecfg = self.cfg.eval
         rows = np.arange(len(ev.windows))
-        if model.needs_leader_future:
+        if getattr(model, "plan_sampler", False):  # sampled laws (DiffusionCF, DiffusionCFHist): the sampled rows
             max_rows = ecfg.get("max_rows_sampled")
             rows = sampled_rows(
                 ev.windows.event_index, ev.windows.t_index, ev.lengths,

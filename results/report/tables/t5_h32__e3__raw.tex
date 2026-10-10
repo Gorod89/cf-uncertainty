@@ -16,6 +16,8 @@ ACC (47) & IDM + white noise & 3.47 [2.80, 4.11] & -- & reference \\
  & GP residual on IDM & 2.94 [2.36, 3.55] & 0.15 [$-$0.08, 0.35] & inconclusive \\
  & Quantile PIDL (1 s target) & 5.53 [4.92, 6.21] & $-$0.59 [$-$1.03, $-$0.28] & refuted \\
  & Diffusion & 2.30 [1.86, 2.80] & 0.34 [0.09, 0.50] & inconclusive \\
+ & Diffusion, history only & 13.2 [11.7, 14.9] & $-$2.80 [$-$3.74, $-$2.12] & refuted \\
+ & IDM + AR(1) noise & 3.25 [2.87, 3.71] & 0.06 [$-$0.20, 0.24] & inconclusive \\
 \midrule
 Human (12) & IDM + white noise & 1.11 [0.83, 1.41] & -- & reference \\
  & LSTM, constant sigma & 56.2 [42.9, 70.3] & $-$49.7 [$-$68.9, $-$37.3] & refuted \\
@@ -23,6 +25,8 @@ Human (12) & IDM + white noise & 1.11 [0.83, 1.41] & -- & reference \\
  & GP residual on IDM & 4.16 [3.42, 4.79] & $-$2.75 [$-$4.19, $-$1.85] & refuted \\
  & Quantile PIDL (1 s target) & 8.90 [7.27, 10.64] & $-$7.02 [$-$8.50, $-$6.12] & refuted \\
  & Diffusion & 2.04 [1.52, 2.57] & $-$0.84 [$-$1.26, $-$0.47] & refuted \\
+ & Diffusion, history only & 18.7 [15.4, 20.9] & $-$15.8 [$-$20.6, $-$12.6] & refuted \\
+ & IDM + AR(1) noise & 3.73 [2.89, 4.60] & $-$2.36 [$-$2.95, $-$1.97] & refuted \\
 \midrule
 all (60) & IDM + white noise & 2.98 [2.41, 3.57] & -- & reference \\
  & LSTM, constant sigma & 57.7 [43.8, 73.5] & $-$18.4 [$-$24.5, $-$13.6] & refuted \\
@@ -30,6 +34,8 @@ all (60) & IDM + white noise & 2.98 [2.41, 3.57] & -- & reference \\
  & GP residual on IDM & 3.15 [2.59, 3.70] & $-$0.06 [$-$0.34, 0.16] & inconclusive \\
  & Quantile PIDL (1 s target) & 6.21 [5.55, 6.97] & $-$1.09 [$-$1.69, $-$0.64] & refuted \\
  & Diffusion & 2.22 [1.84, 2.62] & 0.25 [0.01, 0.44] & inconclusive \\
+ & Diffusion, history only & 14.3 [13.0, 15.7] & $-$3.80 [$-$4.99, $-$2.88] & refuted \\
+ & IDM + AR(1) noise & 3.35 [2.98, 3.76] & $-$0.12 [$-$0.42, 0.10] & inconclusive \\
 \midrule
 mixed (1) & IDM + white noise & 2.51 [2.51, 2.51] & -- & reference \\
  & LSTM, constant sigma & 55.1 [55.1, 55.1] & $-$21.0 [$-$21.0, $-$21.0] & not judged \\
@@ -37,6 +43,8 @@ mixed (1) & IDM + white noise & 2.51 [2.51, 2.51] & -- & reference \\
  & GP residual on IDM & 0.946 [0.946, 0.946] & 0.62 [0.62, 0.62] & not judged \\
  & Quantile PIDL (1 s target) & 6.26 [6.26, 6.26] & $-$1.50 [$-$1.50, $-$1.50] & not judged \\
  & Diffusion & 0.698 [0.698, 0.698] & 0.72 [0.72, 0.72] & not judged \\
+ & Diffusion, history only & 15.5 [15.5, 15.5] & $-$5.20 [$-$5.20, $-$5.20] & not judged \\
+ & IDM + AR(1) noise & 3.08 [3.08, 3.08] & $-$0.23 [$-$0.23, $-$0.23] & not judged \\
 \bottomrule
 \end{tabular}
 \end{table}

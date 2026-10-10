@@ -4,10 +4,15 @@ Reads the prediction tables written by ``scripts/run_e1.py`` and writes ``<root>
 ``<root>/maps/``; prints the H3.1 summary and the H3.3 table at the end.
 
     python scripts/analyze_e1.py                                       # artifacts/e1, configs/maps/default.yaml
-    python scripts/analyze_e1.py --unit driver                         # driver bootstrap (sensitivity analysis)
+    python scripts/analyze_e1.py --unit driver --tables-dir tables_driver   # follower (driver) bootstrap, sensitivity
     python scripts/analyze_e1.py --root artifacts/e1_pilot --models hetero_mdn lstm_const_sigma --n-boot 200
     python scripts/analyze_e1.py --root artifacts/e6_lodo_ngsim --config configs/experiment/e6_lodo_ngsim.yaml \
         --in-domain pool_test                                          # E6: pooled training domain (design.md 16.1)
+    python scripts/analyze_e1.py --root artifacts/e1_ctrl --config configs/experiment/e1_ctrl.yaml \
+        --h33-pair lstm_hetero_frozen lstm_const_sigma --h33-pair hetero_mdn lstm_const_sigma   # R13 (design.md 18.4)
+
+``--h33-pair A B`` (repeatable) sets the model pairs of the H3.3 NLL table (A heteroscedastic, B homoscedastic; default
+hetero_mdn lstm_const_sigma, the table of the plan); with several pairs the table holds every pair with one Holm family.
 
 ``--config`` takes a maps config or an experiment config (recognised by its keys ``base``, ``root``, ``train``,
 ``eval`` or ``config_paths``): an experiment config gives its maps config (``config_paths.maps``) and its training
@@ -79,8 +84,16 @@ def main(argv: list[str] | None = None) -> int:
         "<root>/idm.json, which for an E6 root is the IDM calibrated on the pooled training events; pass the highD "
         "value of artifacts/e1m/idm.json for regimes defined as in E1-E5)",
     )  # fmt: skip
+    parser.add_argument(
+        "--h33-pair", nargs=2, action="append", default=None, metavar=("MODEL_A", "MODEL_B"),
+        help="pair of the H3.3 NLL table, heteroscedastic then homoscedastic (repeatable; default: hetero_mdn "
+        "lstm_const_sigma)",
+    )  # fmt: skip
     parser.add_argument("--n-boot", type=int, default=None, help="bootstrap replicates (default: config)")
     parser.add_argument("--quiet", action="store_true", help="no progress lines")
+    parser.add_argument("--tables-dir", default="tables",
+                        help="directory below the root for the tables, e.g. tables_driver with --unit driver (the maps "
+                        "are written only with the default)")  # fmt: skip
     args = parser.parse_args(argv)
 
     cfg, train_data = read_config(_resolve(args.config))
@@ -101,6 +114,8 @@ def main(argv: list[str] | None = None) -> int:
         cross_check=args.cross_check,
         train_data=train_data,
         verbose=not args.quiet,
+        h33_pairs=args.h33_pair,
+        tables_dir=args.tables_dir,
     )
     print()
     print(format_report(tables))

@@ -28,8 +28,8 @@ Implementation
   ``(seed, event order, stream_events)`` but not on ``max_batch``.
 * Models whose sampler needs the leader (``init_sampler(..., v_lead=...)``, DiffusionCF) get the leader
   speeds of the rollout window, ``v_lead[:, k]`` = leader speed at step k (k = 0 .. K); the keyword is only
-  passed to samplers that accept it. Plan samplers (``needs_leader_future``) follow their plan step by step
-  and therefore need ``hold_steps = 1``.
+  passed to samplers that accept it. Plan samplers (``plan_sampler``: DiffusionCF, DiffusionCFHist) follow their
+  plan step by step and therefore need ``hold_steps = 1``.
 """
 
 from __future__ import annotations
@@ -276,7 +276,7 @@ def rollout_events(
     t0 = _starts(starts, n_ev)
     _check_lengths(evs, t0, n_k)
     hold = int(cfg.hold_steps)
-    if getattr(model, "needs_leader_future", False) and hold != 1:
+    if getattr(model, "plan_sampler", False) and hold != 1:
         raise ValueError(f"{type(model).__name__} follows a sampled plan step by step: it needs hold_steps = 1, got {hold}")
     dev = model.device if device is None else resolve_device(device)
     if dev != model.device:

@@ -30,3 +30,4 @@ reuse_checkpoints:            # every model of e1h (target a), copied, not train
   gp_residual_idm: artifacts/e1h/checkpoints
   quantile_pidl: artifacts/e1h/checkpoints
   diffusion_cf: artifacts/e1h/checkpoints
+  idm_ar_noise: artifacts/e1h/checkpoints   # review control R10 (design.md 18.3): needs its e1h checkpoint first

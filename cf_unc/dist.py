@@ -777,17 +777,18 @@ class SampleDist(PredDist):
     def var(self) -> np.ndarray:
         return self.samples.var(axis=1, ddof=1)
 
-    def bandwidth(self) -> np.ndarray:
-        """(N,) Silverman bandwidth ``0.9 min(std, IQR / 1.34) S^(-1/5)``, floored at 1e-3.
+    def bandwidth(self, factor: float = 1.0) -> np.ndarray:
+        """(N,) Silverman bandwidth ``0.9 min(std, IQR / 1.34) S^(-1/5)``, times ``factor``, floored at 1e-3.
 
-        If the IQR is 0 (many tied samples) the standard deviation is used instead.
+        If the IQR is 0 (many tied samples) the standard deviation is used instead. ``factor`` (default 1: the
+        bandwidth of every table) is the sensitivity of the KDE (review control R14, scripts/density_sensitivity.py).
         """
         x = self.samples
         std = x.std(axis=1, ddof=1)
         q25, q75 = np.quantile(x, [0.25, 0.75], axis=1)
         iqr = (q75 - q25) / 1.34
         spread = np.where(iqr > 0, np.minimum(std, iqr), std)
-        return np.maximum(0.9 * spread * self.n_samples ** (-0.2), 1e-3)
+        return np.maximum(float(factor) * (0.9 * spread * self.n_samples ** (-0.2)), 1e-3)
 
     def cdf(self, y: ArrayLike) -> np.ndarray:
         y2, squeeze = _as_y(y, len(self))
@@ -795,12 +796,13 @@ class SampleDist(PredDist):
         out = np.where(np.isnan(y2), np.nan, out)
         return _squeeze(out, squeeze)
 
-    def log_prob(self, y: ArrayLike) -> np.ndarray:
-        """Approximate log density: Gaussian KDE, Silverman bandwidth per row (log-sum-exp)."""
+    def log_prob(self, y: ArrayLike, bandwidth_factor: float = 1.0) -> np.ndarray:
+        """Approximate log density: Gaussian KDE, Silverman bandwidth per row (times ``bandwidth_factor``,
+        ``bandwidth``) (log-sum-exp)."""
         y2, squeeze = _as_y(y, len(self))
         n, g = y2.shape
         s = self.n_samples
-        h = self.bandwidth()
+        h = self.bandwidth(bandwidth_factor)
         out = np.empty((n, g))
         for a, b in _row_chunks(n, g * s, block=_BLOCK):
             z = (y2[a:b, :, None] - self.samples[a:b, None, :]) / h[a:b, None, None]

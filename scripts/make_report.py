@@ -22,6 +22,14 @@ it runs no experiment, no training and no bootstrap and needs no GPU. Writes int
   figures of F3 as one directory per root);
 * ``index.md``: every table and figure with a one-line caption and the artifact it was built from.
 
+Review fixes of version v3 (docs/review_fixes_v3.md), read from the same roots when their analyses wrote them: T1
+carries the events and followers per data set; T2 the mass-share concentration next to the ratio of means and, where
+``<root>/tables_driver`` exists, the follower-cluster intervals of the shift ratios (t2_h31_follower_clusters); T4 the
+shares of infinite ACI intervals (Gibbs-Candes ACI), the information-budget variants (t4_info_budget_*) and the
+follower-cluster coverage intervals (t4_follower_clusters); T5 the file-cluster H3.2 intervals and verdicts with the
+per-seed reductions (t5_h32_cluster__e3); T6 the collision diagnostics (t6_collision_diagnostics) and the growth
+exponents on the common support of the measured platoons.
+
 Conventions: rows with a ``subset`` column use ``all``; one-step metrics are mean +- sd over the training seeds;
 H3.2 uses the reference ``idm_white_noise``, the window ``response`` (profile + tail), the extended set of the main
 run and the headline set of the two sensitivities (design.md 13.5); a driver mode with fewer than ``h32.min_profiles``
@@ -267,6 +275,13 @@ def prob(x: Any, d: int = 2) -> str:
     return _fixed(x, d)
 
 
+def _max_finite(values: Iterable[Any]) -> float:
+    """Largest finite value (NaN if there is none)."""
+    v = np.asarray([float(x) for x in values], dtype=np.float64)
+    v = v[np.isfinite(v)]
+    return float(v.max()) if v.size else float("nan")
+
+
 def _truthy(x: Any) -> bool:
     return str(x).strip().lower() in ("true", "1", "1.0", "yes")
 
@@ -323,7 +338,9 @@ def t1_tables(ctx: Context) -> list[Table]:
             row: dict[str, Any] = {"variant": variant, "target": target, "dataset": dataset,
                                    "dataset_label": DATASET_LABEL.get(dataset, dataset), "model": model,
                                    "model_label": _label(model, MODEL_LABEL, ctx), "n_seeds": int(g["seed"].nunique()),
-                                   "n_windows": int(g["n_windows"].iloc[0]), "n_events": int(g["n_events"].iloc[0])}  # fmt: skip
+                                   "n_windows": int(g["n_windows"].iloc[0]), "n_events": int(g["n_events"].iloc[0]),
+                                   "n_followers": (int(g["n_followers"].iloc[0]) if "n_followers" in g.columns
+                                                   and pd.notna(g["n_followers"].iloc[0]) else np.nan)}  # fmt: skip
             for m, _ in T1_METRICS:
                 v = pd.to_numeric(g[m], errors="coerce").to_numpy(np.float64)
                 row[f"{m}_mean"] = float(np.mean(v))
@@ -408,9 +425,20 @@ def t2_tables(ctx: Context) -> list[Table]:
             continue
         sources += [ps, pes]
         s, es = _read(ps), _read(pes)
+        pc = ctx.roots[key] / "tables" / "rare_concentration.csv"
+        conc = _all_subset(_read(pc)) if pc.exists() else pd.DataFrame()
+        info = ctx.roots[key] / "tables" / "analysis_info.json"
+        in_dom = "highd"
+        if info.exists():
+            import json
+
+            in_dom = str(json.loads(info.read_text(encoding="utf-8")).get("in_domain") or "highd")
         for r in s.to_dict("records"):
             er = es[(es["model"] == r["model"]) & (es["kind"] == r["kind"])]
             er = er.iloc[0].to_dict() if len(er) else {}
+            cm = conc[(conc["model"] == r["model"]) & (conc["kind"] == r["kind"]) & (conc["dataset"] == in_dom)
+                      & (conc["rule"] == str(er.get("rule") or "rare_mass"))] if "conc_mass_epistemic" in conc.columns else conc.iloc[0:0]  # fmt: skip
+            cm = cm.iloc[0] if len(cm) else None
             summary.append({
                 "variant": variant, "target": target, "model": r["model"], "model_label": _label(r["model"], MODEL_LABEL, ctx),
                 "kind": r["kind"], "h31_overall": r["overall"], "h31_overall_point": r["overall_point"], "h31_n_pairs": r["n_pairs"],
@@ -421,6 +449,11 @@ def t2_tables(ctx: Context) -> list[Table]:
                 "h31e_conc_verdict": er.get("verdict_conc_ci", ""), "h31e_n_supported": er.get("n_supported", np.nan),
                 "h31e_n_refuted": er.get("n_refuted", np.nan), "h31e_n_inconclusive": er.get("n_inconclusive", np.nan),
                 "h31e_overall": er.get("overall", ""), "h31e_overall_point": er.get("overall_point", ""),
+                "conc_mass": cm["conc_mass_epistemic"] if cm is not None else np.nan,
+                "conc_mass_lo": cm["conc_mass_epistemic_lo"] if cm is not None else np.nan,
+                "conc_mass_hi": cm["conc_mass_epistemic_hi"] if cm is not None else np.nan,
+                "share_mass": cm["share_mass_epistemic"] if cm is not None else np.nan,
+                "share_windows": cm["share_windows"] if cm is not None else np.nan,
             })  # fmt: skip
     if summary:
         data = _sort(pd.DataFrame(summary), variant=tuple(VARIANT_LABEL), target=tuple(TARGET_LABEL), model=MODEL_ORDER,
@@ -437,6 +470,7 @@ def t2_tables(ctx: Context) -> list[Table]:
             "H3.1 pairs s/r/i": [counts(r, "h31_") for _, r in data.iterrows()],
             "placebo": [str(p).split(":", 1)[-1] if str(p) not in ("", "nan") else DASH for p in data["h31_placebo"]],
             "H3.1e concentration": [ci(a, b, c) for a, b, c in zip(data["h31e_conc"], data["h31e_conc_lo"], data["h31e_conc_hi"])],
+            "mass share / window share": [ci(a, b, c) for a, b, c in zip(data["conc_mass"], data["conc_mass_lo"], data["conc_mass_hi"])],
             "H3.1e pairs s/r/i": [counts(r, "h31e_") for _, r in data.iterrows()],
             "H3.1e (interval / point)": [f"{a} / {b}" if a else DASH for a, b in zip(data["h31e_overall"], data["h31e_overall_point"])],
         })  # fmt: skip
@@ -445,8 +479,10 @@ def t2_tables(ctx: Context) -> list[Table]:
             "H3.1 and H3.1e per signal variant, target, model and decomposition: overall verdicts (interval / point "
             "rule), supported/refuted/inconclusive counts over the four counted shift pairs, placebo verdict, "
             "concentration of the epistemic variance in the rare states of the in-domain test set (rare_mass; highD "
-            "test, the pooled test folds for a pooled training domain) with its 95 % interval; * = main H3.1e verdict "
-            "(the model's own decomposition).",
+            "test, the pooled test folds for a pooled training domain) with its 95 % interval: the ratio of the mean "
+            "inside to the mean outside the rare states (the quantity of the verdict) and the share of the epistemic "
+            "mass over the share of the windows in them (= mean inside / overall mean; > 1 exactly when the ratio is "
+            "> 1); * = main H3.1e verdict (the model's own decomposition).",
             sources, data, view, group_depth=2,
         ))  # fmt: skip
     return out
@@ -557,6 +593,12 @@ def t4_tables(ctx: Context) -> list[Table]:
                         gm = g[g["variant"] == m].set_index("horizon_s")
                         for h in HORIZONS:
                             row[f"width_median_{m}_{h:g}s"] = float(gm.loc[h, "width_median"]) if h in gm.index else np.nan
+                    for m in ("aci_frozen", "aci_online"):  # Gibbs-Candes ACI: infinite intervals (R1)
+                        gm = g[g["variant"] == m].set_index("horizon_s")
+                        for h in HORIZONS:
+                            for c in ("share_infinite", "width_finite_median"):
+                                ok = c in gm.columns and h in gm.index
+                                row[f"{c}_{m}_{h:g}s"] = float(gm.loc[h, c]) if ok else np.nan
                     raw = g[g["variant"] == "raw"].set_index("horizon_s")
                     row["collided_10s"] = float(raw.loc[10.0, "collided"]) if 10.0 in raw.index else np.nan
                     if ver is not None:
@@ -573,6 +615,9 @@ def t4_tables(ctx: Context) -> list[Table]:
                        for m, lab in E2_METHODS},
                     "median width at 10 s, raw → ACI, m": [f"{num(a)} → {num(b)}" for a, b in
                                                             zip(data["width_median_raw_10s"], data["width_median_aci_online_10s"])],
+                    "ACI infinite, % (max over horizons)": [
+                        prob(100 * _max_finite([r.get(f"share_infinite_aci_online_{h:g}s", np.nan) for h in HORIZONS]), 1)
+                        for _, r in data.iterrows()],
                     "H3.4 (point / interval)": [f"{a} / {b}" if a else DASH for a, b in
                                                 zip(data.get("h34_verdict", [""] * len(data)), data.get("h34_verdict_ci", [""] * len(data)))],
                 })  # fmt: skip
@@ -845,6 +890,9 @@ def t6_tables(ctx: Context) -> list[Table]:
                         f"index_last_{window}": int(curve["index"].iloc[-1]) if len(curve) else np.nan,  # last measured
                         f"sd_last_{window}": curve["sd"].iloc[-1] if len(curve) else np.nan,
                     })  # fmt: skip
+                    for c in ("beta_lo_cluster", "beta_hi_cluster", "beta_common", "beta_common_lo", "beta_common_hi",
+                              "beta_common_lo_cluster", "beta_common_hi_cluster", "n_profiles_common", "n_files_common"):
+                        row[f"{c}_{window}"] = first[c] if first is not None and c in w.columns else np.nan  # R4, R11
                     if len(w) and w["sd"].isna().any():
                         ctx.note(f"{display(path)}: sd is NaN for {model} ({set_name}, window {window}) at indices "
                                  f"{w.loc[w['sd'].isna(), 'index'].astype(int).tolist()} (too few profiles measured them)")
@@ -897,13 +945,18 @@ def t6_tables(ctx: Context) -> list[Table]:
                                                    f"{num(r['sd_fit_first_profile'])} → {num(r['sd_fit_last_profile'])}"
                                                    for _, r in data.iterrows()],
             "d2 < 0": [prob(x) for x in data["share_neg_d2_profile"]],
+            "beta, common support (1-4)": [ci2(a, b, c) for a, b, c in zip(data["beta_common_profile"], data["beta_common_lo_profile"],
+                                                                           data["beta_common_hi_profile"])],
         })  # fmt: skip
         out.append(Table(
             "t6_growth", "T6",
             "Growth of the speed standard deviation along the platoon, sd_i = sd_1 i^beta (least squares in logs, 95 % "
             "bootstrap interval over profiles), over the window of the measured data and over profile + tail; the "
             "measured platoons are fitted over the indices that at least half of the profiles measured; mean sd at the "
-            "first and the last fitted index and share of negative second differences (d2 < 0), profile window.",
+            "first and the last fitted index and share of negative second differences (d2 < 0), profile window; the "
+            "model fits over the indices 1-20 extrapolate beyond the measured vehicles (beta_extrapolated); last "
+            "column: the exponent of every model and of the measured platoons on their common support (the profiles "
+            "with at least four measured followers, indices 1-4, profile window; file-cluster intervals in the CSV).",
             src["growth"], data, view, group_depth=1,
         ))  # fmt: skip
     return out
@@ -1096,9 +1149,246 @@ _MANAGED_TABLE = re.compile(r"^t\d_.*\.(csv|tex)$")
 _MANAGED_FIGURE = re.compile(r"^f\d_")
 
 
+# ----------------------------------------------------------------------------------- review fixes (v3)
+BUDGET = (("static", "static"), ("static_prequential", "static prequential"), ("aci_frozen", "ACI frozen"),
+          ("aci_online", "ACI online"), ("aci_online_chrono", "ACI chronological"),
+          ("aci_online_delayed", "ACI chronological, delayed"),
+          ("static_prequential_delayed", "static prequential, delayed"))  # fmt: skip
+
+
+def info_budget_tables(ctx: Context) -> list[Table]:
+    """T4 (R8): coverage of the corrections by the information they use, per E2 root and target, and the
+    follower-cluster intervals of the coverage (R4) over all roots."""
+    out, cluster_rows, cluster_src = [], [], []
+    for key, variant in e2_roots(ctx).items():
+        pc = ctx.file(key, "tables", "coverage_by_horizon.csv")
+        if pc is None:
+            continue
+        cov = _read(pc)
+        if "aci_online_delayed" not in set(cov["variant"]):
+            continue
+        for target in _order(cov["target"].astype(str), tuple(TARGET_LABEL)):
+            c = cov[(cov["target"] == target) & cov["dataset"].isin(ROLLOUT_DATASETS)]
+            rows = []
+            for (dataset, model), g in c.groupby(["dataset", "model"], sort=False):
+                row: dict[str, Any] = {"variant": variant, "target": target, "dataset": dataset,
+                                       "dataset_label": DATASET_LABEL.get(dataset, dataset), "model": model,
+                                       "model_label": _label(model, MODEL_LABEL, ctx)}  # fmt: skip
+                for m, _ in BUDGET:
+                    gm = g[g["variant"] == m].set_index("horizon_s")
+                    for h in HORIZONS:
+                        row[f"picp_{m}_{h:g}s"] = float(gm.loc[h, "picp"]) if h in gm.index else np.nan
+                        if m in ("aci_online", "aci_online_delayed", "static_prequential_delayed"):
+                            for col in ("picp_first50", "picp_first100", "delay_events_mean", "share_infinite"):
+                                row[f"{col}_{m}_{h:g}s"] = float(gm.loc[h, col]) if h in gm.index else np.nan
+                rows.append(row)
+            data = _sort(pd.DataFrame(rows), dataset=ROLLOUT_DATASETS, model=MODEL_ORDER)
+            view = pd.DataFrame({
+                "Data set": data["dataset_label"], "Model": data["model_label"],
+                **{f"{lab}, 1/10 s": [f"{prob(r[f'picp_{m}_1s'])} / {prob(r[f'picp_{m}_10s'])}" for _, r in data.iterrows()]
+                   for m, lab in BUDGET},
+                "delayed ACI, first 50/100 at 10 s": [f"{prob(r['picp_first50_aci_online_delayed_10s'])} / "
+                                                      f"{prob(r['picp_first100_aci_online_delayed_10s'])}" for _, r in data.iterrows()],
+                "delay at 10 s, events": [num(x, 2) for x in data["delay_events_mean_aci_online_delayed_10s"]],
+            })  # fmt: skip
+            out.append(Table(
+                f"t4_info_budget__{variant}__{target}", "T4",
+                f"Information budget of the corrections (R8), {TARGET_LABEL[target]}, {VARIANT_LABEL[variant]}: coverage "
+                "of the 90 % gap interval at 1 and 10 s with the static correction and ACI frozen (no label of the "
+                "evaluated set), the static correction recalibrated on every label seen so far (static prequential: "
+                "the labels of ACI online, no learning rate), ACI online in a random order, in chronological order, and "
+                "chronological with each label used only a horizon after its interval was issued (delayed), and the "
+                "static prequential correction with the same delays; coverage of delayed ACI over the first 50 / 100 "
+                "events of the stream and the mean number of events issued before a label arrives (10 s).",
+                [pc], data, view, group_depth=1,
+            ))  # fmt: skip
+        if "picp_lo_follower" in cov.columns:
+            cluster_src.append(pc)
+            c = cov[cov["dataset"].isin(ROLLOUT_DATASETS) & cov["variant"].isin(["raw", "aci_online"])]
+            for (target, dataset, m), g in c.groupby(["target", "dataset", "variant"], sort=False):
+                ratio = (g["picp_hi_follower"] - g["picp_lo_follower"]) / (g["picp_hi"] - g["picp_lo"])
+                cluster_rows.append({"variant": variant, "target": target, "dataset": dataset,
+                                     "dataset_label": DATASET_LABEL.get(dataset, dataset), "method": m,
+                                     "n_events": int(g["n_events"].max()), "n_followers": int(g["n_followers"].max()),
+                                     "width_ratio_median": float(ratio.median()), "width_ratio_max": float(ratio.max()),
+                                     "n_rows": int(len(g))})  # fmt: skip
+    if cluster_rows:
+        data = _sort(pd.DataFrame(cluster_rows), variant=tuple(VARIANT_LABEL), target=tuple(TARGET_LABEL),
+                     dataset=ROLLOUT_DATASETS)  # fmt: skip
+        view = pd.DataFrame({
+            "Signals": [VARIANT_LABEL[v] for v in data["variant"]], "Target": data["target"], "Data set": data["dataset_label"],
+            "Interval": data["method"].map({"raw": "raw", "aci_online": "ACI online"}),
+            "events / followers": [f"{a} / {b}" for a, b in zip(data["n_events"], data["n_followers"])],
+            "width ratio, median (max)": [f"{num(a)} ({num(b)})" for a, b in zip(data["width_ratio_median"], data["width_ratio_max"])],
+        })  # fmt: skip
+        out.append(Table(
+            "t4_follower_clusters", "T4",
+            "Follower-cluster bootstrap of the rollout coverage (R4): width of the 95 % interval of the PICP when whole "
+            "followers are resampled relative to the event bootstrap, median and largest over models and horizons, "
+            "per signal variant, target and data set (500 rolled events; the point estimates are unchanged).",
+            sorted(set(cluster_src), key=str), data, view, group_depth=2,
+        ))  # fmt: skip
+    return out
+
+
+def _log_width_ratio(lo_a: float, hi_a: float, lo_b: float, hi_b: float) -> float:
+    """Width of the interval [lo_a, hi_a] of a ratio relative to [lo_b, hi_b], on the log scale (NaN when undefined)."""
+    v = np.array([lo_a, hi_a, lo_b, hi_b], dtype=np.float64)
+    if not (np.all(np.isfinite(v)) and np.all(v > 0) and hi_b > lo_b):
+        return float("nan")
+    return float(np.log(hi_a / lo_a) / np.log(hi_b / lo_b))
+
+
+def e1_cluster_tables(ctx: Context) -> list[Table]:
+    """T2 (R4): follower-cluster (driver) bootstrap of the H3.1 shift ratios next to the event bootstrap, for every
+    E1 root with a ``tables_driver`` directory (scripts/analyze_e1.py --unit driver --tables-dir tables_driver)."""
+    rows, sources = [], []
+    for key, (variant, target) in e1_roots(ctx).items():
+        root = ctx.roots.get(key)
+        if root is None or not (root / "tables_driver" / "h31_verdicts.csv").exists():
+            continue
+        pe, pd_ = root / "tables" / "h31_verdicts.csv", root / "tables_driver" / "h31_verdicts.csv"
+        oe, od = root / "tables" / "one_step_metrics.csv", root / "tables_driver" / "one_step_metrics.csv"
+        sources += [pe, pd_]
+        ev, dv = _all_subset(_read(pe)), _all_subset(_read(pd_))
+        m = ev.merge(dv, on=["model", "kind", "dataset", "pair"], suffixes=("", "_driver"))
+        one_e = _all_subset(_read(oe)) if oe.exists() else pd.DataFrame()
+        one_d = _all_subset(_read(od)) if od.exists() else pd.DataFrame()
+        for r in m.itertuples(index=False):
+            if r.pair != "shift":
+                continue
+            pe_row = one_e[(one_e["model"] == r.model) & (one_e["dataset"] == r.dataset) & (one_e["seed"].astype(str) == "mean")] \
+                if len(one_e) else one_e  # fmt: skip
+            pd_row = one_d[(one_d["model"] == r.model) & (one_d["dataset"] == r.dataset) & (one_d["seed"].astype(str) == "mean")] \
+                if len(one_d) else one_d  # fmt: skip
+            picp_ratio = np.nan
+            if len(pe_row) and len(pd_row):
+                a, b = pe_row.iloc[0], pd_row.iloc[0]
+                picp_ratio = (b["picp90_hi"] - b["picp90_lo"]) / (a["picp90_hi"] - a["picp90_lo"])
+            rows.append({
+                "variant": variant, "target": target, "model": r.model, "model_label": _label(r.model, MODEL_LABEL, ctx),
+                "kind": r.kind, "dataset": r.dataset, "dataset_label": DATASET_LABEL.get(r.dataset, r.dataset),
+                "r_epi": r.r_epi, "r_epi_lo": r.r_epi_lo, "r_epi_hi": r.r_epi_hi,
+                "r_epi_lo_driver": r.r_epi_lo_driver, "r_epi_hi_driver": r.r_epi_hi_driver,
+                "r_alea": r.r_alea, "r_alea_lo": r.r_alea_lo, "r_alea_hi": r.r_alea_hi,
+                "r_alea_lo_driver": r.r_alea_lo_driver, "r_alea_hi_driver": r.r_alea_hi_driver,
+                "log_width_ratio_epi": _log_width_ratio(r.r_epi_lo_driver, r.r_epi_hi_driver, r.r_epi_lo, r.r_epi_hi),
+                "log_width_ratio_alea": _log_width_ratio(r.r_alea_lo_driver, r.r_alea_hi_driver, r.r_alea_lo, r.r_alea_hi),
+                "picp90_width_ratio": picp_ratio,
+                "verdict_ci": r.verdict_ci, "verdict_ci_driver": r.verdict_ci_driver,
+            })  # fmt: skip
+    if not rows:
+        return []
+    data = _sort(pd.DataFrame(rows), variant=tuple(VARIANT_LABEL), dataset=SHIFT_ORDER, model=MODEL_ORDER,
+                 kind=tuple(KIND_LABEL))  # fmt: skip
+    view = pd.DataFrame({
+        "Signals": [VARIANT_LABEL[v] for v in data["variant"]], "Data set": data["dataset_label"], "Model": data["model_label"],
+        "Decomposition": [KIND_LABEL.get(k, k) for k in data["kind"]],
+        "R epistemic, events → followers": [f"{ci(a, b, c)} → [{_fixed(d, 2)}, {_fixed(e, 2)}]" if np.isfinite(a) else DASH
+                                            for a, b, c, d, e in zip(data["r_epi"], data["r_epi_lo"], data["r_epi_hi"],
+                                                                     data["r_epi_lo_driver"], data["r_epi_hi_driver"])],
+        "R aleatoric, events → followers": [f"{ci(a, b, c)} → [{_fixed(d, 2)}, {_fixed(e, 2)}]"
+                                            for a, b, c, d, e in zip(data["r_alea"], data["r_alea_lo"], data["r_alea_hi"],
+                                                                     data["r_alea_lo_driver"], data["r_alea_hi_driver"])],
+        "H3.1 events / followers": [f"{a} / {b}" for a, b in zip(data["verdict_ci"], data["verdict_ci_driver"])],
+    })  # fmt: skip
+    return [Table(
+        "t2_h31_follower_clusters", "T2",
+        "Follower-cluster (driver) bootstrap of the H3.1 shift ratios (R4): event-bootstrap interval → interval when "
+        "every event of a drawn follower is kept (OpenACC: 4 715 events of 49 followers; NGSIM I-80: 7 651 events of "
+        "5 521 followers), the H3.1 verdict of the pair by both intervals; the CSV adds the ratio of the log-widths and "
+        "of the one-step PICP interval widths. Point estimates unchanged.",
+        sources, data, view, group_depth=2,
+    )]  # fmt: skip
+
+
+def h32_cluster_tables(ctx: Context) -> list[Table]:
+    """T5 (R4): H3.2 per driver mode with the profile and the file-cluster intervals, both verdicts and the range of
+    the per-seed reductions, every variant of the main E3 root (extended set, window response, amplitude)."""
+    if "e3" not in ctx.roots:
+        return []
+    ph = ctx.file("e3", "tables", "h32.csv")
+    if ph is None:
+        return []
+    h = _read(ph)
+    if "lo_cluster" not in h.columns or h["lo_cluster"].isna().all():  # an analysis without the file clusters
+        return []
+    s = e3_settings(ctx, "e3")
+    h = h[(h["set"] == E3_SETS["e3"]) & (h["window"] == "response") & (h["quantity"] == "amplitude")
+          & (h["reference"] == s["reference"]) & h["mode"].isin(["ACC", "Human", "all"])]  # fmt: skip
+    rows = []
+    for r in h.itertuples(index=False):
+        judged = r.n_profiles >= s["min_profiles"]
+        rows.append({
+            "run": "e3", "variant": r.variant, "variant_label": E3_VARIANT_LABEL.get(r.variant, r.variant), "mode": r.mode,
+            "model": r.model, "model_label": _label(r.model, figures_e3.model_labels(r.variant), ctx),
+            "n_profiles": int(r.n_profiles), "n_files": int(r.n_files) if pd.notna(r.n_files) else np.nan,
+            "reduction": r.reduction, "lo": r.lo, "hi": r.hi,
+            "lo_cluster": r.lo_cluster, "hi_cluster": r.hi_cluster, "verdict": r.verdict if judged else "not judged",
+            "verdict_cluster": r.verdict_cluster if judged else "not judged", "verdict_point": r.verdict_point,
+            "reduction_seed_min": r.reduction_seed_min, "reduction_seed_max": r.reduction_seed_max,
+            "n_seeds": int(r.n_seeds) if pd.notna(r.n_seeds) else np.nan,
+            "crps_model": r.crps_model, "crps_reference": r.crps_reference,
+        })  # fmt: skip
+    data = _sort(pd.DataFrame(rows), variant=tuple(E3_VARIANT_LABEL), mode=MODES, model=MODEL_ORDER)
+    view = pd.DataFrame({
+        "Variant": data["variant_label"], "Mode (profiles / files)": [f"{m} ({p} / {f})" for m, p, f in
+                                                                      zip(data["mode"], data["n_profiles"], data["n_files"])],
+        "Model": data["model_label"], "reduction [profiles]": [ci2(a, b, c) for a, b, c in zip(data["reduction"], data["lo"], data["hi"])],
+        "[files]": [f"[{_fixed(a, 2)}, {_fixed(b, 2)}]" for a, b in zip(data["lo_cluster"], data["hi_cluster"])],
+        "verdict profiles / files": [f"{a} / {b}" for a, b in zip(data["verdict"], data["verdict_cluster"])],
+        "seeds min-max": [f"{_fixed(a, 2)} to {_fixed(b, 2)}" for a, b in zip(data["reduction_seed_min"], data["reduction_seed_max"])],
+    })  # fmt: skip
+    return [Table(
+        "t5_h32_cluster__e3", "T5",
+        "H3.2 with the dependence of the profiles (R4), extended set, window profile + tail: reduction of the amplitude "
+        "CRPS against IDM + white noise with the 95 % bootstrap interval over profiles and over recording files (all "
+        "profiles of a drawn file kept; 10 000 replicates), the verdicts by both intervals (supported: lower bound >= "
+        "0.20, refuted: upper bound < 0.05), and the range of the reductions of the five training seeds alone.",
+        [ph], data, view, group_depth=2,
+    )]  # fmt: skip
+
+
+def collision_diag_tables(ctx: Context) -> list[Table]:
+    """T6 (R9): collision diagnostics of the main E3 root per variant and model (extended set)."""
+    if "e3" not in ctx.roots:
+        return []
+    path = ctx.roots["e3"] / "tables" / "collision_diagnostics.csv"
+    if not path.exists():
+        return []
+    d = _read(path)
+    d = d[(d["set"] == E3_SETS["e3"]) & d["mode"].isin(["all", "ACC", "Human"])].copy()
+    d.insert(1, "variant_label", [E3_VARIANT_LABEL.get(v, v) for v in d["variant"]])
+    d.insert(3, "model_label", [_label(m, figures_e3.model_labels(v), ctx) for m, v in zip(d["model"], d["variant"])])
+    data = _sort(d, variant=tuple(E3_VARIANT_LABEL), model=MODEL_ORDER, mode=MODES)
+    sel = data[data["mode"] == "all"]
+    view = pd.DataFrame({
+        "Variant": sel["variant_label"], "Model": sel["model_label"],
+        "collision-free platoons": [prob(x, 3) for x in sel["collision_free_share"]],
+        "first collision, s: median [10 %, 90 %]": [DASH if not np.isfinite(a) else f"{num(a)} [{num(b)}, {num(c)}]"
+                                                   for a, b, c in zip(sel["ttfc_median_s"], sel["ttfc_p10_s"], sel["ttfc_p90_s"])],
+        "in burn-in": [prob(x, 3) for x in sel["collided_in_burn_in_share"]],
+        "vehicle 1 / 5 / 10 / 20": [" / ".join(prob(r[f"collided_v{i}"]) for i in (1, 5, 10, 20)) for _, r in sel.iterrows()],
+        "CRPS 1-4: all → survivors (kept)": [f"{num(a)} → {num(b)} ({prob(c)})" for a, b, c in
+                                             zip(sel["crps_1_4"], sel["crps_1_4_survivors_biased"], sel["kept_share_1_4"])],
+    })  # fmt: skip
+    return [Table(
+        "t6_collision_diagnostics", "T6",
+        "Collision diagnostics of the platoons (R9), extended set, all profiles (ACC and human-driven rows in the CSV): "
+        "share of platoon rollouts without any collision of any vehicle over the whole time line; time to the first "
+        "collision of the platoon over the colliding rollouts (s from the start of the time line; the first 30 s are the "
+        "constant-speed burn-in) and the share of rollouts whose first collision falls in the burn-in; collision share "
+        "of vehicles 1, 5, 10, 20; amplitude CRPS over the indices 1-4 over all rollouts and over the rollouts in which "
+        "neither the vehicle nor one ahead of it collided (survivor-biased; share of rollouts kept). The engine flags a "
+        "collision and continues the motion; nothing is removed.",
+        [path], data, view, group_depth=1,
+    )]  # fmt: skip
+
+
 def build_tables(ctx: Context) -> list[Table]:
     tables: list[Table] = []
-    for builder in (t1_tables, t2_tables, t3_tables, t4_tables, t5_tables, t6_tables):
+    for builder in (t1_tables, t2_tables, e1_cluster_tables, t3_tables, t4_tables, info_budget_tables, t5_tables,
+                    h32_cluster_tables, t6_tables, collision_diag_tables):
         tables += builder(ctx)
     return tables
 

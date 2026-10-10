@@ -70,7 +70,7 @@ bash scripts/run_e3_retry.sh artifacts/e3_step/logs/run.out 8 --config configs/e
   headline set: 1.8 h (speed cap) and 1.5 h (per-step ensemble). Harmonised branch: `e1h`
   (350 tables, 3.9 h), `e1h_mean1s` (350 tables, 3.9 h in two processes), `e2h` (780 rollout tables,
   2.1 h), E3 harmonised variant (1800 units, 0 failures, 3.9 h). The GPU was shared with the
-  two other projects throughout (48 of 49 GB in use; one DiffusionCF
+  cf-stability and cf-identifiability sessions throughout (48 of 49 GB in use; one DiffusionCF
   attempt died of host memory and was resumed by the retry wrapper).
 
 ## 3. Key numbers

@@ -916,3 +916,132 @@ collisions, intervals) as in sections 13 and 14.1. The `raw` and `harmonised` un
   `artifacts/e3` would leave units that the full run cannot reproduce.
 * `scripts/run_e3.py --dry-run` added; the per-variant model override (`models: {quantile_pidl:
   {target: a, hold_steps: 1}}`) is part of the unit spec.
+
+## 18. Review controls of the v4 revision (decision of the journal review, 2026-10-09)
+
+Reviewer report `paper/submission/review_systems/REVIEW_SYSTEMS_RU.md` (experiments, items 1, 2, 3, 9, 10, 11), response
+plan `RESPONSE_PLAN_RU.md` (R2, R3, R6 control, R10, R13, R14). Every control adds a model, a variant or a root; no
+artefact of sections 10-17 is changed or invalidated (the dry runs of every existing root show their units done, the
+new ones missing).
+
+### 18.1 R2: DiffusionCF without the leader's future (`diffusion_cf_hist`)
+
+* `DiffusionCFHist` = the DDPM of section 7 with the leader-future channel of the denoiser REMOVED (the input
+  convolution sees the noisy sequence only; `Denoiser(leader=False)`), so the 5 s plan is conditioned on the 3 s history
+  alone, the information of the one-step networks. Removal rather than a zeroed channel or a learned null token: no
+  unused weights, and the information budget is explicit in the architecture. Same kwargs, sampler (32 samples, 50 DDIM
+  steps, eta 1, re-plan every 5 s), training budget (12 epochs, EMA, batch 64) and training windows (seq_stride 5) as
+  `diffusion_cf` (`configs/model/diffusion_cf_hist.yaml`, checked equal in tests); 320 fewer weights (216 065).
+* A class attribute `plan_sampler` (DiffusionCF and DiffusionCFHist) now carries what `needs_leader_future` carried
+  besides the input: sampled-row evaluation in E1 (`eval.max_rows_sampled`), `n_rollouts_sampled` and hold 1 in E2 / E3
+  and the hold check of the engine. `needs_leader_future` only says whether the leader's future is an input.
+* Roots: `artifacts/e1_ctrl` (`e1_ctrl.yaml`: recorded signals, target a, 5 seeds; windows and sampled rows identical to
+  `artifacts/e1`, so the tables are row-aligned with those of `diffusion_cf`), `artifacts/e2_ctrl` (`e2_ctrl.yaml`:
+  target a, highd_val (calibration set) + highd + ngsim + openacc; the events, rollout seeds and streams of `artifacts/e2`),
+  E3 `raw` variant (model `checkpoints` override, 18.2). Comparison of interest: `diffusion_cf` vs `diffusion_cf_hist` vs
+  the one-step networks at equal information. A sequence baseline with access to the leader's future is not added
+  (plan R2: a limitation).
+
+### 18.2 R3: the E3 matrix training domain x leader smoothing
+
+* New variants of `e3.yaml`: `raw_w61` (`artifacts/e1` checkpoints, leader re-smoothed with the matched OpenACC window
+  61), `raw_a` (`artifacts/e1`, window 11, QuantilePIDL on target a with hold 1: the same-target control, run for
+  `idm_white_noise` and `quantile_pidl` only), `pool_w11` / `lodo_openacc_w11` (E6 checkpoints, the profiles file as
+  selected, window 11). QuantilePIDL runs on target a with hold 1 in every cell of the matrix (highD x 11: `raw` +
+  `raw_a`; highD x 61: `raw_w61`; pooled x 61: `pool`, `lodo_openacc`; pooled x 11: `pool_w11`, `lodo_openacc_w11`).
+  Profiles, initial gaps, followers, rollouts, collision policy and the reference of each cell as in 13 / 17.1.
+* E3 runner: a model spec may hold `checkpoints` (its own checkpoints directory instead of the variant's directory of
+  its target; in the unit spec as the variant's directory always was) and `variants` (the variants it runs in; not in
+  the unit spec); a variant may hold `only_models`. The specs of the models of 13.2 are unchanged, so every stored unit
+  stays valid. `raw_a`'s other models would repeat the `raw` units bit for bit (same checkpoint, profiles, hold and
+  random streams), hence `only_models`.
+
+### 18.3 R10: IDM with AR(1) noise (`idm_ar_noise`)
+
+* `a_t = IDM(x_t) + e_t`, `e_t = rho e_{t-L} + eta_t`, `eta ~ N(0, sigma_eta^2)`; the IDM is the closed-loop calibration
+  of the root (the frozen prior of `idm_white_noise`); `L` = the target's own length (1 for `a`, 10 for `mean_1s`; the E1
+  runner passes the experiment's target to every constructor with a `target` parameter, which no model of the original
+  set has, so their kwargs are unchanged).
+* Fit on the training windows: `r_t = y_t - IDM(x_t)` against the previous residual the window shows,
+  `r_prev = (v_t - v_{t-L}) / (L DT) - IDM(x_{t-L})` (for `mean_1s` exactly the target L samples earlier; for `a` the
+  backward difference of the speed; in a rollout exactly the previous draw's realised residual); `rho` = the uncentred
+  lag-L autocorrelation `sum(r r_prev) / sqrt(sum r^2 sum r_prev^2)`, `sigma_eta^2 = (1 - rho^2) mean(r^2)`: the
+  stationary noise level equals the white-noise sigma of `idm_white_noise`, the two baselines differ only by the
+  temporal correlation. Seed independent (deterministic fit).
+* One-step law `N(IDM(x_t) + rho r_prev, sigma_eta^2)`; `aleatoric_var` is this conditional variance (the variance of
+  the represented law; the stationary `sigma_eta^2 / (1 - rho^2)` is in the fit log), `epistemic_var` 0; at `rho = 0`
+  the law of `idm_white_noise`. Sampler: the AR state is carried per trajectory, started from `r_prev` of the true
+  history, advanced once per draw; `per_step` and `per_trajectory` are the same sampler.
+* In `e1.yaml` (and every root inheriting its model list; the E5 roots reuse it from `e1h` / `e1h_mean1s`, so those need
+  it first), `e2.yaml` and `e3.yaml` (variants `raw`, `raw_w61`, `pool`, `lodo_openacc`, `pool_w11`,
+  `lodo_openacc_w11`; its E6 checkpoints come from `run_e1.py --config e6_*.yaml --models idm_ar_noise`).
+* Pilot (raw highD, target a): `rho` = 0.9989 per step, `sigma_eta` = 0.050 m/s^2, stationary 1.04 m/s^2 (= the white
+  sigma); the conditional rms of the training windows equals `sigma_eta` (0.0497), so the one-step law is calibrated
+  in-domain (PICP 0.95, NLL -1.58 against +1.49 for `idm_white_noise`). On NGSIM the backward difference of the rougher
+  speed is a poor proxy of the smoothed target residual: PICP 0.62, NLL 5.4.
+
+### 18.4 R13: frozen-mean heteroscedastic ablation (`lstm_hetero_frozen`)
+
+* The mean of `lstm_const_sigma` of the same seed (`mean_from: artifacts/e1/checkpoints/lstm_const_sigma`, seed k from
+  `seed<k>/model.pt`, provenance with sha256 in the log; the source's target must be the experiment's) is frozen with its
+  normaliser; a variance head of the shape of HeteroMDN's head (Linear(64, 64), SiLU, Linear(64, 1), log sigma clamped
+  to [-7, 3] in normalised space) is trained by Gaussian NLL on the frozen LSTM features (the last LSTM state that the
+  mean head reads), with HeteroMDN's TrainConfig. Choice: the frozen features, not a second network on the history, so
+  that the two models of the comparison share mean and backbone; only constant sigma -> sigma(x) differs.
+* `e1_ctrl` holds it with `lstm_const_sigma` and `hetero_mdn` copied from `artifacts/e1`, so the H3.3 table of that root
+  can compare all pairs: `scripts/analyze_e1.py --h33-pair lstm_hetero_frozen lstm_const_sigma --h33-pair hetero_mdn
+  lstm_const_sigma` (the option is new; without it the table and the report are the H3.3 table of 10.5, unchanged).
+* Pilot (seed 0, 3 epochs of the head): highD test NLL -2.895 (const sigma -2.869, HeteroMDN -3.025) at the identical
+  mean (RMSE 0.0137); NGSIM 463 (568, 122): sigma(x) widens a little under shift but cannot repair the mean.
+
+### 18.5 R6 control: causal inputs, recorded target (`e1m_causal`)
+
+* Signal `causal`: `s`, `v`, `v_lead` of every event smoothed by the one-sided Savitzky-Golay filter (least-squares
+  quadratic over the trailing window evaluated at its last sample; the first samples of an event use the samples
+  available), `dv = v - v_lead`, `a` = central differences of the smoothed speed (`a[t-1]`, the regime input, is causal at
+  t), positions integrated from the smoothed speed. The gap gets the same filter (the kinematic reconstruction of 12 fits
+  an offset over the whole event); the min-gap drop rule acts on the RECORDED gap (data cleaning independent of the
+  filter: every window keeps the same events) and the smoothed gap is floored at `min_gap` where the trailing quadratic
+  overshoots. `max_abs_c` / `max_gap_rms` do not apply. Signal `matched_causal`: one window per data set from a causal
+  matching file; its per-data-set key is the `causal` key with that window.
+* `train.target_from: recorded`: the speed-based targets (`mean_1s`, `fwd_diff`) and their `y_prev` are cut from the
+  stored speed (`TargetSpeedEvent.v_target`, never written), the inputs are the processed signals; part of every signal
+  key (`target_from`), so no root with the processed target is accepted; refused with target `a` or raw signals.
+* Matching (`scripts/match_roughness.py --causal`, `artifacts/e1m_causal/matching.json`, `filter: causal`, `part: val`):
+  the rule of 15.1 on the VALIDATION fold of every data set only (fold 1 of its split file; the shifted sets are
+  evaluated on `split: all_but_val`, every event outside that fold, so the fold that chose a window is never evaluated;
+  the test folds never enter). A matched runner refuses a matching file of the other kind.
+* Result of the matching: highD 11 (reference, roughness 0.0021 m/s); NGSIM I-80, US-101, the FollowNet I-80 set, Waymo
+  and OpenACC all at 101 with `not_reached` (5.8x, 4.5x, 4.6x, 2.5x, 2.1x the reference; centred E5: 1.4-1.9x, OpenACC
+  1.06x at 61): the causal filter cannot equalise the roughness within the grid (its endpoint estimate has 2.8x the
+  noise gain of the centred one at window 11, 0.58 against 0.21). With these windows no event is dropped; the gap floor
+  acts on 0.87 % of the NGSIM I-80 samples (1036 of 7651 events touched), 0.45 % of US-101, <= 0.3 % elsewhere, none
+  on highD.
+* `e1m_causal.yaml` is a RETRAINING root (the reuse of the `e1h_mean1s` checkpoints is refused: their training key is
+  `harmonised`, this one `causal` with recorded targets): `lstm_const_sigma`, `hetero_mdn`, `deep_ensemble`,
+  `mc_dropout`, `gp_residual_idm`, 5 seeds, target `mean_1s` from the recorded speed, the frozen IDM prior of
+  `e1h_mean1s` (`train.idm_from`).
+
+### 18.6 R14: density sensitivity of the sampled laws
+
+`scripts/density_sensitivity.py` re-evaluates stored DiffusionCF checkpoints on the rows E1 evaluated (10 000 per data
+set) with S = 16 / 32 / 64 first-step samples (nested subsets of one 64-sample draw of the `predict_seed` streams) and
+KDE bandwidths 0.5 / 1 / 2 x Silverman (`SampleDist.bandwidth(factor)`, `log_prob(y, bandwidth_factor)`; factor 1 is
+bit-identical to the tables); NLL, plain and fair sample CRPS, PICP and width of the 90 % interval per cell, next to the
+stored 32-sample values, in `<root>/tables/density_sensitivity.csv`. Result (`artifacts/e1`, seed 0, about 3 GPU
+minutes): on highD the mean NLL stays within -2.23 .. -2.43 over the nine cells (S 16 / 32 / 64 at 1x: -2.37 / -2.40 /
+-2.41; bandwidth 0.5x / 1x / 2x at S = 32: -2.40 / -2.40 / -2.26), the fair CRPS is 0.0108 in every cell (plain 0.0120 ->
+0.0111 with S) and the PICP 0.97-0.99; on NGSIM I-80 the mean NLL is set by the bandwidth (about 60 / 15 / 4 nats at
+0.5x / 1x / 2x for every S; median 0.5-1.2) while the CRPS (0.283-0.290) and the PICP (0.40-0.45) hardly move: under
+shift the KDE NLL of the sampled law is not a robust score, CRPS is.
+
+### 18.7 Tooling and deviations
+
+* `scripts/run_e2.py --dry-run` (`dry_run_e2`): targets, specs, events tables, checkpoints (signal checked) and tables
+  done / missing, loading no events and writing nothing; a target whose checkpoint directory is missing is listed with
+  its tables as missing and the note that a run skips it.
+* `e2_ctrl` keeps `highd_val` next to the requested highd + ngsim + openacc: it is the calibration set of the conformal
+  corrections of `scripts/analyze_e2.py`.
+* `idm_ar_noise` is in the inherited model lists of every E1 / E2 root: a run of a derived root without its E1
+  checkpoint fails for that model only (as for any missing checkpoint); `e1m` / `e1m_mean1s` reuse it from `e1h` /
+  `e1h_mean1s` (the E5 rule: nothing trained in the matched roots).

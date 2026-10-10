@@ -337,7 +337,7 @@ inconclusive.
 * Data: raw highD could not be obtained (licence application), FollowNet highD events are the
   stand-in (gaps <= 120 m, pre-filtered); NGSIM is cf-stability's own reconstruction from the raw
   trajectories plus the FollowNet set as a cross-check; NGSIM US-101 added at the M2 review;
-  OpenACC copied from the sibling project; events imported from cf-stability, never re-extracted.
+  OpenACC copied from the cf-stability project; events imported from cf-stability, never re-extracted.
 * Models: QuantilePIDL's physics weight is selected on validation (0.0001 recorded, 0.001
   harmonised; the plan's default 0.3 was harmful); DiffusionCF uses 50 DDIM steps and 32 samples
   and is not retrained for the behavioural target (its law of `mean_1s` is the mean of the first
@@ -417,3 +417,40 @@ roughness-matched signals), `artifacts/e6_pool`, `e6_lodo_ngsim`, `e6_lodo_opena
 `e6_lodo_ngsim_all`, `e2_pool`, `e2_lodo_ngsim`, `e2_lodo_openacc`, `e2_lodo_ngsim_all` (E6,
 pooled-domain training), `artifacts/e3` variants `lodo_openacc` and `pool` (E3-pooled), `artifacts/report`
 (this report's tables and figures). Raw data and event sets are not committed.
+
+## 9. Addendum after the review (2026-10-10)
+
+A review of the submitted manuscript (`paper/submission/review_systems/`) led to two further sets of work,
+recorded in `docs/review_fixes_v3.md` (analysis) and `docs/review_fixes_v4.md` (control experiments; design
+document section 18), and to the manuscript versions v3 and v4. The findings that change the reading of
+sections 4-5 above:
+
+1. **The diffusion model's platoon advantage is the leader's future.** Conditioned on the history alone
+   (`diffusion_cf_hist`), the model is refuted on ACC platoons (reduction -2.80, file-cluster interval
+   [-4.65, -1.94]), collides at the first follower in 44 % of the rollouts and has no collision-free platoon;
+   the result of section 4.8 is one of scenario-conditioned generation, not of the architecture. Among
+   history-only laws none beat the IDM reference in platoons.
+2. **The drop of over-confidence under roughness-matched signals (section 4.6) belongs to offline centred
+   reconstruction.** A causal filter with windows chosen on validation folds and the behavioural target from
+   the recorded speed leaves the NGSIM NLL at 259 / 70 / 40 / 16 / 5.9 nats (LSTM, HeteroMDN, ensemble,
+   MC dropout, GP residual) against 383 / 80 / 33 / 10 / 3.9 harmonised; for past-only processing the
+   over-confidence remains.
+3. **The pooled-domain platoon gain is mostly the training domain** (2x2 matrix: domain effect +0.23 / +0.14,
+   smoothing +0.09 with highD training and 0.00 pooled, interaction -0.09); the quantile network scored on the
+   one-step target is inconclusive (0.09) rather than refuted.
+4. **Cluster bootstrap over recording files** (60 profiles from 26 files) widens the platoon intervals 1.5x:
+   the diffusion model stays supported on ACC platoons for the pooled-domain variants only; six of sixty
+   cells move to inconclusive. Follower-cluster intervals widen the OpenACC one-step intervals 6-8x; H3.1e
+   for the deep ensemble on the unseen NGSIM sets becomes inconclusive.
+5. **ACI with the unclipped recursion** (the finite-quantile variant of M3 broke the long-run bound on
+   drifting streams) changes the reported coverages by at most 0.001; infinite intervals occur in the first
+   50-80 events after a switch (at most 5.3 % of a row). Chronological order and delayed feedback change the
+   coverage by at most 0.022; a static correction with the same label budget reaches 0.60-1.00.
+6. **AR(1) acceleration noise** on the IDM raises the in-domain 10 s rollout coverage from 0.47 to 0.76,
+   transfers badly to NGSIM and does not improve the platoon amplitudes (reduction 0.06, inconclusive).
+7. **A variance head at a fixed mean** gives -0.059 nats, about 41 % of HeteroMDN's -0.145: H3.3 holds at
+   equal mean with a smaller effect.
+8. **The NLL of the sample-based diffusion law is bandwidth-sensitive** (59-65 / 15-16 / 4.0-4.3 nats on
+   NGSIM at 0.5 / 1 / 2 x Silverman) while its CRPS and coverage are stable; the CRPS is the comparable score.
+9. Growth exponents on the common support (54 profiles, indices 1-4): measured 0.085 [0.054, 0.119],
+   diffusion 0.117 / 0.047 / 0.096; the 1-20 fits are extrapolations.

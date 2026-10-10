@@ -1,0 +1,30 @@
+# DiffusionCF without the leader's future (review control R2, docs/design.md 18.1): the same conditional DDPM over
+# the follower's next 5 s of accelerations, conditioned on the 3 s history ONLY (the leader-future input channel of the
+# denoiser is removed; cf_unc.models.diffusion_cf.DiffusionCFHist). Same sampler budget (32 samples, 50 DDIM steps),
+# same training budget (every key below equals configs/model/diffusion_cf.yaml; checked in
+# tests/test_review_controls.py), trained on the same 5 s sequence windows.
+name: diffusion_cf_hist
+kwargs:
+  seq_len: 50               # samples of the generated sequence (5 s)
+  n_samples: 32             # sampled sequences per window (predict_dist = SampleDist of their first steps)
+  n_sampling_steps: 50      # DDIM sub-sequence of the training steps
+  t_train: 1000             # cosine schedule steps
+  eta: 1.0                  # DDIM stochasticity (1: ancestral-like, 0: deterministic)
+  channels: 64              # residual 1-D conv stack
+  n_blocks: 4
+  kernel: 5
+  hidden: 64                # LSTM history encoder
+  replan_every: 50          # rollout: steps between two sampled plans (<= seq_len)
+  predict_seed: 0           # noise seed of predict_dist / sample_sequences
+  clip_x0: true             # clip the x0 prediction to the normalised [A_MIN, A_MAX]
+train:                      # overrides of configs/train/default.yaml (those of diffusion_cf)
+  max_epochs: 12            # 1 epoch without EMA (EMA warm-up) + 11 epochs with EMA
+  batch_size: 64
+  lr: 1.0e-3
+  weight_decay: 0.0
+  patience: 4
+  min_delta: 1.0e-5
+  lr_patience: 2
+  ema_decay: 0.999
+needs_idm: false
+needs_sequences: true

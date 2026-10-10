@@ -26,3 +26,4 @@ reuse_checkpoints:            # copied, not trained (--pilot: artifacts/e1h_mean
   gp_residual_idm: artifacts/e1h_mean1s/checkpoints
   quantile_pidl: artifacts/e1h_mean1s/checkpoints
   diffusion_cf: artifacts/e1h/checkpoints   # sequence model: one checkpoint for every target (design.md 11.1)
+  idm_ar_noise: artifacts/e1h_mean1s/checkpoints   # review control R10: needs its e1h_mean1s checkpoint first

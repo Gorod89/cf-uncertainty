@@ -6,8 +6,9 @@ speed standard deviation along the platoon, collisions.
     python scripts/analyze_e3.py --root artifacts/e3 --n-boot 2000 --no-figures
 
 Writes ``<root>/tables/``: profile_index.csv (one row per variant, model, profile and vehicle index: the per-profile
-scores every other table is aggregated from), amplitude_crps.csv, h32.csv, amplitude_coverage.csv, growth.csv,
-collisions.csv, analysis_info.json, summary.md (the printed summary as markdown); the figures of
+scores every other table is aggregated from), profile_index_seed.csv (the amplitude CRPS of every training seed alone,
+measured indices only), amplitude_crps.csv, h32.csv, amplitude_coverage.csv, growth.csv, collisions.csv,
+collision_diagnostics.csv, analysis_info.json, summary.md (the printed summary as markdown); the figures of
 ``cf_unc.report.figures_e3`` into ``<root>/figures`` (for the set of ``--set``); prints a summary: per variant the
 overview of the set and the H3.2 block per driver mode (ACC, Human, all; a mode with fewer than
 ``h32.min_profiles`` profiles is listed but not judged, design.md 14.1). Settings (profiles file, sets, calibration,
@@ -24,6 +25,31 @@ was smoothed again (``profile_window``) has the file ``<root>/profiles__<variant
 leader amplitude ``A_0`` (ratio quantity, column ``leader_amplitude``) comes from there; the measured follower
 statistics and the driver modes are those of the profiles file for every variant. The leader amplitude stored in
 every unit table must agree with the profile's (ValueError otherwise: the units were simulated with another leader).
+
+Review fixes (docs/review_fixes_v3.md):
+
+* R4, dependence of the profiles: the 60 profiles come from 26 recording files (``campaign/file`` of the profiles
+  file; ACC 47 from 23, human-driven 12 from 3). Every interval of a mean over profiles (amplitude_crps), of an H3.2
+  reduction (h32) and of a growth exponent (growth) gets a second, paired cluster-bootstrap interval that resamples
+  files and keeps all profiles of a drawn file (``*_cluster`` columns; ``bootstrap.n_boot_cluster`` = 10 000
+  replicates, seed ``bootstrap.cluster_seed`` = 20261009 for every row, the seed of the reviewer's check, so that
+  rows with the same files share their draws); the point estimates are unchanged. h32 adds ``verdict_cluster`` (the
+  thresholds of the verdict on the cluster interval) and the reduction of every training seed alone (the CRPS of its
+  own rollouts, profile_index_seed.csv): ``reduction_seed_min`` / ``reduction_seed_max``.
+* R9, collisions: the engine flags a collision (gap <= 0) and lets the motion continue (``cf_unc.rollout.engine``):
+  nothing is removed. collision_diagnostics.csv gives per variant, model, set and driver mode the share of platoon
+  rollouts without any collision of any vehicle over the whole time line, the time to the first collision of the
+  platoon (median, 10 % and 90 % over the colliding rollouts, seconds from the start of the time line; the first
+  ``platoon.burn_in_s`` = 30 s are the burn-in) and the share colliding in the burn-in, the collision share of
+  vehicles 1 / 5 / 10 / 20, and the amplitude CRPS over the indices 1-4 next to the same CRPS restricted to the
+  rollouts in which neither the scored vehicle nor any vehicle ahead of it collided (``crps_1_4_survivors_biased``:
+  a survivor-biased score, with the share of rollouts kept and the profiles left with a value).
+* R11, growth on a common support: next to the exponent of the models over the vehicles 1-20 (``beta``, also
+  ``beta_extrapolated``: beyond the measured indices) the growth table gives ``beta_common``: the exponent of every
+  model and of the measured platoons on the same profiles (those with at least four measured followers) and the
+  same indices 1-4 (window of the measured data), with intervals over profiles and over files.
+* R1: the ACI of the amplitude intervals follows Gibbs and Candes (``cf_unc.rollout.calibration``; infinite
+  intervals at a level >= 1); ``calibration.finite_quantile`` restores the heuristic finite variant.
 """
 
 from __future__ import annotations
@@ -64,8 +90,8 @@ DEFAULTS: dict[str, Any] = {  # mirror of configs/experiment/e3.yaml
     "empirical_growth": "configs/empirical_growth.yaml",
     "platoon": {"burn_in_s": 30.0},
     "sets": {"headline": 10, "extended": None},
-    "calibration": {"alpha": 0.1, "gamma": 0.01, "n_min": 5},
-    "bootstrap": {"n_boot": 1000, "ci": 0.95, "seed": 0},
+    "calibration": {"alpha": 0.1, "gamma": 0.01, "n_min": 5, "finite_quantile": False},
+    "bootstrap": {"n_boot": 1000, "ci": 0.95, "seed": 0, "n_boot_cluster": 10000, "cluster_seed": 20261009},
     "h32": {"support_min": 0.20, "refute_max": 0.05, "reference": "idm_white_noise", "references_extra": ["lstm_const_sigma"],
             "min_profiles": 5},  # fewer profiles than this in a subset: the verdict is "inconclusive"
 }
@@ -75,19 +101,27 @@ METHODS = ("raw", "static_loo", "aci_online")
 EMPIRICAL_MIN_PROFILES = 3  # an index of the empirical growth curve needs this many profiles
 EMPIRICAL_FIT_SHARE = 0.5  # the empirical exponent is fitted over the indices measured by this share of the profiles
 LEADER_TOL = 1e-3  # m/s: leader amplitude of a unit table against its profile's (stored rounded to 0.1 mm/s)
+SURVIVOR_MIN = 10  # rollouts kept at least for a survivor CRPS of a (profile, index) (R9)
+COMMON_MIN_FOLLOWERS = 4  # common support of the growth exponents (R11): profiles with this many measured followers ...
+COMMON_INDICES = (1, 2, 3, 4)  # ... and these vehicle indices
+COLLISION_DIAG_INDICES = (1, 5, 10, 20)
 COLUMNS: dict[str, list[str]] = {
     "profile_index": [
         "variant", "model", "profile", "index", "n_seeds", "n_samples", "emp_amplitude", "emp_sd", "leader_amplitude",
         "amp_mean", "q05", "q50", "q95", "crps_response", "crps_profile", "crps_ratio_response", "crps_ratio_profile",
         "sd_response", "sd_profile", "collided", "collided_burn_in", "min_gap_mean", "collided_any", "collided_burn_in_any",
+        "crps_response_free", "kept_free", "source_file",
     ],
+    "profile_index_seed": ["variant", "model", "profile", "index", "seed", "n_samples", "crps_response", "crps_profile"],
     "amplitude_crps": [
         "variant", "model", "set", "mode", "window", "index", "crps", "crps_lo", "crps_hi", "crps_ratio", "crps_ratio_lo",
-        "crps_ratio_hi", "n_profiles",
+        "crps_ratio_hi", "n_profiles", "crps_lo_cluster", "crps_hi_cluster", "crps_ratio_lo_cluster",
+        "crps_ratio_hi_cluster", "n_files",
     ],
     "h32": [
         "variant", "set", "mode", "window", "quantity", "reference", "model", "reduction", "lo", "hi", "verdict",
-        "verdict_point", "crps_model", "crps_reference", "n_profiles",
+        "verdict_point", "crps_model", "crps_reference", "n_profiles", "lo_cluster", "hi_cluster", "verdict_cluster",
+        "n_files", "reduction_seed_min", "reduction_seed_max", "n_seeds",
     ],
     "amplitude_coverage": [
         "variant", "model", "set", "index", "method", "coverage", "coverage_lo", "coverage_hi", "nominal", "width_median",
@@ -95,10 +129,18 @@ COLUMNS: dict[str, list[str]] = {
     ],
     "growth": [
         "variant", "model", "set", "window", "index", "sd", "sd_lo", "sd_hi", "n_profiles", "beta", "beta_lo", "beta_hi",
-        "log_sd1", "share_neg_d2", "fitted",
+        "log_sd1", "share_neg_d2", "fitted", "beta_lo_cluster", "beta_hi_cluster", "beta_extrapolated",
+        "beta_extrapolated_lo", "beta_extrapolated_hi", "beta_common", "beta_common_lo", "beta_common_hi",
+        "beta_common_lo_cluster", "beta_common_hi_cluster", "n_profiles_common", "n_files_common",
     ],
     "collisions": ["variant", "model", "set", "index", "collided", "collided_burn_in", "profiles_with_collision", "min_gap_mean",
                    "n_rollouts"],
+    "collision_diagnostics": [
+        "variant", "model", "set", "mode", "n_profiles", "n_rollouts", "collision_free_share", "ttfc_median_s",
+        "ttfc_p10_s", "ttfc_p90_s", "collided_in_burn_in_share", "collided_v1", "collided_v5", "collided_v10",
+        "collided_v20", "crps_1_4", "crps_1_4_same_profiles", "crps_1_4_survivors_biased", "kept_share_1_4",
+        "n_profiles_survivors",
+    ],
 }  # fmt: skip
 
 
@@ -140,8 +182,22 @@ def _unit_arrays(path: str, burn_in: int) -> dict[str, np.ndarray]:
     out["collided_burn_in"] = ((first >= 1) & (first <= burn_in)).astype(np.float64)
     out["collided_any"] = (first >= 0).any(axis=0).astype(np.float64)
     out["collided_burn_in_any"] = out["collided_burn_in"].any(axis=0).astype(np.float64)
+    out["first"] = first.astype(np.float64)
     out["leader_amplitude"] = t["leader_amplitude"].to_numpy(np.float64)[:1]
     return out
+
+
+def platoon_first_collision(first: np.ndarray) -> np.ndarray:
+    """(R,) step of the first collision of any vehicle of a platoon rollout (``first`` (V, R), -1 = none), -1 when no
+    vehicle collided."""
+    f = np.asarray(first, dtype=np.float64)
+    hit = np.where(f >= 0, f, np.inf).min(axis=0)
+    return np.where(np.isfinite(hit), hit, -1.0)
+
+
+def upstream_free(first: np.ndarray) -> np.ndarray:
+    """(V, R) bool: no collision of vehicle i or of any vehicle ahead of it (1..i) over the whole time line."""
+    return np.cumsum(np.asarray(first) >= 0, axis=0) == 0
 
 
 def variant_profiles(root: Path, variants: Sequence[str], profiles: Sequence[Profile]) -> dict[str, dict[str, Profile]]:
@@ -167,19 +223,33 @@ def variant_profiles(root: Path, variants: Sequence[str], profiles: Sequence[Pro
     return out
 
 
+def cluster_of(p: Profile) -> str:
+    """Recording file of a profile, the cluster of the R4 bootstrap: ``<campaign>/<file>``."""
+    return f"{p.campaign}/{p.file}"
+
+
 def profile_scores(listing: pd.DataFrame, profiles: Mapping[str, Profile], burn_in: int, log=print,  # noqa: ANN001
-                   by_variant: Mapping[str, Mapping[str, Profile]] | None = None) -> pd.DataFrame:  # fmt: skip
+                   by_variant: Mapping[str, Mapping[str, Profile]] | None = None
+                   ) -> tuple[pd.DataFrame, pd.DataFrame, dict[tuple[str, str, str], np.ndarray]]:  # fmt: skip
     """The profile_index table: per (variant, model, profile, vehicle index) the scores of the pooled model law;
     ``burn_in`` = burn-in steps of the runs (collisions before the profile starts); ``by_variant``: the profiles of
-    a variant whose leader was smoothed again (``variant_profiles``), ``profiles`` for every other variant."""
+    a variant whose leader was smoothed again (``variant_profiles``), ``profiles`` for every other variant.
+
+    Also returns the profile_index_seed table (the amplitude CRPS of every seed's own rollouts at the measured indices)
+    and, per (variant, model, profile), the step of the first collision of every platoon rollout (all seeds; -1 =
+    none). ``crps_response_free``: the CRPS over the rollouts in which neither vehicle i nor any vehicle ahead of it
+    collided (NaN with fewer than SURVIVOR_MIN of them), ``kept_free`` the share of those rollouts."""
     rows: list[dict[str, Any]] = []
+    seed_rows: list[dict[str, Any]] = []
+    platoon: dict[tuple[str, str, str], np.ndarray] = {}
     for (variant, model), grp in listing.groupby(["variant", "model"], sort=False):
         own = (by_variant or {}).get(str(variant), profiles)
         for profile_id, units in grp.groupby("profile", sort=False):
             p = own.get(str(profile_id))
             if p is None:
                 continue
-            parts = [_unit_arrays(path, burn_in) for path in units.sort_values("seed")["path"]]
+            units = units.sort_values("seed")
+            parts = [_unit_arrays(path, burn_in) for path in units["path"]]
             arr = {k: np.concatenate([u[k] for u in parts], axis=-1) for k in parts[0]}
             n_v, n_s = arr["amplitude"].shape
             emp_amp, emp_sd = np.full(n_v, np.nan), np.full(n_v, np.nan)
@@ -195,6 +265,18 @@ def profile_scores(listing: pd.DataFrame, profiles: Mapping[str, Profile], burn_
                 )  # fmt: skip
             crps = {w: fair_crps(arr[cols[0]], emp_amp) for w, cols in WINDOWS.items()}
             q = sample_quantiles(arr["amplitude"])
+            free = upstream_free(arr["first"])  # (V, S)
+            crps_free = np.full(n_v, np.nan)
+            for i in np.flatnonzero(np.isfinite(emp_amp)):
+                if free[i].sum() >= SURVIVOR_MIN:
+                    crps_free[i] = fair_crps(arr["amplitude"][i][free[i]][None, :], emp_amp[i : i + 1])[0]
+            platoon[(str(variant), str(model), p.id)] = platoon_first_collision(arr["first"])
+            for seed, u in zip(units["seed"], parts):
+                per_seed = {w: fair_crps(u[cols[0]], emp_amp) for w, cols in WINDOWS.items()}
+                for i in np.flatnonzero(np.isfinite(emp_amp)):
+                    seed_rows.append({"variant": variant, "model": model, "profile": p.id, "index": i + 1, "seed": int(seed),
+                                      "n_samples": int(u["amplitude"].shape[1]), "crps_response": per_seed["response"][i],
+                                      "crps_profile": per_seed["profile"][i]})  # fmt: skip
             for i in range(n_v):
                 rows.append({
                     "variant": variant, "model": model, "profile": p.id, "index": i + 1, "n_seeds": len(parts),
@@ -206,9 +288,10 @@ def profile_scores(listing: pd.DataFrame, profiles: Mapping[str, Profile], burn_
                     "collided": float(arr["collided"][i].mean()), "collided_burn_in": float(arr["collided_burn_in"][i].mean()),
                     "min_gap_mean": float(arr["min_gap"][i].mean()), "collided_any": float(arr["collided_any"].mean()),
                     "collided_burn_in_any": float(arr["collided_burn_in_any"].mean()),
+                    "crps_response_free": crps_free[i], "kept_free": float(free[i].mean()), "source_file": cluster_of(p),
                 })  # fmt: skip
         log(f"  {variant} / {model}: {grp['profile'].nunique()} profiles, seeds {sorted(grp['seed'].unique().tolist())}")
-    return _frame(rows, "profile_index")
+    return _frame(rows, "profile_index"), _frame(seed_rows, "profile_index_seed"), platoon
 
 
 def _pivot(pi: pd.DataFrame, column: str, ids: Sequence[str], n_v: int) -> np.ndarray:
@@ -230,12 +313,46 @@ def subsets(ids: Sequence[str], profiles: Mapping[str, Profile]) -> dict[str, li
     return out
 
 
-def crps_tables(pi: pd.DataFrame, sets: Mapping[str, list[str]], profiles: Mapping[str, Profile], s: Mapping[str, Any]
-                ) -> tuple[pd.DataFrame, pd.DataFrame]:  # fmt: skip
-    """amplitude_crps and h32 tables."""
+def _seed_profile_means(seed_pi: pd.DataFrame | None, pi: pd.DataFrame) -> dict[tuple[str, str, str, str, int], pd.Series]:
+    """(variant, model, window, quantity, seed) -> per-profile mean over the measured indices of the CRPS of that seed's
+    rollouts (``ratio``: divided by the leader amplitude of the profile)."""
+    out: dict[tuple[str, str, str, str, int], pd.Series] = {}
+    if seed_pi is None or seed_pi.empty:
+        return out
+    a0 = pi.drop_duplicates(["variant", "profile"]).set_index(["variant", "profile"])["leader_amplitude"]
+    for (variant, model, seed), g in seed_pi.groupby(["variant", "model", "seed"], sort=False):
+        lead = a0.loc[str(variant)]
+        for window in WINDOWS:
+            amp = g.groupby("profile")[f"crps_{window}"].mean()
+            out[(str(variant), str(model), window, "amplitude", int(seed))] = amp
+            out[(str(variant), str(model), window, "ratio", int(seed))] = amp / lead.reindex(amp.index)
+    return out
+
+
+def _seed_reductions(means: Mapping[tuple[str, str, str, str, int], pd.Series], variant: str, model: str, ref: str,
+                     window: str, quantity: str, ids: Sequence[str]) -> list[float]:  # fmt: skip
+    """The H3.2 reduction of every training seed alone (seed k of the model against seed k of the reference)."""
+    seeds = sorted({k[4] for k in means if k[:4] == (variant, model, window, quantity)}
+                   & {k[4] for k in means if k[:4] == (variant, ref, window, quantity)})  # fmt: skip
+    out = []
+    for k in seeds:
+        m = means[(variant, model, window, quantity, k)].reindex(ids).to_numpy(np.float64)
+        r = means[(variant, ref, window, quantity, k)].reindex(ids).to_numpy(np.float64)
+        ok = np.isfinite(m) & np.isfinite(r)
+        if ok.any() and r[ok].mean() > 0:
+            out.append(1.0 - m[ok].mean() / r[ok].mean())
+    return out
+
+
+def crps_tables(pi: pd.DataFrame, sets: Mapping[str, list[str]], profiles: Mapping[str, Profile], s: Mapping[str, Any],
+                seed_pi: pd.DataFrame | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:  # fmt: skip
+    """amplitude_crps and h32 tables (with the file-cluster intervals and, given ``seed_pi``, the per-seed
+    reductions of R4)."""
     b, h = s["bootstrap"], s["h32"]
     n_boot, ci, base = int(b["n_boot"]), float(b["ci"]), int(b["seed"])
+    n_cl, cl_seed = int(b.get("n_boot_cluster", 10000)), int(b.get("cluster_seed", 20261009))
     references = [str(h["reference"]), *[str(r) for r in (h.get("references_extra") or [])]]
+    seed_means = _seed_profile_means(seed_pi, pi)
     crps_rows, h32_rows = [], []
     for variant in pi["variant"].unique():
         pv = pi[pi["variant"] == variant]
@@ -244,6 +361,7 @@ def crps_tables(pi: pd.DataFrame, sets: Mapping[str, list[str]], profiles: Mappi
         models = list(dict.fromkeys(pv["model"]))
         for set_name, set_ids in sets.items():
             for mode, ids in subsets(set_ids, profiles).items():
+                clusters = np.array([cluster_of(profiles[i]) for i in ids])
                 for window in WINDOWS:
                     per_model = {}
                     for model in models:
@@ -261,11 +379,14 @@ def crps_tables(pi: pd.DataFrame, sets: Mapping[str, list[str]], profiles: Mappi
                             ea, er = mean_with_ci(a, ids, n_boot, seed, ci), mean_with_ci(r, ids, n_boot, seed, ci)
                             if ea["n"] == 0:
                                 continue
+                            ca, cr = mean_with_ci(a, clusters, n_cl, cl_seed, ci), mean_with_ci(r, clusters, n_cl, cl_seed, ci)
                             crps_rows.append({
                                 "variant": variant, "model": model, "set": set_name, "mode": mode, "window": window,
                                 "index": index, "crps": ea["estimate"], "crps_lo": ea["lo"], "crps_hi": ea["hi"],
                                 "crps_ratio": er["estimate"], "crps_ratio_lo": er["lo"], "crps_ratio_hi": er["hi"],
-                                "n_profiles": ea["n"],
+                                "n_profiles": ea["n"], "crps_lo_cluster": ca["lo"], "crps_hi_cluster": ca["hi"],
+                                "crps_ratio_lo_cluster": cr["lo"], "crps_ratio_hi_cluster": cr["hi"],
+                                "n_files": int(np.unique(clusters[np.isfinite(np.asarray(a, dtype=np.float64))]).size),
                             })  # fmt: skip
                     for quantity, k in (("amplitude", 0), ("ratio", 1)):
                         seed = boot_seed(base, "h32", set_name, mode, window, quantity)
@@ -276,17 +397,26 @@ def crps_tables(pi: pd.DataFrame, sets: Mapping[str, list[str]], profiles: Mappi
                             for model in models:
                                 if model == ref:
                                     continue
-                                red = relative_reduction(profile_mean(per_model[model][k]), ref_scores, ids, n_boot, seed, ci)
+                                m_scores = profile_mean(per_model[model][k])
+                                red = relative_reduction(m_scores, ref_scores, ids, n_boot, seed, ci)
                                 verdict, point = h32_verdict(red["estimate"], red["lo"], red["hi"], float(h["support_min"]),
                                                              float(h["refute_max"]))  # fmt: skip
+                                cred = relative_reduction(m_scores, ref_scores, clusters, n_cl, cl_seed, ci)
+                                verdict_cluster, _ = h32_verdict(red["estimate"], cred["lo"], cred["hi"],
+                                                                 float(h["support_min"]), float(h["refute_max"]))  # fmt: skip
                                 if red["n_profiles"] < int(h["min_profiles"]):  # too few profiles for a verdict
-                                    verdict = point = "inconclusive"
+                                    verdict = point = verdict_cluster = "inconclusive"
+                                both = np.isfinite(m_scores) & np.isfinite(ref_scores)
+                                per_seed = _seed_reductions(seed_means, str(variant), str(model), ref, window, quantity, ids)
                                 h32_rows.append({
                                     "variant": variant, "set": set_name, "mode": mode, "window": window,
                                     "quantity": quantity, "reference": ref, "model": model, "reduction": red["estimate"],
                                     "lo": red["lo"], "hi": red["hi"], "verdict": verdict, "verdict_point": point,
                                     "crps_model": red["crps_model"], "crps_reference": red["crps_reference"],
-                                    "n_profiles": red["n_profiles"],
+                                    "n_profiles": red["n_profiles"], "lo_cluster": cred["lo"], "hi_cluster": cred["hi"],
+                                    "verdict_cluster": verdict_cluster, "n_files": int(np.unique(clusters[both]).size),
+                                    "reduction_seed_min": min(per_seed) if per_seed else np.nan,
+                                    "reduction_seed_max": max(per_seed) if per_seed else np.nan, "n_seeds": len(per_seed),
                                 })  # fmt: skip
     return _frame(crps_rows, "amplitude_crps"), _frame(h32_rows, "h32")
 
@@ -309,7 +439,7 @@ def coverage_table(pi: pd.DataFrame, sets: Mapping[str, list[str]], extended: li
         qs = {m: np.full((len(extended), n_v), np.nan) for m in METHODS}
         for i in range(max_emp):
             res = coverage_by_method(cols["emp_amplitude"][:, i], cols["q05"][:, i], cols["q50"][:, i], cols["q95"][:, i],
-                                     order, alpha, gamma, n_min)  # fmt: skip
+                                     order, alpha, gamma, n_min, bool(c.get("finite_quantile", False)))  # fmt: skip
             for m in METHODS:
                 cov[m][:, i], width[m][:, i], qs[m][:, i] = res[m]["covered"], res[m]["width"], res[m]["q"]
         for set_name, ids in sets.items():
@@ -334,13 +464,44 @@ def coverage_table(pi: pd.DataFrame, sets: Mapping[str, list[str]], extended: li
     return _frame(rows, "amplitude_coverage")
 
 
-def growth_table(pi: pd.DataFrame, sets: Mapping[str, list[str]], s: Mapping[str, Any]) -> pd.DataFrame:
-    """growth: mean sd by vehicle index per model and window, the empirical curve (variant ``data``), exponents."""
+def common_support(frame: pd.DataFrame, column: str, ids: Sequence[str], profiles: Mapping[str, Profile],
+                   s: Mapping[str, Any], set_name: str) -> dict[str, Any]:  # fmt: skip
+    """``beta_common``: growth exponent of ``column`` on the common support of the measured platoons (R11): the
+    profiles of ``ids`` with at least COMMON_MIN_FOLLOWERS measured followers, the vehicle indices COMMON_INDICES,
+    with a bootstrap interval over profiles and one over files."""
+    b = s["bootstrap"]
+    keys = ("beta_common", "beta_common_lo", "beta_common_hi", "beta_common_lo_cluster", "beta_common_hi_cluster")
+    out: dict[str, Any] = {k: np.nan for k in keys} | {"n_profiles_common": 0, "n_files_common": 0}
+    common = [i for i in ids if profiles[i].n_followers >= COMMON_MIN_FOLLOWERS]
+    if not common:
+        return out
+    n_v = max(int(frame["index"].max()), max(COMMON_INDICES))  # indices not simulated stay NaN
+    curves = _pivot(frame, column, common, n_v)[:, [i - 1 for i in COMMON_INDICES]]
+    keep = np.isfinite(curves).all(axis=1)
+    curves, clusters = curves[keep], np.array([cluster_of(profiles[i]) for i in common])[keep]
+    if curves.shape[0] < 2:
+        return out
+    res = growth_curve(curves, int(b["n_boot"]), boot_seed(int(b["seed"]), "growth_common", set_name), float(b["ci"]))
+    rc = growth_curve(curves, int(b.get("n_boot_cluster", 10000)), int(b.get("cluster_seed", 20261009)), float(b["ci"]),
+                      groups=clusters)  # fmt: skip
+    return {"beta_common": res["beta"], "beta_common_lo": res["beta_lo"], "beta_common_hi": res["beta_hi"],
+            "beta_common_lo_cluster": rc["beta_lo"], "beta_common_hi_cluster": rc["beta_hi"],
+            "n_profiles_common": int(curves.shape[0]), "n_files_common": int(np.unique(clusters).size)}  # fmt: skip
+
+
+def growth_table(pi: pd.DataFrame, sets: Mapping[str, list[str]], s: Mapping[str, Any],
+                 profiles: Mapping[str, Profile] | None = None) -> pd.DataFrame:  # fmt: skip
+    """growth: mean sd by vehicle index per model and window, the empirical curve (variant ``data``), exponents; with
+    ``profiles`` also the file-cluster intervals of the exponents and the common-support exponents (R4, R11)."""
     b = s["bootstrap"]
     n_boot, ci, base = int(b["n_boot"]), float(b["ci"]), int(b["seed"])
+    n_cl, cl_seed = int(b.get("n_boot_cluster", 10000)), int(b.get("cluster_seed", 20261009))
     rows = []
+    nan = float("nan")
 
-    def emit(variant: str, model: str, set_name: str, window: str, res: Mapping[str, Any]) -> None:
+    def emit(variant: str, model: str, set_name: str, window: str, res: Mapping[str, Any],
+             res_cluster: Mapping[str, Any] | None, common: Mapping[str, Any]) -> None:  # fmt: skip
+        model_fit = model != "empirical"  # the models are fitted over 1-20, beyond the measured indices
         for i, v in enumerate(res["curve"]):
             if res["n_profiles"][i] == 0:
                 continue
@@ -349,27 +510,48 @@ def growth_table(pi: pd.DataFrame, sets: Mapping[str, list[str]], s: Mapping[str
                 "sd_lo": res["lo"][i], "sd_hi": res["hi"][i], "n_profiles": int(res["n_profiles"][i]),
                 "beta": res["beta"], "beta_lo": res["beta_lo"], "beta_hi": res["beta_hi"], "log_sd1": res["log_sd1"],
                 "share_neg_d2": res["share_neg_d2"], "fitted": bool(res["fitted"][i]),
+                "beta_lo_cluster": res_cluster["beta_lo"] if res_cluster else nan,
+                "beta_hi_cluster": res_cluster["beta_hi"] if res_cluster else nan,
+                "beta_extrapolated": res["beta"] if model_fit else nan,
+                "beta_extrapolated_lo": res["beta_lo"] if model_fit else nan,
+                "beta_extrapolated_hi": res["beta_hi"] if model_fit else nan, **common,
             })  # fmt: skip
 
+    no_common = common_support(pi.iloc[:0], "sd_profile", [], {}, s, "")
     for (variant, model), pm in pi.groupby(["variant", "model"], sort=False):
         n_v = int(pm["index"].max())
         for set_name, ids in sets.items():
             for window in WINDOWS:
                 curves = _pivot(pm, f"sd_{window}", ids, n_v)
-                curves = curves[np.isfinite(curves).any(axis=1)]
+                keep = np.isfinite(curves).any(axis=1)
+                curves = curves[keep]
                 if curves.size:
-                    emit(variant, model, set_name, window, growth_curve(curves, n_boot, boot_seed(base, "growth", set_name, window), ci))
+                    res = growth_curve(curves, n_boot, boot_seed(base, "growth", set_name, window), ci)
+                    rc, common = None, no_common
+                    if profiles is not None:
+                        groups = np.array([cluster_of(profiles[i]) for i in ids])[keep]
+                        rc = growth_curve(curves, n_cl, cl_seed, ci, groups=groups)
+                        if window == "profile":  # the window of the measured data
+                            common = common_support(pm, "sd_profile", ids, profiles, s, set_name)
+                    emit(variant, model, set_name, window, res, rc, common)
     first = pi.drop_duplicates(["profile", "index"])
     if len(first):
         n_v = int(first["index"].max())
         for set_name, ids in sets.items():
             curves = _pivot(first, "emp_sd", ids, n_v)
-            curves = curves[np.isfinite(curves).any(axis=1)]
+            keep = np.isfinite(curves).any(axis=1)
+            curves = curves[keep]
             if curves.size:
                 fit_min = max(EMPIRICAL_MIN_PROFILES, int(math.ceil(EMPIRICAL_FIT_SHARE * curves.shape[0])))
                 res = growth_curve(curves, n_boot, boot_seed(base, "growth", set_name, "profile"), ci,
                                    EMPIRICAL_MIN_PROFILES, fit_min_profiles=fit_min)  # fmt: skip
-                emit("data", "empirical", set_name, "profile", res)
+                rc, common = None, no_common
+                if profiles is not None:
+                    groups = np.array([cluster_of(profiles[i]) for i in ids])[keep]
+                    rc = growth_curve(curves, n_cl, cl_seed, ci, EMPIRICAL_MIN_PROFILES, fit_min_profiles=fit_min,
+                                      groups=groups)  # fmt: skip
+                    common = common_support(first, "emp_sd", ids, profiles, s, set_name)
+                emit("data", "empirical", set_name, "profile", res, rc, common)
     return _frame(rows, "growth")
 
 
@@ -424,6 +606,51 @@ def collision_table(pi: pd.DataFrame, sets: Mapping[str, list[str]]) -> pd.DataF
     return _frame(rows, "collisions")
 
 
+def collision_diagnostics(pi: pd.DataFrame, platoon: Mapping[tuple[str, str, str], np.ndarray],
+                          sets: Mapping[str, list[str]], profiles: Mapping[str, Profile], burn_in: int) -> pd.DataFrame:  # fmt: skip
+    """collision_diagnostics (R9) per variant, model, set and driver mode: share of the platoon rollouts without any
+    collision over the whole time line; time to the first collision of the platoon (median, 10 % and 90 % over the
+    colliding rollouts, s from the start of the time line) and the share of rollouts whose first collision falls in
+    the burn-in; collision share of the vehicles of COLLISION_DIAG_INDICES; amplitude CRPS over the indices 1-4 (as
+    amplitude_crps) and the same over the rollouts in which neither the vehicle nor any vehicle ahead of it collided
+    (survivor-biased), the mean share of rollouts kept and the profiles left with a survivor value."""
+    rows = []
+    for (variant, model), pm in pi.groupby(["variant", "model"], sort=False):
+        n_v = int(pm["index"].max())
+        for set_name, set_ids in sets.items():
+            for mode, ids in subsets(set_ids, profiles).items():
+                have = [i for i in ids if (str(variant), str(model), i) in platoon]
+                if not have:
+                    continue
+                first = np.concatenate([platoon[(str(variant), str(model), i)] for i in have])
+                hit = first[first >= 0] * DT
+                sub = pm[pm["profile"].isin(have)]
+                row: dict[str, Any] = {
+                    "variant": variant, "model": model, "set": set_name, "mode": mode, "n_profiles": len(have),
+                    "n_rollouts": int(first.size), "collision_free_share": float(np.mean(first < 0)),
+                    "collided_in_burn_in_share": float(np.mean((first >= 1) & (first <= burn_in))),
+                }  # fmt: skip
+                q = np.percentile(hit, [50, 10, 90]) if hit.size else [np.nan] * 3
+                row.update(ttfc_median_s=float(q[0]), ttfc_p10_s=float(q[1]), ttfc_p90_s=float(q[2]))
+                for i in COLLISION_DIAG_INDICES:
+                    g = sub[sub["index"] == i]
+                    row[f"collided_v{i}"] = float(np.average(g["collided"], weights=g["n_samples"])) if len(g) else np.nan
+                amp = profile_mean(_pivot(sub, "crps_response", have, n_v), COMMON_INDICES)
+                free = profile_mean(_pivot(sub, "crps_response_free", have, n_v), COMMON_INDICES)
+                kept = _pivot(sub, "kept_free", have, n_v)
+                measured = np.isfinite(_pivot(sub, "crps_response", have, n_v))
+                kept = profile_mean(np.where(measured, kept, np.nan), COMMON_INDICES)
+                ok = np.isfinite(amp)
+                surv = np.isfinite(free)
+                row.update(crps_1_4=float(np.mean(amp[ok])) if ok.any() else np.nan,
+                           crps_1_4_same_profiles=float(np.mean(amp[surv & ok])) if (surv & ok).any() else np.nan,
+                           crps_1_4_survivors_biased=float(np.nanmean(free)) if np.isfinite(free).any() else np.nan,
+                           kept_share_1_4=float(np.nanmean(kept)) if np.isfinite(kept).any() else np.nan,
+                           n_profiles_survivors=int(np.isfinite(free).sum()))  # fmt: skip
+                rows.append(row)
+    return _frame(rows, "collision_diagnostics")
+
+
 # ------------------------------------------------------------------------------------------- entry
 def analyze_e3(
     root: str | Path = "artifacts/e3",
@@ -454,15 +681,18 @@ def analyze_e3(
     by_variant = variant_profiles(root, list(dict.fromkeys(listing["variant"])), profiles_list)
     if by_variant:
         log(f"  leader smoothed again (profiles__<variant>.yaml): {sorted(by_variant)}")
-    pi = profile_scores(listing, profiles, int(round(float(s["platoon"]["burn_in_s"]) / DT)), log, by_variant)
-    crps, h32 = crps_tables(pi, sets, profiles, s)
+    burn_in = int(round(float(s["platoon"]["burn_in_s"]) / DT))
+    pi, seed_pi, platoon = profile_scores(listing, profiles, burn_in, log, by_variant)
+    crps, h32 = crps_tables(pi, sets, profiles, s, seed_pi)
     out = {
         "profile_index": pi,
+        "profile_index_seed": seed_pi,
         "amplitude_crps": crps,
         "h32": h32,
         "amplitude_coverage": coverage_table(pi, sets, extended, s),
-        "growth": growth_table(pi, sets, s),
+        "growth": growth_table(pi, sets, s, profiles),
         "collisions": collision_table(pi, sets),
+        "collision_diagnostics": collision_diagnostics(pi, platoon, sets, profiles, burn_in),
     }
     literature = literature_rows(_resolve(s["empirical_growth"]))
     if literature:
@@ -531,7 +761,7 @@ def summary_blocks(
     overview_cols = [("model", 18, "<"), ("CRPS 1-4", 20, ">"), ("CRPS all", 20, ">"), (h32_head, 27, ">"),
                      ("verdict", 12, ">"), ("beta", 20, ">"), ("d2<0", 5, ">"), ("collided", 8, ">")]  # fmt: skip
     mode_cols = [("mode", 6, "<"), ("profiles", 8, ">"), ("model", 18, "<"), ("CRPS 1-4", 20, ">"), ("CRPS all", 20, ">"),
-                 (h32_head, 27, ">"), ("verdict", 12, ">")]  # fmt: skip
+                 (h32_head, 27, ">"), ("verdict", 12, ">"), ("files CI", 16, ">"), ("verdict files", 13, ">")]  # fmt: skip
     blocks: list[dict[str, Any]] = []
     sets = [set_name] if set_name in set(crps["set"]) else sorted(set(crps["set"]))
     present = list(dict.fromkeys(crps["variant"]))
@@ -568,14 +798,18 @@ def summary_blocks(
                     c14, call = _crps_cells(msel[msel["model"] == model])
                     hr = _rows(h32, variant=variant, set=sn, mode=mode, window="response", quantity="amplitude",
                                reference=reference, model=model)  # fmt: skip
+                    files, verdict_files = "-", "-"
                     if model == reference:
                         reduction, verdict = "reference", "-"
                     elif len(hr):
                         reduction = _interval(hr.iloc[0], "reduction", "lo", "hi")
                         verdict = str(hr.iloc[0]["verdict"]) if n_mode >= min_profiles else NOT_JUDGED
+                        if "lo_cluster" in hr.columns:
+                            files = f"[{_fmt(hr.iloc[0]['lo_cluster'])}, {_fmt(hr.iloc[0]['hi_cluster'])}]"
+                            verdict_files = str(hr.iloc[0]["verdict_cluster"]) if n_mode >= min_profiles else NOT_JUDGED
                     else:
                         reduction, verdict = "-", "-"
-                    rows.append([mode, str(n_mode), model, c14, call, reduction, verdict])
+                    rows.append([mode, str(n_mode), model, c14, call, reduction, verdict, files, verdict_files])
             if rows:
                 blocks.append({
                     "title": f"H3.2 by driver mode: variant {variant}, set {sn}, window profile + tail (a verdict needs "
@@ -620,7 +854,8 @@ def format_summary(
              "Window profile + tail. CRPS 1-4 / CRPS all: amplitude CRPS in m/s, mean over the vehicle indices 1-4 / over "
              "every measured index of a profile, then over profiles, [95 % bootstrap interval over profiles]. H3.2: "
              f"reduction 1 - CRPS_model / CRPS_reference against {reference}, paired by profile, with its verdict "
-             f"(docs/design.md 13.3, 14.1; '{NOT_JUDGED}': fewer than {min_profiles} profiles). beta: exponent of "
+             f"(docs/design.md 13.3, 14.1; '{NOT_JUDGED}': fewer than {min_profiles} profiles); files CI / verdict "
+             "files: the paired bootstrap over the recording files (all profiles of a drawn file kept). beta: exponent of "
              "sd_i = sd_1 i^beta; d2<0: share of negative second differences of the sd curve; collided: share of "
              "rollouts with a collision of any pair of the platoon."]  # fmt: skip
     for b in blocks:

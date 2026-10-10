@@ -1,0 +1,9 @@
+run,run_label,variant,set,mode,n_profiles,model,model_label,reference,crps,crps_lo,crps_hi,reduction,reduction_lo,reduction_hi,verdict,verdict_point,judged,min_profiles
+e3,main run,raw_a,extended,ACC,47,idm_white_noise,IDM + white noise,idm_white_noise,3.467351812182832,2.8006395982275967,4.110769866906508,,,,reference,,False,5
+e3,main run,raw_a,extended,ACC,47,quantile_pidl,Quantile PIDL (one-step target),idm_white_noise,3.16015194802052,2.741743615647055,3.683707538180479,0.0885978351210107,-0.1490777553571891,0.2615669156083376,inconclusive,inconclusive,True,5
+e3,main run,raw_a,extended,Human,12,idm_white_noise,IDM + white noise,idm_white_noise,1.108684712370419,0.8318217730759326,1.4099408505194069,,,,reference,,False,5
+e3,main run,raw_a,extended,Human,12,quantile_pidl,Quantile PIDL (one-step target),idm_white_noise,5.416413702258773,3.764639278082547,7.281232006258386,-3.885440957040194,-4.846451942454263,-3.0275444758925065,refuted,refuted,True,5
+e3,main run,raw_a,extended,all,60,idm_white_noise,IDM + white noise,idm_white_noise,2.9796411881540354,2.411804725560935,3.56879155986239,,,,reference,,False,5
+e3,main run,raw_a,extended,all,60,quantile_pidl,Quantile PIDL (one-step target),idm_white_noise,3.599163398120495,3.111337734164939,4.202791813974878,-0.2079183938084403,-0.5689141111861706,0.0531012680857774,inconclusive,refuted,True,5
+e3,main run,raw_a,extended,mixed,1,idm_white_noise,IDM + white noise,idm_white_noise,2.508719568203982,2.508719568203982,2.508719568203982,,,,reference,,False,5
+e3,main run,raw_a,extended,mixed,1,quantile_pidl,Quantile PIDL (one-step target),idm_white_noise,2.4256979031599077,2.4256979031599077,2.4256979031599077,0.0330932425035893,0.0330932425035893,0.0330932425035893,inconclusive,inconclusive,False,5

@@ -1,0 +1,154 @@
+{
+ "note": "Event sets are produced by the sibling repository cf-stability (https://github.com/Gorod89/cf-stability) from the public data sets and copied with scripts/import_cf_stability_events.py; they are not redistributed. The hashes identify the exact files used by the experiments.",
+ "events": {
+  "follownet_highd": {
+   "describe.json": {
+    "sha256": "5371ddf9eadb2a710020459672a8a28eff3486b1c8750cccc9ddc83f73399cdb",
+    "bytes": 3023
+   },
+   "events.parquet": {
+    "sha256": "48df6b9b8e67eddc5fa35c4973b00daebea88238bc65cabd2e02d96c11ad0d8b",
+    "bytes": 467398
+   },
+   "IMPORTED_FROM.json": {
+    "sha256": "e375a2678665db212c7792e418a362b6beec5babe3522077ce3d39cc5ab9b97a",
+    "bytes": 1421
+   },
+   "manifest.json": {
+    "sha256": "1ca69740f9dd853ba619b0f5a7251d83aae6a4ce9b88e0b3e4dd9db6ce7f326b",
+    "bytes": 1716
+   },
+   "samples.parquet": {
+    "sha256": "2e825aa741785e35c185fd333efccc4c75e2a3d2668ececfd5ce9fc5f58946bd",
+    "bytes": 97967932
+   }
+  },
+  "follownet_ngsim_i80": {
+   "describe.json": {
+    "sha256": "c0f171f0c925129accfa4ed243d0bd0ac1bd29485be3cf3935f71c1e1a871579",
+    "bytes": 3117
+   },
+   "events.parquet": {
+    "sha256": "0c678dcde4fe7d031a93bab61eebc067662eaabc5c712ce7d6d8f39c7530a625",
+    "bytes": 85728
+   },
+   "IMPORTED_FROM.json": {
+    "sha256": "bbcdea65df5c3c26f7ac608a687d1ccfadfe2af0d64c2f16fcedea240eb9abfe",
+    "bytes": 1440
+   },
+   "manifest.json": {
+    "sha256": "6a7941ffd7e42a5d7e62a538db077eeedd9948f207e58938cb4d14c58baff906",
+    "bytes": 1737
+   },
+   "samples.parquet": {
+    "sha256": "b096dd2ba1802c1638d9e320d0a6599227dd98535e1265a62302299887cb4978",
+    "bytes": 43160299
+   }
+  },
+  "ngsim_i80": {
+   "describe.json": {
+    "sha256": "c32931ad94c2b702c66e06ba9f070623140a41a3da6303fa1b082ccc4742897b",
+    "bytes": 3098
+   },
+   "events.parquet": {
+    "sha256": "ecb668c4961f4e5b5a93119d62173c554b136ce7fbb4c320078a8a64ac3e2e8b",
+    "bytes": 345493
+   },
+   "IMPORTED_FROM.json": {
+    "sha256": "1c2a11d16ced6f18f5ffba572740c89cfa3e12fef00d0fc6d348532d5b1d3268",
+    "bytes": 1402
+   },
+   "manifest.json": {
+    "sha256": "08dc8f37c8570a1aab4d0ccf4b0a1077a41acaea02a59636ef509e3d2e5794e4",
+    "bytes": 4610
+   },
+   "samples.parquet": {
+    "sha256": "763a43b175f32dab1964d68d751ff2486b448d50940e7ece8f18625fe700b917",
+    "bytes": 216566658
+   }
+  },
+  "ngsim_us101": {
+   "describe.json": {
+    "sha256": "d574f99a601dee031b2f0be34fac8e5603f58e5ddca4493e1036a686f250e9db",
+    "bytes": 3074
+   },
+   "events.parquet": {
+    "sha256": "2531d89e981fb248b84020d7cba4bd65c69efe5b84a162e3bdc4bd70ba590101",
+    "bytes": 328124
+   },
+   "IMPORTED_FROM.json": {
+    "sha256": "5726f1cea70c8c90ea7445199a29aa22da1b07c39da0d2efeb72f1c5dd3966a1",
+    "bytes": 1421
+   },
+   "manifest.json": {
+    "sha256": "426df60e06c2bdba37f7dafbb6de316aee815228b2750b1be3934154be9e73cc",
+    "bytes": 4625
+   },
+   "samples.parquet": {
+    "sha256": "a2a2979b1f0f62fcd9466c2dc86ad6172928e96e11551a3e9f5d377786b425e5",
+    "bytes": 210552410
+   }
+  },
+  "openacc": {
+   "describe.json": {
+    "sha256": "8e95e05dd947f9329086acbd04d54f0cb0e60cc3dbbc3feed9ebd8368d82e7c2",
+    "bytes": 3397
+   },
+   "events.parquet": {
+    "sha256": "7c782211239ecae504cab5d68567163d4304d2115108c8be3e2bc6ce9a9cc9f2",
+    "bytes": 177033
+   },
+   "IMPORTED_FROM.json": {
+    "sha256": "82d4f0aa56d69eb1184c404fc6f693855528e2fbba8bcf6d0c8b6d32ba65b1b9",
+    "bytes": 1397
+   },
+   "manifest.json": {
+    "sha256": "3c21187c9d0e21aa221ac471be8c1cb6374d8bfc786128dcffb8d05a826360a9",
+    "bytes": 2213
+   },
+   "samples.parquet": {
+    "sha256": "224a93f77d77dfa70380d83055240fd7d6dba7f614e1de8ba093caf5d4303e99",
+    "bytes": 147488995
+   }
+  },
+  "waymo": {
+   "describe.json": {
+    "sha256": "d161a4a0ae9efc54f619e84079dcd78c19a92c86840d5002d539353fb649a730",
+    "bytes": 3152
+   },
+   "events.parquet": {
+    "sha256": "115ddbf320094eb0b8e8ee97c4d6f2b704e369a4855f2764cef50904c60d335e",
+    "bytes": 56315
+   },
+   "IMPORTED_FROM.json": {
+    "sha256": "e196338d998cb793c8e25f4028ed53cec3bb70fd922d182cb3cb7b7084dcec6f",
+    "bytes": 1386
+   },
+   "manifest.json": {
+    "sha256": "b10bc8343b42f7fcceaa2aeba27a31cab67c838c48618b78adcac644d8bcff1a",
+    "bytes": 1794
+   },
+   "samples.parquet": {
+    "sha256": "b68ac84eceff9ec15f65eea159014593128ff013495365a7af143091241c29f2",
+    "bytes": 12367833
+   }
+  }
+ },
+ "data/splits": {
+  ".gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "follownet_highd_driver.json": "759e0f4dca384377b896199a3ee2b03f7a5bfc13c583ac48a14a4a9881521f7e",
+  "follownet_ngsim_i80_driver.json": "955ba43a5e91ddeec7216c0599ef2e74102b604826344409b1a055ea6305a30f",
+  "ngsim_i80_driver.json": "95bbcef509f560f1c0833e6c303e84b70c392c677b715caeeb28c5264db88e52",
+  "ngsim_us101_driver.json": "20c157743e84db2b8bd47daea47d931d286670922cf118709a305a2adaa68a01",
+  "openacc_driver.json": "eec3436249a61ef02cc7062c037100136a5655d4679b114c9b7086d8fac3458f",
+  "waymo_driver.json": "ec8dab394e5f078de876f30d0a80d6e370224bd6d3eddc89d891893eec9a0ef0"
+ },
+ "data/calibration": {
+  "follownet_highd/idm_global.json": "ecb8e4b3c3d4779a3b89d719f1330bd617033b6d06430ac90dad1c2620c1f734",
+  "follownet_ngsim_i80/idm_global.json": "5d4df6c59feaed3cca33af88cc0b9d535a59a70ea86d683bc2f2f90512cbbe02",
+  "ngsim_i80/idm_global.json": "458187b28a648b2040b2edf7056e077bbdd8957006e43dce8c5e4818443231e6",
+  "ngsim_us101/idm_global.json": "642875557ced550be2fc06f0ee6e6330e6e8c35fbc434de08439cb684bfbf9fd",
+  "openacc/idm_global.json": "5515dc16d8e99a29ade004b8ae6d58af34adeab4ab8ff9bd97997af5e2ea0c00",
+  "waymo/idm_global.json": "bfc02713fc358c1da78959644891ab19aa4d4e7b40a6be3b950ade3639810af7"
+ }
+}

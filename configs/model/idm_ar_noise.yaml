@@ -1,0 +1,11 @@
+# Calibrated IDM (injected as `idm`, the closed-loop calibration of the experiment: the frozen prior of
+# idm_white_noise) plus AR(1) acceleration noise e_t = rho e_{t-L} + eta_t (review control R10, docs/design.md 18.3;
+# cf_unc.models.baselines.IDMARNoise). rho = lag-L autocorrelation of the one-step residuals of the training windows,
+# sigma_eta^2 = (1 - rho^2) mean(r^2) (the stationary noise level equals the white-noise sigma). L = the target's own
+# length (a: 1, mean_1s: 10): the E1 runner passes the experiment's target as the constructor argument `target`.
+name: idm_ar_noise
+kwargs:
+  rho: null               # null: fitted (lag-L autocorrelation of the training residuals)
+  sigma: null             # innovation sd sigma_eta; null: (1 - rho^2) mean(r^2)
+train: {}                 # unused (no network); kept for a uniform config structure
+needs_idm: true

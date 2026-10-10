@@ -1,0 +1,25 @@
+# Review controls R2 and R13 (docs/design.md 18.1, 18.4): E1 of the two control models in their own root, with the
+# settings of e1.yaml (inherited through `base`): highD training (fold 0), recorded (raw) signals, target a, 5 seeds,
+# the evaluated data sets, strides and sampled rows of artifacts/e1 (the windows tables are identical to those of
+# artifacts/e1, so every table is row-aligned with the e1 tables; DiffusionCF models are evaluated on the same
+# 10 000 sampled rows per data set as diffusion_cf there).
+#   R2  diffusion_cf_hist: the DDPM of diffusion_cf conditioned on the history only (same sampler and training budget).
+#       The comparison of interest is diffusion_cf (artifacts/e1) vs diffusion_cf_hist vs the one-step networks at
+#       equal information: diffusion_cf_hist and the one-step networks see the 3 s history only.
+#   R13 lstm_hetero_frozen: the mean of lstm_const_sigma of the same seed (artifacts/e1/checkpoints) frozen, sigma(x)
+#       learned on its features. lstm_const_sigma and hetero_mdn are copied from artifacts/e1 (not trained) so that the
+#       H3.3 tables of this root hold the three models:
+#       python scripts/analyze_e1.py --root artifacts/e1_ctrl --config configs/experiment/e1_ctrl.yaml \
+#           --h33-pair lstm_hetero_frozen lstm_const_sigma --h33-pair hetero_mdn lstm_const_sigma
+# idm_ar_noise (R10) is a baseline of the standard model list (e1.yaml), not of this root.
+#   python scripts/run_e1.py --config configs/experiment/e1_ctrl.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e1_ctrl/logs/run.out 8 --config configs/experiment/e1_ctrl.yaml
+base: e1.yaml
+root: artifacts/e1_ctrl
+models: [diffusion_cf_hist, lstm_hetero_frozen, lstm_const_sigma, hetero_mdn]
+seed_independent: []
+train:
+  idm_from: artifacts/e1/idm.json   # no model here needs an IDM: copied only for v0 of the regimes of the analysis
+reuse_checkpoints:            # copied from artifacts/e1, not trained (kwargs, signal and target checked)
+  lstm_const_sigma: artifacts/e1/checkpoints
+  hetero_mdn: artifacts/e1/checkpoints
