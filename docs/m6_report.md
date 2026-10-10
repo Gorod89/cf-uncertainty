@@ -116,7 +116,7 @@ epistemic term the smallest).
 
 The 1 s coverage under shift returns to the in-domain level for every model, the ACI intervals at
 10 s shrink to the in-domain widths (LSTM 188 -> 27 m against 29 m on highD), and the collisions
-of the LSTM-based models fall from 18-28 % to 9-22 % (in-domain 0.6-2 %): the rollout picture of
+of the LSTM-based models fall from 18-28 % to 9-21 % (in-domain 0.6-2 %): the rollout picture of
 M3 was dominated by the roughness as well, and a behavioural remainder stays (HeteroMDN and MC
 dropout still collide in about a fifth of the NGSIM rollouts; 10 s coverage 0.19-0.59 against
 0.27-0.65 in-domain). ACI online keeps 0.89-0.93 everywhere. H3.4 by the point rule: 114 of 130
@@ -133,7 +133,7 @@ keeps 0.89-0.91), 3 inconclusive.
    widths return to in-domain values.
 2. **A behavioural shift remains, and it is small at the one-step scale**: 1-4 nats (6 for the
    quantile model on the behavioural target), coverage 0.6-0.8 for the constant-sigma LSTM and the
-   quantile model, collisions in 9-22 % of the NGSIM rollouts against 0.6-2 % in-domain. The
+   quantile model, collisions in 9-21 % of the NGSIM rollouts against 0.6-2 % in-domain. The
    models with an explicit epistemic term (deep ensemble, MC dropout, GP residual, DiffusionCF)
    are the closest to calibrated.
 3. **OpenACC is a different kind of shift**: its roughness was within 2.6x of highD to begin with,
@@ -159,7 +159,7 @@ keeps 0.89-0.91), 3 inconclusive.
 
 ## 6. Open points
 
-1. The remainder of 1-4 nats and the 9-22 % collisions under shift are the behavioural shift the
+1. The remainder of 1-4 nats and the 9-21 % collisions under shift are the behavioural shift the
    paper can claim; the M2/M3 numbers (hundreds of nats) should be presented as the effect of the
    source pipelines, with the matched numbers as the headline for the models' transfer.
 2. Whether to retrain on the matched signals of every data set (a pooled training domain) is a

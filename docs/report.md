@@ -22,7 +22,7 @@ over leader profiles (platoon experiment).
 | H3.2, ACC platoons (47 profiles) | Distributional models beat IDM + white noise on the CRPS of platoon speed amplitudes | **not supported**: DiffusionCF inconclusive, every other learned model refuted | DiffusionCF reduces the CRPS by 0.34 [0.09, 0.50] (harmonised signals 0.40 [0.19, 0.53]) against the support threshold 0.20 on the lower bound; GP residual 0.15 [-0.08, 0.35]; QuantilePIDL, deep ensemble, LSTM worse than the reference |
 | H3.2, human-driven platoons (12 profiles) | same | **refuted** for every learned model | the reference reaches 1.1 m/s CRPS; DiffusionCF -0.84 [-1.26, -0.47], GP residual -2.75, QuantilePIDL -7.0 |
 | H3.2, pooled (60 profiles, secondary) | same | not supported | DiffusionCF 0.25 [0.01, 0.44] (harmonised 0.31 [0.10, 0.46]), GP residual -0.06 [-0.34, 0.16], the rest refuted |
-| E5 (follow-up): is the over-confidence under shift a roughness artefact? | design.md 15.2 | **mostly yes**: partial explanation dominated by roughness | with the shifted sets smoothed to highD's roughness (no retraining) the one-step NLL on NGSIM falls from 40-470 nats to 1-4 nats above in-domain, PICP 0.6-0.98; rollout collisions 18-28 % -> 9-22 % (in-domain 0.6-2 %) |
+| E5 (follow-up): is the over-confidence under shift a roughness artefact? | design.md 15.2 | **mostly yes**: partial explanation dominated by roughness | with the shifted sets smoothed to highD's roughness (no retraining) the one-step NLL on NGSIM falls from 40-470 nats to 1-4 nats above in-domain, PICP 0.6-0.98; rollout collisions 18-28 % -> 9-21 % (in-domain 0.6-2 %) |
 | E3-pooled (follow-up): do the pooled-domain models change the platoon verdicts? | design.md 17.2 | **H3.2 supported for DiffusionCF on ACC platoons**; the one-step networks' instability is a property of the models | DiffusionCF reduction 0.47 [0.39, 0.53] with OpenACC never seen, 0.56 [0.45, 0.64] pooled; human-driven platoons still refuted; LSTM and ensemble collide at the first follower in 45-59 % whatever the training domain |
 | E6 (follow-up): is the remainder the narrowness of the training domain? | design.md 16.2 | **largely yes**: a third to two thirds of it; about 1 nat is site-specific | trained on four data sets (matched signals), the transfer to the held-out fifth costs 0.2-1.0 nats with PICP 0.83-0.98 (NGSIM I-80 with US-101 in training, and OpenACC); with both NGSIM sets unseen 0.5-1.9 nats at PICP 0.70-0.90, and the ensembles' epistemic ratios on the unseen site are 0.5-1.6; the constant-sigma LSTM stays at 59 nats on held-out OpenACC; pooled training over-disperses (0.93-1.00 on its own folds) and does not fix the 5-25 % rollout collisions |
 
@@ -236,10 +236,10 @@ in-domain. Result (NGSIM I-80, target `a`, recorded -> matched): LSTM NLL 467 ->
 (0.22), 0.54 -> 0.82. The behavioural target gives the same picture (LSTM 372 -> 1.85, deep
 ensemble 34 -> -0.45, QuantilePIDL 78 -> 4.29). In rollouts the 1 s coverage under shift returns
 to the in-domain level, the ACI intervals at 10 s shrink to in-domain widths (LSTM 188 -> 27 m
-against 29 m on highD) and the collisions of the LSTM-based models fall from 18-28 % to 9-22 %
+against 29 m on highD) and the collisions of the LSTM-based models fall from 18-28 % to 9-21 %
 (in-domain 0.6-2 %). By the reading fixed in advance (design.md 15.2) the over-confidence under
 shift was mostly a roughness artefact of the source pipelines, with a behavioural remainder of
-1-4 nats (6 for the quantile model on the behavioural target) and of 9-22 % collisions. OpenACC is
+1-4 nats (6 for the quantile model on the behavioural target) and of 9-21 % collisions. OpenACC is
 the exception: its roughness was close to highD's, the LSTM's NLL stays at 294 there, and the
 epistemic and aleatoric ratios stay in the hundreds; the ACC followers at low speed are a shift
 of behaviour and state. H3.1 stays refuted and H3.1e supported on the matched signals, with the
