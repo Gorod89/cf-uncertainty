@@ -1,0 +1,6 @@
+model,kind,dataset,subset,pair,rule,conc,conc_lo,conc_hi,verdict_conc_ci,verdict_conc_point,r_epi,r_epi_lo,r_epi_hi,verdict_ci,verdict_point,n_seeds,unit
+diffusion_cf_hist,seed_ensemble,highd_val,all,placebo,rare_mass,11.226610831616547,5.835136138365856,19.758544579098942,supported,supported,2.0136792533833834,1.1154526651119447,3.510219306742504,inconclusive,inconclusive,5,event
+diffusion_cf_hist,seed_ensemble,openacc,all,shift,rare_mass,11.226610831616547,5.835136138365856,19.758544579098942,supported,supported,57.669428098457814,38.2539768498155,90.12875527218058,supported,supported,5,event
+diffusion_cf_hist,seed_ensemble,openacc,ACC,shift,rare_mass,11.226610831616547,5.835136138365856,19.758544579098942,supported,supported,60.13905126123683,37.392809998585136,91.94536734590116,supported,supported,5,event
+diffusion_cf_hist,seed_ensemble,openacc,Human,shift,rare_mass,11.226610831616547,5.835136138365856,19.758544579098942,supported,supported,44.91254338606501,19.05852372199381,91.86583616185119,supported,supported,5,event
+diffusion_cf_hist,seed_ensemble,openacc,unknown,shift,rare_mass,11.226610831616547,5.835136138365856,19.758544579098942,supported,supported,0.13385955601269012,0.08089305414136261,0.21429305523209932,refuted,refuted,5,event

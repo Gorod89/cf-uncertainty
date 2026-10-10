@@ -1,0 +1,24 @@
+# Review control V7-R02 (docs/design.md 18.9): the missing cell of the past-only control of 18.5. Centred (matched)
+# inputs as in e1m_mean1s.yaml (harmonised highD, window 11, the matched shifted signals of artifacts/e1m/matching.json)
+# with the behavioural target from the RECORDED speed (train.target_from: recorded, as in e1m_causal.yaml); the five
+# models of e1m_causal retrained on highD; evaluated on the events of e1m_causal (the shifted sets without their
+# validation fold). Against artifacts/e1m_causal it isolates the input filter at a fixed target and fixed events;
+# against artifacts/e1m_mean1s_abv (e1m_mean1s_abv.yaml) it isolates the target at fixed inputs and fixed events.
+#   python scripts/run_e1.py --config configs/experiment/e1m_rt.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e1m_rt/logs/run.out 8 --config configs/experiment/e1m_rt.yaml
+base: e1m_mean1s.yaml
+root: artifacts/e1m_rt
+train:
+  target: mean_1s
+  target_from: recorded       # the speed-based target from the stored speed, the inputs from the centred signals
+  idm_from: artifacts/e1h_mean1s/idm.json   # frozen IDM prior of the compared e1h_mean1s models (GP residual), not fitted
+models: [lstm_const_sigma, hetero_mdn, deep_ensemble, mc_dropout, gp_residual_idm]
+seed_independent: []
+reuse_checkpoints: null       # retrained: the target differs from the e1h_mean1s sources
+eval:
+  datasets:                   # the events of e1m_causal: shifted sets without their validation fold
+    ngsim:       {split: all_but_val}
+    ngsim_us101: {split: all_but_val}
+    ngsim_fn:    {split: all_but_val}
+    waymo:       {split: all_but_val}
+    openacc:     {split: all_but_val}

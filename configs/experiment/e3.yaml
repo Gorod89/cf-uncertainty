@@ -12,11 +12,13 @@ variants:                                            # further signal variants; 
   # with the matched OpenACC window of E5 (read from the matching file: 61 samples); profiles__<variant>.yaml in the root.
   pool:                                              # OpenACC in training: the profiles' population was seen
     a: artifacts/e6_pool/checkpoints
-    models: {quantile_pidl: {target: a, hold_steps: 1}}
+    models: {quantile_pidl: {target: a, hold_steps: 1},
+             diffusion_cf_hist: {checkpoints: artifacts/e6_pool_ctrl/checkpoints}}   # V7-R01 (18.8)
     profile_window: {matching: artifacts/e1m/matching.json, data: openacc}
   lodo_openacc:                                      # OpenACC held out: the honest transfer
     a: artifacts/e6_lodo_openacc/checkpoints
-    models: {quantile_pidl: {target: a, hold_steps: 1}}
+    models: {quantile_pidl: {target: a, hold_steps: 1},
+             diffusion_cf_hist: {checkpoints: artifacts/e6_lodo_openacc_ctrl/checkpoints}}   # V7-R01 (18.8)
     profile_window: {matching: artifacts/e1m/matching.json, data: openacc}
   # Review control R3 (design.md 18.2): the 2 x 2 matrix training domain x leader smoothing with ONE target rule
   # (QuantilePIDL on target a with hold 1 in every cell, as in pool / lodo_openacc). Cells: highD x window 11 = raw
@@ -55,7 +57,7 @@ models:                                              # design.md 13.2
   # diffusion_cf vs diffusion_cf_hist vs the one-step networks at equal information (diffusion_cf_hist sees exactly
   # the history of the one-step networks; in the cascade diffusion_cf also sees the predecessor's simulated 5 s future).
   diffusion_cf_hist: {target: a,      sampler_mode: per_step,       hold_steps: 1,
-                      checkpoints: artifacts/e1_ctrl/checkpoints, variants: [raw]}
+                      checkpoints: artifacts/e1_ctrl/checkpoints, variants: [raw, pool, lodo_openacc]}   # pool / lodo_openacc: V7-R01
 seeds: [0, 1, 2, 3, 4]
 # v_max: optional cap of the follower speed [m/s] (null = none, design.md 13; sensitivity: e3_vcap.yaml)
 # max_batch: trajectories per engine batch; batch_profiles: profiles simulated together (one cascade and one random

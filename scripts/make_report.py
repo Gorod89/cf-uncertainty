@@ -60,7 +60,12 @@ ROOT_KEYS = ("e1", "e1_mean1s", "e1h", "e1h_mean1s", "e2", "e2h", "e3", "e3_vcap
 MATCHED_KEYS = ("e1m", "e1m_mean1s", "e2m")  # E5 (design.md 15.1): optional roots, used once <root>/tables exists
 POOLED_KEYS = ("e6_pool", "e6_lodo_ngsim", "e6_lodo_openacc", "e6_lodo_ngsim_all",
                "e2_pool", "e2_lodo_ngsim", "e2_lodo_openacc", "e2_lodo_ngsim_all")  # E6 (16.1, 16.4)
-OPTIONAL_KEYS = (*MATCHED_KEYS, *POOLED_KEYS)  # used once <root>/tables exists
+CONTROL_KEYS = ("e1_ctrl", "e1m_causal", "e1m_rt", "e1m_mean1s_abv", "e6_pool_ctrl", "e6_lodo_openacc_ctrl")  # 18.1-18.9
+OPTIONAL_KEYS = (*MATCHED_KEYS, *POOLED_KEYS, *CONTROL_KEYS)  # used once <root>/tables exists
+# the control roots in T1 (one-step metrics) and T3 (H3.3 pairs): variant label, target (design.md 18)
+E1_CONTROLS = {"e1_ctrl": ("ctrl", "a"), "e1m_causal": ("matched_causal", "mean_1s"), "e1m_rt": ("matched_rt", "mean_1s"),
+               "e1m_mean1s_abv": ("matched_abv", "mean_1s"), "e6_pool_ctrl": ("pool_ctrl", "a"),
+               "e6_lodo_openacc_ctrl": ("lodo_openacc_ctrl", "a")}  # fmt: skip
 E1_ROOTS = {"e1": ("raw", "a"), "e1_mean1s": ("raw", "mean_1s"), "e1h": ("harmonised", "a"), "e1h_mean1s": ("harmonised", "mean_1s")}
 E1_MATCHED = {"e1m": ("matched", "a"), "e1m_mean1s": ("matched", "mean_1s")}  # in T1, T2, F2, F3 (not in T3, F1)
 E1_POOLED = {"e6_pool": ("pool", "a"), "e6_lodo_ngsim": ("lodo_ngsim", "a"), "e6_lodo_openacc": ("lodo_openacc", "a"),
@@ -97,6 +102,22 @@ VARIANT_LABEL = {"raw": "recorded signals", "harmonised": "harmonised signals", 
                  "pool": "matched signals, pooled training domain", "lodo_ngsim": "matched signals, pooled domain without NGSIM I-80",
                  "lodo_openacc": "matched signals, pooled domain without OpenACC",
                  "lodo_ngsim_all": "matched signals, pooled domain without both NGSIM sets"}  # fmt: skip
+VARIANT_LABEL.update({
+    "ctrl": "recorded signals, control models (history-only Diffusion, frozen-mean variance head)",
+    "matched_causal": "causal (past-only) matched signals, target from the recorded speed, shifted sets without their validation fold",
+    "matched_rt": "centred matched signals, target from the recorded speed, shifted sets without their validation fold",
+    "matched_abv": "centred matched signals, target from the processed speed, shifted sets without their validation fold",
+    "pool_ctrl": "matched signals, pooled training domain, history-only Diffusion",
+    "lodo_openacc_ctrl": "matched signals, pooled domain without OpenACC, history-only Diffusion",
+})  # fmt: skip
+ROLE.update({
+    "e1_ctrl": "control (design.md 18.1, 18.4): history-only Diffusion and the frozen-mean variance head, recorded signals, target a",
+    "e1m_causal": "control (18.5): past-only processing, target mean_1s from the recorded speed, retrained on highD",
+    "e1m_rt": "control (18.9): centred matched inputs, target mean_1s from the recorded speed, retrained on highD",
+    "e1m_mean1s_abv": "control (18.9): the e1h_mean1s checkpoints on the events of the past-only control",
+    "e6_pool_ctrl": "control (18.8): history-only Diffusion trained on the pooled domain",
+    "e6_lodo_openacc_ctrl": "control (18.8): history-only Diffusion trained on the pooled domain without OpenACC",
+})  # fmt: skip
 E3_VARIANT_LABEL = {**VARIANT_LABEL, **{v: figures_e3.VARIANT_LABEL[v] for v in figures_e3.ONE_STEP_VARIANTS}}  # 17.1
 TARGET_LABEL = {"a": "target a (one-step acceleration)", "mean_1s": "target mean_1s (1 s mean acceleration)"}
 KIND_LABEL = {"model": "own", "seed_ensemble": "across seeds"}
@@ -1385,9 +1406,118 @@ def collision_diag_tables(ctx: Context) -> list[Table]:
     )]  # fmt: skip
 
 
+def control_t1_tables(ctx: Context) -> list[Table]:
+    """T1 of the control roots (design.md 18): one-step metrics of the control models and cells, same layout as T1."""
+    out = []
+    for key, (variant, target) in E1_CONTROLS.items():
+        if key not in ctx.roots:
+            continue
+        path = ctx.file(key, "tables", "one_step_metrics.csv")
+        if path is None:
+            continue
+        df = _all_subset(_read(path))
+        df = df[df["seed"].astype(str) != "mean"]
+        rows = []
+        for (dataset, model), g in df.groupby(["dataset", "model"], sort=False):
+            row: dict[str, Any] = {"variant": variant, "target": target, "dataset": dataset,
+                                   "dataset_label": DATASET_LABEL.get(dataset, dataset), "model": model,
+                                   "model_label": _label(model, MODEL_LABEL, ctx), "n_seeds": int(g["seed"].nunique()),
+                                   "n_windows": int(g["n_windows"].iloc[0]), "n_events": int(g["n_events"].iloc[0])}  # fmt: skip
+            for m, _ in T1_METRICS:
+                v = pd.to_numeric(g[m], errors="coerce").to_numpy(np.float64)
+                row[f"{m}_mean"] = float(np.mean(v))
+                row[f"{m}_sd"] = float(np.std(v, ddof=1)) if v.size > 1 else np.nan
+            rows.append(row)
+        if not rows:
+            continue
+        data = _sort(pd.DataFrame(rows), dataset=DATASETS, model=MODEL_ORDER)
+        view = pd.DataFrame({"Data set": data["dataset_label"], "Model": data["model_label"],
+                             **{h: [pm(a, b) for a, b in zip(data[f"{m}_mean"], data[f"{m}_sd"])] for m, h in T1_METRICS}})  # fmt: skip
+        n = "/".join(str(s) for s in sorted(set(data["n_seeds"])))
+        out.append(Table(
+            f"t1_one_step__{variant}__{target}", "T1",
+            f"One-step metrics of the control root {key} ({ROLE.get(key, key)}), {TARGET_LABEL[target]}, {VARIANT_LABEL[variant]}: "
+            f"NLL, CRPS, coverage (PICP) and width of the 90 % interval, RMSE of the predictive mean per data set and model; "
+            f"mean ± sd over {n} training seeds.",
+            [path], data, view, group_depth=1,
+        ))  # fmt: skip
+    return out
+
+
+def control_t3_tables(ctx: Context) -> list[Table]:
+    """T3 of the frozen-mean control (design.md 18.4): the H3.3 pairs of e1_ctrl with the event and, when
+    <root>/tables_driver exists, the follower bootstrap unit."""
+    out = []
+    key = "e1_ctrl"
+    if key not in ctx.roots:
+        return out
+    for tables_dir, unit in (("tables", "event"), ("tables_driver", "follower")):
+        path = ctx.file(key, tables_dir, "h33_nll.csv") if tables_dir == "tables" else (
+            ctx.roots[key] / tables_dir / "h33_nll.csv")
+        if path is None or not path.exists():
+            continue
+        df = _all_subset(_read(path))
+        data = pd.DataFrame({
+            "variant": "ctrl", "target": "a", "unit": unit, "dataset": df["dataset"],
+            "dataset_label": [DATASET_LABEL.get(d, d) for d in df["dataset"]], "regime": df["group"],
+            "n_windows": df["n_windows"], "n_events": df["n_events"], "model_a": df["model_a"], "model_b": df["model_b"],
+            **{c: df[c] for c in ("nll_a", "nll_a_lo", "nll_a_hi", "nll_b", "nll_b_lo", "nll_b_hi", "diff", "diff_lo",
+                                  "diff_hi", "p_holm")},
+            "reject": [_truthy(x) for x in df["reject"]],
+        })  # fmt: skip
+        data = _sort(data, dataset=DATASETS, regime=("all", *REGIMES))
+        view = pd.DataFrame({
+            "Pair": [f"{_label(a, MODEL_LABEL, ctx)} vs {_label(b, MODEL_LABEL, ctx)}" for a, b in zip(data["model_a"], data["model_b"])],
+            "Data set": data["dataset_label"], "Regime": ["all windows" if g == "all" else g for g in data["regime"]],
+            "windows": [f"{int(n):,}" for n in data["n_windows"]],
+            "NLL a": [ci(x, y, z) for x, y, z in zip(data["nll_a"], data["nll_a_lo"], data["nll_a_hi"])],
+            "NLL b": [ci(x, y, z) for x, y, z in zip(data["nll_b"], data["nll_b_lo"], data["nll_b_hi"])],
+            "difference": [ci(x, y, z) for x, y, z in zip(data["diff"], data["diff_lo"], data["diff_hi"])],
+            "p (Holm)": [prob(p, 3) for p in data["p_holm"]],
+        })  # fmt: skip
+        out.append(Table(
+            f"t3_h33_nll__ctrl__a__{unit}", "T3",
+            f"H3.3 pairs of the frozen-mean control (recorded signals, target a, highD): NLL (nats) of the frozen-mean "
+            f"variance head and of HeteroMDN against LSTMConstSigma by driving regime, 95 % bootstrap intervals over "
+            f"{unit}s, paired difference (negative: the heteroscedastic model is better) and Holm-adjusted p-value.",
+            [path], data, view, group_depth=2,
+        ))  # fmt: skip
+    return out
+
+
+def density_tables(ctx: Context) -> list[Table]:
+    """T1: the density sensitivity of the sampled law of Diffusion (design.md 18.6): NLL, CRPS, coverage per number
+    of samples and bandwidth factor, mean over seeds."""
+    out = []
+    root = ctx.roots.get("e1")
+    path = root / "tables" / "density_sensitivity.csv" if root is not None else None
+    if path is None or not path.exists():  # optional (control of design.md 18.6): not a missing source
+        return out
+    df = _read(path)
+    agg = df.groupby(["dataset", "model", "n_samples", "bandwidth_factor"], sort=False).agg(
+        nll=("nll", "mean"), nll_median=("nll_median", "mean"), crps=("crps", "mean"), picp90=("picp90", "mean"),
+        width90=("width90", "mean"), n_seeds=("seed", "nunique")).reset_index()
+    agg["dataset_label"] = [DATASET_LABEL.get(d, d) for d in agg["dataset"]]
+    agg = _sort(agg, dataset=DATASETS)
+    view = pd.DataFrame({"Data set": agg["dataset_label"], "Model": [_label(m, MODEL_LABEL, ctx) for m in agg["model"]],
+                         "samples": agg["n_samples"].astype(int), "bandwidth": agg["bandwidth_factor"],
+                         "NLL": [num(x) for x in agg["nll"]], "NLL (median)": [num(x) for x in agg["nll_median"]],
+                         "CRPS": [num(x) for x in agg["crps"]], "PICP": [prob(x) for x in agg["picp90"]],
+                         "width": [num(x) for x in agg["width90"]]})  # fmt: skip
+    out.append(Table(
+        "t1_density_sensitivity__raw__a", "T1",
+        "Density sensitivity of the sampled law of Diffusion (recorded signals, target a): NLL (mean and median over "
+        "windows), CRPS, coverage and width of the 90 % interval per number of samples and bandwidth factor of the "
+        "Gaussian KDE (multiples of the Silverman bandwidth), mean over the training seeds.",
+        [path], agg, view, group_depth=2,
+    ))  # fmt: skip
+    return out
+
+
 def build_tables(ctx: Context) -> list[Table]:
     tables: list[Table] = []
-    for builder in (t1_tables, t2_tables, e1_cluster_tables, t3_tables, t4_tables, info_budget_tables, t5_tables,
+    for builder in (t1_tables, control_t1_tables, density_tables, t2_tables, e1_cluster_tables, t3_tables,
+                    control_t3_tables, t4_tables, info_budget_tables, t5_tables,
                     h32_cluster_tables, t6_tables, collision_diag_tables):
         tables += builder(ctx)
     return tables

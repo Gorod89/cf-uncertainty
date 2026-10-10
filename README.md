@@ -17,11 +17,12 @@ variance (H3.3), coverage of closed-loop rollouts with split-conformal and adapt
 corrections (H3.4), and the distributional evaluation of 20-vehicle platoons driven by measured
 OpenACC leaders (H3.2). Three follow-up experiments decompose the dataset shift: one harmonised
 signal processing, roughness-matched signals (E5), training on a pooled domain with
-leave-one-domain-out roots (E6), and the platoon evaluation with the pooled-domain models. Six control
-experiments added after a review (the diffusion model conditioned on the history only, the training
-domain crossed with the leader smoothing, past-only processing, an IDM with AR(1) acceleration noise, a
-variance head at a fixed mean, the density sensitivity of the sample-based law) are described in
-`docs/design.md` section 18 and in `docs/review_fixes_v3.md` / `docs/review_fixes_v4.md`; the corrected
+leave-one-domain-out roots (E6), and the platoon evaluation with the pooled-domain models. Eight control
+experiments added after two reviews (the diffusion model conditioned on the history only, trained on highD and on
+the pooled domains; the training domain crossed with the leader smoothing; past-only processing and the cell with
+centred inputs and the target from the recorded speed on the same events; an IDM with AR(1) acceleration noise; a
+variance head at a fixed mean; the density sensitivity of the sample-based law) are described in
+`docs/design.md` section 18 and in `docs/review_fixes_v3.md` / `docs/review_fixes_v4.md` / `docs/review_fixes_v8.md`; the corrected
 adaptive conformal recursion, the cluster bootstraps over recording files and followers, the collision
 diagnostics and the common-support growth exponents are in the same notes.
 
@@ -29,8 +30,12 @@ diagnostics and the common-support growth exponents are in the same notes.
   the decisions taken at each review and every deviation).
 * `docs/report.md`: the final report with every verdict and number, with an addendum after the review;
   `docs/m1_report.md` ... `docs/m8_report.md`: the milestone reports (commands, key numbers, deviations);
-  `docs/review_fixes_v3.md`, `docs/review_fixes_v4.md`: the analysis fixes and the control experiments.
-* `results/report/`: the derived tables (`tables/*.csv` and `*.tex`, 76 tables), the figures and `index.md`
+  `docs/review_fixes_v3.md`, `docs/review_fixes_v4.md`, `docs/review_fixes_v8.md`: the analysis fixes and the control experiments.
+* `results/controls/`: the analysis tables of the control roots as they are (one-step metrics, H3.3 pairs with the
+  event and the follower unit, matching files, density sensitivity, the platoon and calibration tables the article
+  quotes); `results/TABLE_SOURCES.md`: for every table of the article the source files with their SHA-256, the tool
+  that wrote the table and the command that regenerates its sources.
+* `results/report/`: the derived tables (`tables/*.csv` and `*.tex`, 85 tables), the figures and `index.md`
   (every table and figure with its caption and source), as produced by `scripts/make_report.py`
   from the experiment artefacts. The manuscript and its supplementary file are not part of this
   repository.
@@ -125,6 +130,13 @@ bash scripts/run_e1_retry.sh artifacts/e1m/logs/run.out 8 --config configs/exper
 bash scripts/run_e1_retry.sh artifacts/e6_pool/logs/r1.out 8 --config configs/experiment/e6_pool.yaml
 # E3-pooled (docs/m8_report.md): the platoon variants of the pooled-domain checkpoints
 bash scripts/run_e3_retry.sh artifacts/e3/logs/run_pooled.out 8 --variants lodo_openacc pool --quiet
+# controls of the second review (docs/review_fixes_v8.md): history-only Diffusion on the pooled roots and its
+# platoon units; the cell with centred inputs and the recorded target on the events of the past-only control
+bash scripts/run_e1_retry.sh artifacts/e6_pool_ctrl/logs/run.out 8 --config configs/experiment/e6_pool_ctrl.yaml
+bash scripts/run_e1_retry.sh artifacts/e6_lodo_openacc_ctrl/logs/run.out 8 --config configs/experiment/e6_lodo_openacc_ctrl.yaml
+bash scripts/run_e3_retry.sh artifacts/e3/logs/run_hist_pooled.out 8 --variants pool lodo_openacc --models diffusion_cf_hist --quiet
+bash scripts/run_e1_retry.sh artifacts/e1m_rt/logs/run.out 8 --config configs/experiment/e1m_rt.yaml
+bash scripts/run_e1_retry.sh artifacts/e1m_mean1s_abv/logs/run.out 8 --config configs/experiment/e1m_mean1s_abv.yaml
 # tables and figures of the article (no experiment, no GPU; a few seconds)
 python scripts/make_report.py                                   # artifacts/report/{tables,figures,index.md}
 ```
@@ -141,7 +153,7 @@ python scripts/make_report.py                                   # artifacts/repo
 | `diffusion_cf` | 32 samples of a conditional DDPM over 5 s acceleration sequences | sample variance | across seeds |
 | `idm_white_noise` | calibrated IDM + constant Gaussian noise | sigma^2 | 0 |
 | `idm_ar_noise` | calibrated IDM + AR(1) acceleration noise fitted on the training residuals (rho about 0.999 per step) | conditional sigma_eta^2 | 0 |
-| `diffusion_cf_hist` | the diffusion model conditioned on the 3 s history only (no leader future) | sample variance | across seeds |
+| `diffusion_cf_hist` | the diffusion model conditioned on the 3 s history only (no leader future), trained on highD and on the pooled domains | sample variance | across seeds |
 | `lstm_hetero_frozen` | the frozen mean of `lstm_const_sigma` with a state-dependent variance head trained by NLL | own variance | across seeds |
 | `lstm_const_sigma` | deterministic LSTM + constant Gaussian noise | sigma^2 | across seeds |
 

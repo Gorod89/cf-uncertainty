@@ -1045,3 +1045,39 @@ shift the KDE NLL of the sampled law is not a robust score, CRPS is.
 * `idm_ar_noise` is in the inherited model lists of every E1 / E2 root: a run of a derived root without its E1
   checkpoint fails for that model only (as for any missing checkpoint); `e1m` / `e1m_mean1s` reuse it from `e1h` /
   `e1h_mean1s` (the E5 rule: nothing trained in the matched roots).
+
+### 18.8 V7-R01: the history-only DiffusionCF on the pooled roots (`e6_pool_ctrl`, `e6_lodo_openacc_ctrl`)
+
+Decision of the second journal review (2026-10-10, V7-R01): the equal-information control of 18.1 exists for the
+highD training only, while the positive H3.2 result of 17 belongs to the pooled training; the pooled-domain
+history-only cell is therefore trained. `configs/experiment/e6_pool_ctrl.yaml` and `e6_lodo_openacc_ctrl.yaml`
+inherit e6_pool.yaml / e6_lodo_openacc.yaml (matched signals, caps, 5 seeds, target a, the frozen e1m IDM prior,
+the evaluated sets) and train `diffusion_cf_hist` only; nothing else of the E6 roots is touched. The platoon units
+run in the E3 variants `pool` and `lodo_openacc` with a per-variant checkpoint override of the label
+(configs/experiment/e3.yaml), so that every other setting of the cell (profiles, leader window 61, initial gaps,
+followers, rollouts, collision policy, the reference idm_white_noise of the cell) is the one of 17.1.
+
+Reading fixed before the run: the comparison is diffusion_cf vs diffusion_cf_hist of the same cell, per driver mode,
+with the file-cluster interval deciding (18.7). If the history-only model is refuted or inconclusive where the
+future-conditioned model is supported, the advantage of the pooled diffusion model is attributed to the information
+of the leader future for that training regime as well; if the history-only model is supported too, the advantage is
+one of the training domain and the article's statement is corrected accordingly. Both outcomes are reported.
+
+### 18.9 V7-R02: the missing cell of the past-only control, centred inputs with the recorded target (`e1m_rt`)
+
+Decision of the second journal review (2026-10-10, V7-R02): the control of 18.5 changes the filter, the target
+source, the checkpoints and the evaluated folds at once, so it compares pipelines and not the filter. The cell that
+separates the two factors is added: `configs/experiment/e1m_rt.yaml` trains the five models of e1m_causal on highD
+with the centred inputs of e1m_mean1s (harmonised highD, window 11; the matched shifted signals of
+artifacts/e1m/matching.json) and the behavioural target from the recorded speed (train.target_from: recorded), and
+evaluates them on the events of e1m_causal (the shifted sets without their validation fold).
+`configs/experiment/e1m_mean1s_abv.yaml` evaluates the e1h_mean1s checkpoints (centred inputs, target from the
+processed speed) on the same events, nothing trained. The three cells on identical events are then: (centred,
+processed target) = e1m_mean1s_abv, (centred, recorded target) = e1m_rt, (causal, recorded target) = e1m_causal.
+
+Reading fixed before the run: e1m_rt against e1m_causal isolates the input filter at a fixed target and fixed
+events; e1m_rt against e1m_mean1s_abv isolates the target at fixed inputs and fixed events. The outcome is reported
+as two differences of the one-step NLL and PICP on NGSIM I-80 (and the other shifted sets) per model, without a
+causal statement about any factor that is not varied (the window selection rule and the training events differ
+between the causal and the centred cells and are named as such). The lag of the causal filter is not measured by
+any of these cells and is not claimed.

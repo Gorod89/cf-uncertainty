@@ -123,11 +123,15 @@ def test_e3_config_of_the_controls() -> None:
     assert v["raw_a"].only_models == ["idm_white_noise", "quantile_pidl"]
     assert v["pool_w11"].checkpoints == {"a": "artifacts/e6_pool/checkpoints"} and v["pool_w11"].profile_window is None
     assert v["lodo_openacc_w11"].checkpoints == {"a": "artifacts/e6_lodo_openacc/checkpoints"}
-    for name in ("raw_w61", "raw_a", "pool_w11", "lodo_openacc_w11", "pool", "lodo_openacc"):  # one target rule
+    for name in ("raw_w61", "raw_a", "pool_w11", "lodo_openacc_w11"):  # one target rule
         assert v[name].models == {"quantile_pidl": {"target": "a", "hold_steps": 1}}
+    # the pooled variants of 17.1 add the pooled checkpoints of the history-only Diffusion (design.md 18.8)
+    for name, hist in (("pool", "artifacts/e6_pool_ctrl/checkpoints"), ("lodo_openacc", "artifacts/e6_lodo_openacc_ctrl/checkpoints")):
+        assert v[name].models == {"quantile_pidl": {"target": "a", "hold_steps": 1}, "diffusion_cf_hist": {"checkpoints": hist}}
     models = OmegaConf.to_container(cfg.models)
     assert models["diffusion_cf_hist"]["checkpoints"] == "artifacts/e1_ctrl/checkpoints"
-    assert models["diffusion_cf_hist"]["variants"] == ["raw"] and "harmonised" not in models["idm_ar_noise"]["variants"]
+    assert models["diffusion_cf_hist"]["variants"] == ["raw", "pool", "lodo_openacc"]  # 18.1 and 18.8
+    assert "harmonised" not in models["idm_ar_noise"]["variants"]
     for spec in models.values():  # every variant a model is restricted to exists
         assert set(spec.get("variants") or []) <= set(names)
     # the units of the models of 13.2 keep their specs: no review key on them

@@ -202,6 +202,7 @@ def fake_e3(root: Path, key: str, columns: dict[str, list[str]], extra: dict[str
 MATCHED = ("e1m", "e1m_mean1s", "e2m")  # E5 roots (design.md 15.1): optional, absent unless a test creates them
 POOLED = ("e6_pool", "e6_lodo_ngsim", "e6_lodo_openacc", "e6_lodo_ngsim_all",
           "e2_pool", "e2_lodo_ngsim", "e2_lodo_openacc", "e2_lodo_ngsim_all")  # E6 (16.1, 16.4)
+CONTROLS = ("e1_ctrl", "e1m_causal", "e1m_rt", "e1m_mean1s_abv", "e6_pool_ctrl", "e6_lodo_openacc_ctrl")  # 18.1-18.9
 
 
 @pytest.fixture()
@@ -214,8 +215,8 @@ def roots(tmp_path: Path, e3_columns: dict[str, list[str]]) -> dict[str, Path]:
             fake_e2(root)
         else:
             fake_e3(root, key, e3_columns)
-    # the E5 and E6 roots are given (so that the real artifacts/e1m etc. are never read) but do not exist
-    return {**out, **{key: tmp_path / "artifacts" / key for key in (*MATCHED, *POOLED)}}
+    # the E5, E6 and control roots are given (so that the real artifacts/e1m etc. are never read) but do not exist
+    return {**out, **{key: tmp_path / "artifacts" / key for key in (*MATCHED, *POOLED, *CONTROLS)}}
 
 
 def add_matched_roots(roots: dict[str, Path]) -> None:

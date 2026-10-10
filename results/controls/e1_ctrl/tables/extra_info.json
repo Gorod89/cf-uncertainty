@@ -1,0 +1,13 @@
+{
+ "grid": {
+  "s_step": 5.0,
+  "dv_step": 0.5,
+  "v_step": 4.0,
+  "n_cells": 5760
+ },
+ "mass": 0.1,
+ "n_train_windows": 908226,
+ "target": "a",
+ "config": "configs/experiment/e1_ctrl.yaml",
+ "in_domain": "highd"
+}

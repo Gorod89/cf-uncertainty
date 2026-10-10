@@ -237,12 +237,15 @@ def test_variant_config(world: dict[str, Any], tmp_path: Path) -> None:
 
 @pytest.mark.skipif(not Path("artifacts/e1m/matching.json").exists(), reason="the real E3 config resolves its profile window from the E5 matching file (an experiment artefact)")
 def test_real_variant_config() -> None:
-    """The shipped config: QuantilePIDL on target a with hold 1 in both E3-pooled variants, 13.2 elsewhere."""
+    """The shipped config: QuantilePIDL on target a with hold 1 in both E3-pooled variants, 13.2 elsewhere; the
+    history-only Diffusion of design.md 18.8 runs there on its pooled checkpoints (per-variant override)."""
     real = parse_variants(load_config())
     # the variants of 13 and 17.1 first; the review controls of design.md 18.2 after them (tests/test_review_controls.py)
     assert list(real) == ["raw", "harmonised", "pool", "lodo_openacc", "raw_w61", "raw_a", "pool_w11", "lodo_openacc_w11"]
+    hist = {"pool": "artifacts/e6_pool_ctrl/checkpoints", "lodo_openacc": "artifacts/e6_lodo_openacc_ctrl/checkpoints"}
     for name in ("pool", "lodo_openacc"):
-        assert real[name].models == {"quantile_pidl": {"target": "a", "hold_steps": 1}} and set(real[name].checkpoints) == {"a"}
+        assert real[name].models == {"quantile_pidl": {"target": "a", "hold_steps": 1},
+                                     "diffusion_cf_hist": {"checkpoints": hist[name]}} and set(real[name].checkpoints) == {"a"}
         assert real[name].window_source == {"matching": "artifacts/e1m/matching.json", "data": "openacc"}
     assert real["harmonised"].models == {} and real["harmonised"].profile_window is None
 

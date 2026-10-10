@@ -1,0 +1,12 @@
+# Review control V7-R01 (docs/design.md 18.8): the history-only DiffusionCF of 18.1 (diffusion_cf_hist, no leader future)
+# trained on the pooled domain of e6_pool.yaml: same matched signals, caps, seeds, target a, frozen IDM prior and
+# evaluated sets, so that the equal-information comparison diffusion_cf vs diffusion_cf_hist exists for the pooled
+# training as well (the platoon units: configs/experiment/e3.yaml, variant pool, label diffusion_cf_hist).
+#   python scripts/run_e1.py --config configs/experiment/e6_pool_ctrl.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e6_pool_ctrl/logs/run.out 8 --config configs/experiment/e6_pool_ctrl.yaml
+#   python scripts/analyze_e1.py --root artifacts/e6_pool_ctrl --config configs/experiment/e6_pool_ctrl.yaml --in-domain pool_test
+base: e6_pool.yaml
+root: artifacts/e6_pool_ctrl
+models: [diffusion_cf_hist]
+seed_independent: []
+reuse_checkpoints: null

@@ -1,0 +1,9 @@
+model,kind,main,rule,conc,conc_lo,conc_hi,verdict_conc_ci,verdict_conc_point,n_pairs,n_supported,n_refuted,n_inconclusive,overall,n_supported_point,n_refuted_point,n_inconclusive_point,overall_point,n_placebo,placebo_verdicts,n_cross_check,cross_check_verdicts
+deep_ensemble,model,True,rare_mass,10.492149637729199,5.045004314519425,19.22600475859234,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:inconclusive,1,ngsim_fn:supported
+deep_ensemble,seed_ensemble,False,rare_mass,9.837156960094442,5.545777575172884,15.873155202099973,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:inconclusive,1,ngsim_fn:supported
+gp_residual_idm,model,True,rare_mass,96.0297748864145,70.44886109987601,127.82360484834534,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:inconclusive,1,ngsim_fn:supported
+gp_residual_idm,seed_ensemble,False,rare_mass,9.410854877137231,8.07715032208848,10.76975840179161,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:refuted,1,ngsim_fn:supported
+hetero_mdn,seed_ensemble,False,rare_mass,11.982528546506485,4.380477918831078,24.7538437689367,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:inconclusive,1,ngsim_fn:supported
+lstm_const_sigma,seed_ensemble,False,rare_mass,4.313245183109751,3.376269460152377,5.7505683025985155,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:refuted,1,ngsim_fn:supported
+mc_dropout,model,True,rare_mass,4.353782759513448,3.522297701984407,5.226735634970271,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:refuted,1,ngsim_fn:supported
+mc_dropout,seed_ensemble,False,rare_mass,7.709401606719487,3.9676397968795936,14.065982220669262,supported,supported,4,4,0,0,supported,4,0,0,supported,1,highd_val:inconclusive,1,ngsim_fn:supported

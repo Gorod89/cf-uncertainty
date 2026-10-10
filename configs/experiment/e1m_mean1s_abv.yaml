@@ -1,0 +1,16 @@
+# Review control V7-R02 (docs/design.md 18.9): the cell (centred inputs, target from the processed speed) of e1m_mean1s
+# evaluated on the events of e1m_causal and e1m_rt (the shifted sets without their validation fold), nothing trained:
+# the e1h_mean1s checkpoints reused as in e1m_mean1s.yaml. Completes the three cells on identical events.
+#   python scripts/run_e1.py --config configs/experiment/e1m_mean1s_abv.yaml --dry-run
+#   bash scripts/run_e1_retry.sh artifacts/e1m_mean1s_abv/logs/run.out 8 --config configs/experiment/e1m_mean1s_abv.yaml
+base: e1m_mean1s.yaml
+root: artifacts/e1m_mean1s_abv
+models: [lstm_const_sigma, hetero_mdn, deep_ensemble, mc_dropout, gp_residual_idm]
+seed_independent: []
+eval:
+  datasets:
+    ngsim:       {split: all_but_val}
+    ngsim_us101: {split: all_but_val}
+    ngsim_fn:    {split: all_but_val}
+    waymo:       {split: all_but_val}
+    openacc:     {split: all_but_val}
