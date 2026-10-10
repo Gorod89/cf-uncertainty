@@ -41,14 +41,14 @@ python scripts/analyze_e1.py --root artifacts/e1m_mean1s_abv --config configs/ex
 ```
 
 Three cells on identical events: (centred, processed target) = e1m_mean1s_abv, (centred, recorded target) = e1m_rt,
-(causal, recorded target) = e1m_causal. Result: цель, а не фильтр, несёт почти всю чувствительность: на NGSIM I-80 при одних центрированных входах и событиях NLL с обработанной целью −0.71…0.95 нат, с записанной целью 3.8–140 (LSTM 1.85 → 140, HeteroMDN 0.14 → 71, ансамбль −0.45 → 49, MC dropout −0.71 → 22, GP 0.95 → 3.8; PICP 0.57–0.88 → 0.12–0.59); замена центрированного фильтра каузальным при фиксированной записанной цели меняет NLL в 0.7–1.9 раза (140 → 259, 71 → 70, 49 → 40, 22 → 16, 3.8 → 5.9). US-101 и Waymo — так же; на OpenACC (записанная скорость уже близка к шероховатости highD) записанная цель стоит 0.1–1.5 нат, а 50–76 нат LSTM присутствуют во всех ячейках (сдвиг поведения/состояния). Текст E5, абстракт и заключение переформулированы: падение переуверенности при выравнивании — в основном смена задачи (сглаженная цель), в меньшей степени входы
+(causal, recorded target) = e1m_causal. Result: цель, а не фильтр, несёт почти всю чувствительность: на NGSIM I-80 при одних центрированных входах и событиях NLL с обработанной целью −0.71…0.95 нат, с записанной целью 3.8–140 (LSTM 1.85 → 140, HeteroMDN 0.14 → 71, ансамбль −0.45 → 49, MC dropout −0.71 → 23, GP 0.95 → 3.8; PICP 0.57–0.88 → 0.12–0.59); замена центрированного фильтра каузальным при фиксированной записанной цели меняет NLL в 0.7–1.9 раза (140 → 259, 71 → 70, 49 → 40, 23 → 16, 3.8 → 5.9). US-101 и Waymo — так же; на OpenACC (записанная 1-с цель почти так же предсказуема, как на highD: persistence RMSE 0.24 против 0.16) записанная цель стоит 0.5–1.3 нат (GP 0.03), а 50–76 нат LSTM присутствуют во всех ячейках (сдвиг поведения/состояния). Текст E5, абстракт и заключение переформулированы: падение переуверенности при выравнивании — для четырёх из пяти моделей почти целиком сглаженная цель (входы при записанной цели меняют NLL на −9…+16 нат), для LSTM — входы (244 из 383 нат) и цель (138) вместе
 
 ## 2. Recomputations without training
 
 * **V7-R08, follower-cluster intervals of the frozen-mean control.**
   `python scripts/analyze_e1.py --root artifacts/e1_ctrl --config configs/experiment/e1_ctrl.yaml --h33-pair lstm_hetero_frozen lstm_const_sigma --h33-pair hetero_mdn lstm_const_sigma --unit driver --tables-dir tables_driver`
   (`artifacts/e1_ctrl/tables_driver/h33_nll.csv`). On highD test the follower-unit intervals coincide with the
-  event-unit intervals within 0.001 nats for both pairs and every regime (frozen mean, all windows: event
+  event-unit intervals within 0.001 nats for both pairs and both overall gains (the braking regime differs by 0.003; frozen mean, all windows: event
   [-0.0789, -0.0415], follower [-0.0787, -0.0416]; HeteroMDN: [-0.1628, -0.1301] vs [-0.1626, -0.1302]); the
   Holm-adjusted verdicts per regime are unchanged (approaching and steady following not rejected, p 0.32 vs 0.41).
   Both units are in the report (`t3_h33_nll__ctrl__a__event`, `__follower`) and in S1.
@@ -61,7 +61,7 @@ Three cells on identical events: (centred, processed target) = e1m_mean1s_abv, (
   interval.
 * **V7-R13, absolute CRPS of the matrix.** From `artifacts/e3/tables/h32.csv` (Diffusion, ACC, amplitude,
   response window): the reference of each cell is at 3.45-3.55 m/s (nearly common denominator); Diffusion 2.30 / 2.00
-  (highD, leader window 11 / 61), 1.54 / 1.54 (pooled), 1.88 / 1.87 m/s (OpenACC held out).
+  (highD, leader window 11 / 61), 1.54 / 1.54 (pooled), 1.87 / 1.88 m/s (OpenACC held out).
 * **V7-R04, sources of the control tables in the report.** `scripts/make_report.py` now writes the one-step tables
   of the control roots (`t1_one_step__ctrl__a`, `__matched_causal__mean_1s`, `__matched_rt__mean_1s`,
   `__matched_abv__mean_1s`, `__pool_ctrl__a`, `__lodo_openacc_ctrl__a`), the H3.3 pairs of the frozen-mean control
