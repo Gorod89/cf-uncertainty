@@ -6,7 +6,9 @@ tables of the experiment roots, published as results/controls/<root>/tables/). S
 with that layout (for example after copying results/report to <dir>/report and results/controls/<root> to
 <dir>/<root>), then
 
-    PYTHONUTF8=1 python scripts/compact_tables/make_compact.py --out results/compact_tables --no-copy
+    CF_UNC_ARTIFACTS=<dir> PYTHONUTF8=1 python scripts/compact_tables/make_compact.py --out <build dir>
+
+The tables are written to <build dir>/tables/ and the figures copied to <build dir>/figures/ (scripts/compact_tables/README.md).
 
 The original module docstring follows.
 
@@ -896,7 +898,7 @@ def art(root: str, name: str) -> pd.DataFrame:
     """A table of an experiment root (read once)."""
     key = art_name(root, name)
     if key not in _ART:
-        path = REPO / key
+        path = ART / root / "tables" / name  # under ART (the public copy reads CF_UNC_ARTIFACTS)
         if not path.exists():
             raise SystemExit(f"{key}: missing (run the analysis of artifacts/{root})")
         _ART[key] = pd.read_csv(path, low_memory=False)
@@ -998,7 +1000,8 @@ def e3_mode_ids(mode: str) -> list[str]:
     from cf_unc.platoon.profiles import load_profiles
 
     info = e3_info()
-    profiles, _ = load_profiles(REPO / info["settings"]["profiles"])
+    prof = Path(info["settings"]["profiles"])  # artifacts/e3/profiles__<variant>.yaml, or configs/platoon/profiles.yaml (raw)
+    profiles, _ = load_profiles(ART / prof.relative_to("artifacts") if prof.parts[:1] == ("artifacts",) else REPO / prof)
     extended = set(info["sets"][E3_SET])
     return [p.id for p in profiles if p.id in extended and p.mode == mode]
 
@@ -1632,7 +1635,7 @@ def figure_envs() -> list[FigureEnv]:
 
 def copy_figures(envs: list[FigureEnv]) -> None:
     dst = SUB / "figures"
-    dst.mkdir(exist_ok=True)
+    dst.mkdir(parents=True, exist_ok=True)
     used = set()
     for env in envs:
         for p in env.files:
@@ -1668,9 +1671,9 @@ def main() -> None:
     tables = [c1_onestep(), c2, c3_regimes(), c4_coverage(), c5_platoon(), c6_platoon_diag(), c7_e5(), c8_e6(),
               c10_h32_cluster(), c11_collisions(), c12_info_budget(), c13, c14_information(), c15, c16_frozen(),
               c17_causal(), c18_density()]
-    (SUB / "tables").mkdir(exist_ok=True)
+    (SUB / "tables").mkdir(parents=True, exist_ok=True)
     gen = SUB / "generated"
-    gen.mkdir(exist_ok=True)
+    gen.mkdir(parents=True, exist_ok=True)
     for t in tables:
         (SUB / "tables" / f"{t.name}.tex").write_text(render(t), encoding="utf-8", newline="\n")
 

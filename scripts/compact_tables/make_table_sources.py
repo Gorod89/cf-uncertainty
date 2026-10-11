@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manifest of the article tables (review V7-R04): for every compact table of paper/v12/tables the report tables or
+"""Manifest of the article tables (review V7-R04): for every compact table of paper/v13/tables the report tables or
 experiment files it was built from, with their SHA-256, the script that wrote the table and the command that
 regenerates the sources. Written to the public checkout as results/TABLE_SOURCES.md.
 
@@ -36,12 +36,16 @@ REGENERATE = {  # source directory prefix -> the command that regenerates it (fr
 }
 
 
+TEXT = (".csv", ".json", ".md", ".tex", ".yaml", ".yml", ".txt")
+
+
 def sha256(path: pathlib.Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()
+    """SHA-256 of the file; text files with their line endings normalised to LF, so that Windows (CRLF) and Linux
+    checkouts give the same value."""
+    data = path.read_bytes()
+    if path.suffix.lower() in TEXT:
+        data = data.replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()
 
 
 ASSET_ONLY = ("artifacts/e3/tables/profile_index.csv", "artifacts/e3/tables/profile_index_seed.csv")  # 16 and 5 MB: release asset
@@ -63,7 +67,7 @@ def main() -> None:
     args = ap.parse_args()
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     lines = ["# Sources of the article tables", "",
-             "Manuscript version v12 (public release v1.3.0). For every result table of the article: the files it was "
+             "Manuscript version v13 (public release v1.3.1). For every result table of the article: the files it was "
              "built from (SHA-256 of the file as published), the script that wrote the table and the command that "
              "regenerates its sources from the experiment artefacts. Paths under `results/report/` are the report "
              "assembly (`scripts/make_report.py`), paths under `results/controls/` the analysis tables of the experiment "
@@ -104,7 +108,8 @@ def main() -> None:
         lines.append(f"| `{label.group(1) if label else tex.stem}` | {cap.group(1).replace('|', '/') if cap else ''} | "
                      f"{'<br>'.join(cells) or '(hand-written)'} | {wrote} | "
                      f"{'<br>'.join(f'`{c}`' for c in regen)} |")
-    lines += ["", "Full SHA-256 values: `sha256sum` of the published files; the first 16 hex digits are listed above.", ""]
+    lines += ["", "SHA-256 values are computed on the files with line endings normalised to LF (text files), the same on Windows and "
+             "Linux checkouts; the first 16 hex digits are listed above.", ""]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("\n".join(lines), encoding="utf-8")
     print("wrote", args.out, "missing sources:", missing)

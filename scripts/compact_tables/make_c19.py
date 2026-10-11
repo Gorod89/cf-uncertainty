@@ -4,7 +4,7 @@ stream, NGSIM I-80, target a, recorded signals, horizon 10 s: coverage, median f
 share of infinite intervals, cold-start coverage (first 50 / 100 events of the stream) and the mean label delay,
 for the static correction, the prequential static correction and ACI online (random, chronological, delayed).
 
-    PYTHONUTF8=1 python scripts/compact_tables/make_c19.py          # writes results/compact_tables/c19_aci_joint.tex
+    PYTHONUTF8=1 python scripts/compact_tables/make_c19.py [--out DIR]   # writes results/compact_tables/c19_aci_joint.tex (or DIR/c19_aci_joint.tex)
 
 Source: artifacts/e2/tables/coverage_by_horizon.csv (scripts/analyze_e2.py).
 """
@@ -34,6 +34,15 @@ def fmt(x: float, d: int = 2) -> str:
 
 
 def main() -> None:
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", type=pathlib.Path, default=None, help="directory of the table file (default: next to the other compact tables)")
+    args = ap.parse_args()
+    global OUT
+    if args.out is not None:
+        OUT = args.out / OUT.name
+        OUT.parent.mkdir(parents=True, exist_ok=True)
     d = pd.read_csv(SRC)
     d = d[(d.dataset == DATASET) & (d.target == TARGET) & (d.horizon_s == HORIZON)]
     rows = []
