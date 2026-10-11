@@ -420,7 +420,7 @@ pooled-domain training), `artifacts/e3` variants `lodo_openacc` and `pool` (E3-p
 
 ## 9. Addendum after the review (2026-10-10)
 
-A review of the submitted manuscript (`paper/submission/review_systems/`) led to two further sets of work,
+A pre-submission review of the manuscript (`paper/submission/review_systems/`) led to two further sets of work,
 recorded in `docs/review_fixes_v3.md` (analysis) and `docs/review_fixes_v4.md` (control experiments; design
 document section 18), and to the manuscript versions v3 and v4. The findings that change the reading of
 sections 4-5 above:

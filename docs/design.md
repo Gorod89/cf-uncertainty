@@ -917,7 +917,7 @@ collisions, intervals) as in sections 13 and 14.1. The `raw` and `harmonised` un
 * `scripts/run_e3.py --dry-run` added; the per-variant model override (`models: {quantile_pidl:
   {target: a, hold_steps: 1}}`) is part of the unit spec.
 
-## 18. Review controls of the v4 revision (decision of the journal review, 2026-10-09)
+## 18. Review controls of the v4 revision (decision of the pre-submission review, 2026-10-09)
 
 Reviewer report `paper/submission/review_systems/REVIEW_SYSTEMS_RU.md` (experiments, items 1, 2, 3, 9, 10, 11), response
 plan `RESPONSE_PLAN_RU.md` (R2, R3, R6 control, R10, R13, R14). Every control adds a model, a variant or a root; no
@@ -1048,7 +1048,7 @@ shift the KDE NLL of the sampled law is not a robust score, CRPS is.
 
 ### 18.8 V7-R01: the history-only DiffusionCF on the pooled roots (`e6_pool_ctrl`, `e6_lodo_openacc_ctrl`)
 
-Decision of the second journal review (2026-10-10, V7-R01): the equal-information control of 18.1 exists for the
+Decision of the second pre-submission review (2026-10-10, V7-R01): the equal-information control of 18.1 exists for the
 highD training only, while the positive H3.2 result of 17 belongs to the pooled training; the pooled-domain
 history-only cell is therefore trained. `configs/experiment/e6_pool_ctrl.yaml` and `e6_lodo_openacc_ctrl.yaml`
 inherit e6_pool.yaml / e6_lodo_openacc.yaml (matched signals, caps, 5 seeds, target a, the frozen e1m IDM prior,
@@ -1065,14 +1065,14 @@ one of the training domain and the article's statement is corrected accordingly.
 
 ### 18.9 V7-R02: the missing cell of the past-only control, centred inputs with the recorded target (`e1m_rt`)
 
-Decision of the second journal review (2026-10-10, V7-R02): the control of 18.5 changes the filter, the target
+Decision of the second pre-submission review (2026-10-10, V7-R02): the control of 18.5 changes the filter, the target
 source, the checkpoints and the evaluated folds at once, so it compares pipelines and not the filter. The cell that
 separates the two factors is added: `configs/experiment/e1m_rt.yaml` trains the five models of e1m_causal on highD
 with the centred inputs of e1m_mean1s (harmonised highD, window 11; the matched shifted signals of
 artifacts/e1m/matching.json) and the behavioural target from the recorded speed (train.target_from: recorded), and
 evaluates them on the events of e1m_causal (the shifted sets without their validation fold).
 `configs/experiment/e1m_mean1s_abv.yaml` evaluates the e1h_mean1s checkpoints (centred inputs, target from the
-processed speed) on the same windows, nothing trained. The three cells share the fold-exclusion rule; the two centred cells share their windows exactly, while the causal processing keeps 1-7 % more events (no gap-reconstruction constraint), so comparisons with it use its own sample or the windows the three share (scripts/common_support_cells.py, third review). The cells are: (centred,
+processed speed) on the same windows, nothing trained. The three cells share the fold-exclusion rule; the two centred cells share their windows exactly, while the causal processing keeps 0.4-7 % more events (no gap-reconstruction constraint), so comparisons with it use its own sample or the windows the three share (scripts/common_support_cells.py, third review). The cells are: (centred,
 processed target) = e1m_mean1s_abv, (centred, recorded target) = e1m_rt, (causal, recorded target) = e1m_causal.
 
 Reading fixed before the run: e1m_rt against e1m_causal isolates the input filter at a fixed target and fixed

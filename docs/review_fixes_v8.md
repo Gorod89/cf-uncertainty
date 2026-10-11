@@ -40,7 +40,7 @@ python scripts/analyze_e1.py --root artifacts/e1m_rt --config configs/experiment
 python scripts/analyze_e1.py --root artifacts/e1m_mean1s_abv --config configs/experiment/e1m_mean1s_abv.yaml
 ```
 
-Three cells with the same fold-exclusion rule (the centred pair shares every window; the causal cell keeps 1-7 % more events after its processing, see section 1.3): (centred, processed target) = e1m_mean1s_abv, (centred, recorded target) = e1m_rt,
+Three cells with the same fold-exclusion rule (the centred pair shares every window; the causal cell keeps 0.4-7 % more events after its processing, see section 1.3): (centred, processed target) = e1m_mean1s_abv, (centred, recorded target) = e1m_rt,
 (causal, recorded target) = e1m_causal. Result: цель, а не фильтр, несёт почти всю чувствительность: на NGSIM I-80 при одних центрированных входах и событиях NLL с обработанной целью −0.71…0.95 нат, с записанной целью 3.8–140 (LSTM 1.85 → 140, HeteroMDN 0.14 → 71, ансамбль −0.45 → 49, MC dropout −0.71 → 23, GP 0.95 → 3.8; PICP 0.57–0.88 → 0.12–0.59); замена центрированного фильтра каузальным при фиксированной записанной цели меняет NLL в 0.7–1.9 раза (140 → 259, 71 → 70, 49 → 40, 23 → 16, 3.8 → 5.9). US-101 и Waymo — так же; на OpenACC (записанная 1-с цель почти так же предсказуема, как на highD: persistence RMSE 0.24 против 0.16) записанная цель стоит 0.5–1.3 нат (GP 0.03), а 50–76 нат LSTM присутствуют во всех ячейках (сдвиг поведения/состояния). Текст E5, абстракт и заключение переформулированы: падение переуверенности при выравнивании — для четырёх из пяти моделей почти целиком сглаженная цель (входы при записанной цели меняют NLL на −9…+16 нат), для LSTM — входы (244 из 383 нат) и цель (138) вместе
 
 ## 2. Recomputations without training
@@ -90,7 +90,7 @@ Three cells with the same fold-exclusion rule (the centred pair shares every win
 ### 1.3 Third pre-submission review: the three cells on their common windows
 
 The causal cell (`e1m_causal`) applies the same fold-exclusion rule as the two centred cells but keeps 1-7 % more
-events after its processing (no gap-reconstruction constraint in the causal variant: NGSIM I-80 6085 against 5941
+events after its processing, 0.4-7 % (no gap-reconstruction constraint in the causal variant: NGSIM I-80 6085 against 5941
 events, OpenACC 3668 against 3426); the two centred cells share every window. `scripts/common_support_cells.py`
 aligns the three roots by (event_id, t_index), restricts every cell to the common windows and recomputes NLL, CRPS,
 coverage and width per model (mean over the windows of each seed, then over the seeds), with the paired NLL

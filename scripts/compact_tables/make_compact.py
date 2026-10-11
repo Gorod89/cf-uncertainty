@@ -1488,7 +1488,7 @@ def c17_causal() -> Table:
                r"windows, the achieved roughness ratios and the persistence RMSE of the target. The rows ``common windows'' hold "
                r"the cells evaluated on the windows the three cells share (the shifted sets without their validation fold, "
                r"after the processing of each cell; the two centred cells share every window, the causal processing keeps "
-               r"1--7\% more events): the harmonised checkpoints with the processed target and the models retrained on highD "
+               r"0.4--7\% more events): the harmonised checkpoints with the processed target and the models retrained on highD "
                r"with the recorded target, both on the centred matched signals, and the causal cell restricted to the same "
                r"windows; the row ``Matched, causal'' is the causal cell on its own evaluated sample.")
     return Table("c17_causal", caption, srcs, "l" + "C" * (2 * len(C17_SETS)), heads, body, notes, wide=True,

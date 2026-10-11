@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manifest of the article tables (review V7-R04): for every compact table of paper/v11/tables the report tables or
+"""Manifest of the article tables (review V7-R04): for every compact table of paper/v12/tables the report tables or
 experiment files it was built from, with their SHA-256, the script that wrote the table and the command that
 regenerates the sources. Written to the public checkout as results/TABLE_SOURCES.md.
 
@@ -63,7 +63,7 @@ def main() -> None:
     args = ap.parse_args()
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     lines = ["# Sources of the article tables", "",
-             f"Manuscript version v11 (public release v1.3.0); repository commit `{head}`. For every table of the article: the files it was "
+             "Manuscript version v12 (public release v1.3.0). For every result table of the article: the files it was "
              "built from (SHA-256 of the file as published), the script that wrote the table and the command that "
              "regenerates its sources from the experiment artefacts. Paths under `results/report/` are the report "
              "assembly (`scripts/make_report.py`), paths under `results/controls/` the analysis tables of the experiment "
@@ -73,7 +73,9 @@ def main() -> None:
              "published generators `scripts/compact_tables/make_compact.py` (c1-c18) and `make_c19.py` (c19), see "
              "`scripts/compact_tables/README.md` for the artefact layout they read; every number of a compact table is a "
              "cell or a rounding of the listed files. The model checkpoints are not published; the runs are regenerated "
-             "by the commands of the README.", "",
+             "by the commands of the README, and the trained checkpoints are the release asset checkpoints.tar.gz. The descriptive "
+             "tables of the article (data sets, models, control design, protocol status, closest prior work) are written by hand "
+             "from the configurations and the design document and are not listed here.", "",
              "| Table | Caption (start) | Sources (published path, SHA-256) | Written by | Regenerate sources |",
              "|---|---|---|---|---|"]
     missing = []
