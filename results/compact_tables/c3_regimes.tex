@@ -1,0 +1,26 @@
+% tab:c3_regimes: H3.3, recorded signals, target a, highD test set: share of the windows, NLL of HeteroMDN and of the LSTM with constant sigma per driving regime and their paired difference with its 95% event-bootstrap interval (negative: HeteroMDN better), and HeteroMDN's mean predicted variance and mean squared residual per regime relative to steady following. All ratios differ from 1 (Holm-adjusted p < 0.05).
+% Sources: artifacts/report/tables/t3_h33_nll__raw__a.csv, artifacts/report/tables/t3_regime_variance__raw__a.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c3_regimes} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{H3.3, recorded signals, target $a$, highD test set: share of the windows, NLL of HeteroMDN and of the LSTM with constant sigma per driving regime and their paired difference with its 95\% event-bootstrap interval (negative: HeteroMDN better), and HeteroMDN's mean predicted variance and mean squared residual per regime relative to steady following. All ratios differ from 1 (Holm-adjusted $p < 0.05$).\label{tab:c3_regimes}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\small
+\begin{tabularx}{\fulllength}{lCCCcCC}
+\toprule
+ &  & \multicolumn{3}{c}{\textbf{NLL (nats)}} & \multicolumn{2}{c}{\textbf{Ratio to steady following}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-7}
+\textbf{Regime} & \textbf{Share (\%)} & \textbf{HeteroMDN} & \textbf{LSTM} & \begin{tabular}[b]{@{}c@{}}\textbf{Difference}\\{}\textbf{[95\% CI]}\end{tabular} & \textbf{Predicted variance} & \textbf{Squared residual} \\
+\midrule
+Congested & 2.4 & $-$2.07 & $-$2.27 & 0.20 [0.10, 0.28] & 6.13 & 7.01 \\
+Braking & 5.7 & $-$2.29 & $-$1.97 & $-$0.33 [$-$0.57, $-$0.17] & 187 & 63.3 \\
+Approaching & 21.1 & $-$2.90 & $-$2.80 & $-$0.10 [$-$0.12, $-$0.07] & 19.0 & 5.73 \\
+Free & 22.8 & $-$3.09 & $-$2.92 & $-$0.17 [$-$0.18, $-$0.16] & 0.75 & 0.86 \\
+Steady & 24.6 & $-$3.02 & $-$2.88 & $-$0.14 [$-$0.16, $-$0.12] & 1 & 1 \\
+Other & 23.4 & $-$2.94 & $-$2.79 & $-$0.15 [$-$0.16, $-$0.14] & 1.15 & 1.29 \\
+\midrule
+All windows & 100 & $-$2.93 & $-$2.78 & $-$0.15 [$-$0.16, $-$0.13] & -- & -- \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}

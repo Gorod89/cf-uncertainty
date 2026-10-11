@@ -1,0 +1,24 @@
+% tab:c9_e3pooled: Platoon evaluation with the models of the pooled domain (E3-pooled): reduction of the amplitude CRPS against the reference of each variant per driver mode, first-follower collisions and growth exponents.
+\begin{table}[H]
+% Sources: artifacts/report/tables/t5_h32__e3__pool.csv, artifacts/report/tables/t5_h32__e3__lodo_openacc.csv, artifacts/report/tables/t5_h32__e3__raw.csv, artifacts/report/tables/t5_h32__e3__harmonised.csv, artifacts/report/tables/t5_h32_cluster__e3.csv, artifacts/report/tables/t6_collisions.csv, artifacts/report/tables/t6_growth.csv
+\caption{Platoon evaluation with the models of the pooled domain (E3-pooled): reduction of the amplitude CRPS against the IDM reference of the same training domain on the ACC platoons (47 profiles, 95\% bootstrap interval, verdict) and share of rollouts in which the first follower collided, for the four training domains of the platoon models. ``Recorded'' and ``harmonised'': highD-only training; ``OpenACC held out'': highD, NGSIM I-80, US-101 and Waymo with matched signals; ``pooled'': all five sets. Human-driven platoons stay refuted by the profile interval (inconclusive by the file interval for the pooled diffusion model) for every learned model in every variant.\label{tab:c9_e3pooled}}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{adjustwidth}{-\extralength}{0cm}
+\centering
+\begin{tabular}{lcccccccc}
+\toprule
+& \multicolumn{4}{c}{\textbf{Reduction on ACC platoons [95\% interval], verdict}} & \multicolumn{4}{c}{\textbf{First-follower collisions}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9}
+\textbf{Model} & \textbf{recorded} & \textbf{harmonised} & \textbf{OpenACC held out} & \textbf{pooled} & \textbf{rec.} & \textbf{harm.} & \textbf{held out} & \textbf{pooled} \\
+\midrule
+Diffusion & 0.34 [0.09, 0.50] inc. & 0.40 [0.19, 0.53] inc. & 0.47 [0.39, 0.53] supp. & 0.56 [0.45, 0.64] supp. & 0.08 & 0.07 & 0.02 & 0.01 \\
+GP residual on IDM & 0.15 [$-$0.08, 0.35] inc. & 0.14 [$-$0.10, 0.33] inc. & 0.19 [$-$0.03, 0.38] inc. & 0.21 [0.03, 0.36] inc. & 0.04 & 0.06 & 0.14 & 0.10 \\
+Quantile PIDL & $-$0.59 [$-$1.03, $-$0.28] ref. & $-$0.37 [$-$0.81, $-$0.04] ref. & $-$0.16 [$-$0.55, 0.12] inc. & $-$0.22 [$-$0.61, 0.06] inc. & 0.49 & 0.15 & 0.21 & 0.21 \\
+Deep ensemble & $-$5.9 [$-$9.4, $-$3.5] ref. & $-$13.9 [$-$20.4, $-$9.2] ref. & $-$9.2 [$-$12.3, $-$7.1] ref. & $-$3.3 [$-$4.7, $-$2.2] ref. & 0.60 & 0.69 & 0.52 & 0.48 \\
+LSTM, constant $\sigma$ & $-$15.8 [$-$22.2, $-$10.9] ref. & $-$2.7 [$-$4.2, $-$1.5] ref. & $-$20.5 [$-$28.0, $-$15.0] ref. & $-$6.3 [$-$7.8, $-$5.1] ref. & 0.52 & 0.29 & 0.59 & 0.45 \\
+IDM + white noise (ref.) & 3.47 m/s & 3.37 m/s & 3.54 m/s & 3.53 m/s & 0 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{adjustwidth}
+\end{table}

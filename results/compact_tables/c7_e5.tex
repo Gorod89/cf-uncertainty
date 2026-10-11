@@ -1,0 +1,30 @@
+% tab:c7_e5: E5, NGSIM I-80, target a: one-step NLL (nats) and PICP of the 90% interval per model for the recorded, the harmonised and the roughness-matched signals, with the in-domain NLL on the highD test set; mean over five training seeds.
+% Sources: artifacts/report/tables/t1_one_step__raw__a.csv, artifacts/report/tables/t1_one_step__harmonised__a.csv, artifacts/report/tables/t1_one_step__matched__a.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c7_e5} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{E5, NGSIM I-80, target $a$: one-step NLL (nats) and PICP of the 90\% interval per model for the recorded, the harmonised and the roughness-matched signals, with the in-domain NLL on the highD test set; mean over five training seeds.\label{tab:c7_e5}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\small
+\begin{tabularx}{\fulllength}{lCCCCCCcc}
+\toprule
+ & \multicolumn{6}{c}{\textbf{NGSIM I-80}} & \multicolumn{2}{c}{\textbf{highD test}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-9}
+ & \multicolumn{2}{c}{\textbf{Recorded}} & \multicolumn{2}{c}{\textbf{Harmonised}} & \multicolumn{2}{c}{\textbf{Matched}} & \multicolumn{2}{c}{\textbf{NLL}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
+\textbf{Model} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{Recorded} & \textbf{Harmonised\textsuperscript{1}} \\
+\midrule
+IDM + white noise & 1.90 & 0.89 & 1.88 & 0.89 & 1.24 & 0.98 & 1.41 & 1.44 \\
+IDM + AR(1) noise & 4.51 & 0.68 & 4.73 & 0.69 & $-$1.67 & 0.97 & $-$1.64 & $-$1.63 \\
+LSTM, constant sigma & 467 & 0.08 & 397 & 0.09 & 0.63 & 0.61 & $-$2.78 & $-$2.86 \\
+HeteroMDN & 82.5 & 0.19 & 85.5 & 0.19 & $-$1.03 & 0.76 & $-$2.93 & $-$3.08 \\
+Deep ensemble & 40.7 & 0.33 & 38.5 & 0.34 & $-$1.48 & 0.88 & $-$2.97 & $-$3.08 \\
+MC dropout & 3.97 & 0.52 & 3.36 & 0.55 & $-$1.50 & 0.98 & $-$2.40 & $-$2.43 \\
+GP residual on IDM & 5.75 & 0.54 & 5.59 & 0.54 & 1.10 & 0.82 & 0.22 & 0.22 \\
+Quantile PIDL & 102 & 0.16 & 93.1 & 0.21 & $-$0.13 & 0.74 & $-$2.94 & $-$2.92 \\
+Diffusion & 16.3 & 0.42 & 14.7 & 0.43 & $-$1.45 & 0.91 & $-$2.43 & $-$2.48 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} Also the in-domain reference of the matched signals: they are evaluated with the models trained on harmonised highD, without retraining.}}
+\end{table}

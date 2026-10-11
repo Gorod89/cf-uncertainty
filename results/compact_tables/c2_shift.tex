@@ -1,0 +1,26 @@
+% tab:c2_shift: H3.1 under dataset shift, recorded signals, target a: ratio of the geometric means of the epistemic (Epi.) and the aleatoric (Alea.) variance, shifted data set over highD test, per model, and the overall H3.1 and H3.1e verdicts over the four shifted data sets (interval rule; the point rule gives the same verdicts). IDM + white noise, without an epistemic part, is not listed.
+% Sources: artifacts/report/tables/t2_h31__raw__a.csv, artifacts/report/tables/t2_h31_summary.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c2_shift} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{H3.1 under dataset shift, recorded signals, target $a$: ratio of the geometric means of the epistemic (Epi.) and the aleatoric (Alea.) variance, shifted data set over highD test, per model, and the overall H3.1 and H3.1e verdicts over the four shifted data sets (interval rule; the point rule gives the same verdicts). IDM + white noise, without an epistemic part, is not listed.\label{tab:c2_shift}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\begin{tabularx}{\fulllength}{lCCCCCCCCcc}
+\toprule
+ & \multicolumn{2}{c}{\textbf{NGSIM I-80}} & \multicolumn{2}{c}{\textbf{NGSIM US-101}} & \multicolumn{2}{c}{\textbf{Waymo}} & \multicolumn{2}{c}{\textbf{OpenACC}} & \multicolumn{2}{c}{\textbf{Verdict}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+\textbf{Model} & \textbf{Epi.} & \textbf{Alea.} & \textbf{Epi.} & \textbf{Alea.} & \textbf{Epi.} & \textbf{Alea.} & \textbf{Epi.} & \textbf{Alea.} & \textbf{H3.1} & \textbf{H3.1e} \\
+\midrule
+LSTM, constant sigma\textsuperscript{2} & \textit{213} & 1.00 & \textit{138} & 1.00 & \textit{26.2} & 1.00 & \textit{401} & 1.00 & supported & supported \\
+HeteroMDN\textsuperscript{2} & \textit{42.1} & 8.78 & \textit{28.6} & 4.64 & \textit{14.0} & 5.60 & \textit{564} & 7.08 & refuted & supported \\
+Deep ensemble\textsuperscript{1} & 238 & 9.16 & 167 & 4.75 & 29.6 & 5.86 & 21.3 & 6.95 & refuted & supported \\
+MC dropout\textsuperscript{1} & 18.6 & 13.3 & 17.6 & 11.7 & 7.55 & 6.34 & 3.61 & 7.10 & refuted & supported \\
+GP residual on IDM\textsuperscript{1} & 9.15 & 1.00 & 4.89 & 1.00 & 8.08 & 1.00 & 4.47 & 1.00 & supported & supported \\
+Quantile PIDL\textsuperscript{2} & \textit{592} & 4.93 & \textit{358} & 3.31 & \textit{60.0} & 3.23 & \textit{415} & 3.35 & refuted & supported \\
+Diffusion\textsuperscript{2} & \textit{671} & 17.2 & \textit{439} & 16.1 & \textit{35.9} & 5.66 & \textit{67.4} & 3.10 & refuted & supported \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} The model's own decomposition: variance of the member means (deep ensemble), of the dropout passes (MC dropout), GP posterior variance (GP residual). \textsuperscript{2} Across-seed decomposition over the five training seeds (epistemic: variance of the seeds' predictive means; aleatoric: their predictive variance). The report gives no geometric epistemic ratio for this decomposition; the epistemic entries in italics are ratios of means.}}
+\end{table}

@@ -1,0 +1,46 @@
+% tab:c11_collisions: Collision diagnostics of the platoons, extended set of leader profiles, for the recorded signals with highD training and the two pooled trainings (matched signals): collision-free platoon rollouts, time to the first collision, collisions of vehicles 1 and 20, and the amplitude CRPS before and after removing the rollouts with a collision.
+% Sources: artifacts/report/tables/t6_collision_diagnostics.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c11_collisions} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{Collision diagnostics of the platoons, extended set of leader profiles, for the recorded signals with highD training and the two pooled trainings (matched signals): collision-free platoon rollouts, time to the first collision, collisions of vehicles 1 and 20, and the amplitude CRPS before and after removing the rollouts with a collision.\label{tab:c11_collisions}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\begin{tabularx}{\fulllength}{lCcCCCCCC}
+\toprule
+ & \multicolumn{3}{c}{\textbf{Platoon rollouts}} & \multicolumn{2}{c}{\textbf{Collided (\%)}} & \multicolumn{3}{c}{\textbf{Amplitude CRPS, vehicles 1--4 (m/s)}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-6} \cmidrule(lr){7-9}
+\textbf{Model} & \begin{tabular}[b]{@{}c@{}}\textbf{Collision-}\\{}\textbf{free (\%)}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{First}\\{}\textbf{collision (s)}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{In the}\\{}\textbf{burn-in (\%)}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Vehicle}\\{}\textbf{1}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Vehicle}\\{}\textbf{20}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{All}\\{}\textbf{rollouts}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Survivors}\\{}\textbf{(biased)}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Kept}\\{}\textbf{(\%)}\end{tabular} \\
+\midrule
+\multicolumn{9}{l}{\textit{Recorded signals, highD training}} \\
+IDM + white noise & 100.0 & -- & 0 & 0 & 0 & 2.91 & 2.91 & 100.0 \\
+IDM + AR(1) noise & 100.0 & -- & 0 & 0 & 0 & 3.42 & 3.42 & 100.0 \\
+Diffusion & 9.8 & 35 [18, 89] & 36.8 & 7.7 & 54.1 & 2.06 & 1.85 & 84.9 \\
+GP residual on IDM & 81.1 & 62 [47, 122] & 0 & 4.2 & 1.9 & 3.09 & 3.07 & 88.4 \\
+Quantile PIDL (1 s target) & 0.1 & 22 [16, 45] & 75.2 & 48.9 & 92.0 & 6.12 & 3.79 & 21.9 \\
+Deep ensemble (kept member) & 0 & 10 [8, 16] & 99.8 & 59.9 & 83.8 & 24.5 & 4.04 & 14.3 \\
+LSTM, constant sigma & $<$0.1 & 35 [21, 49] & 34.7 & 51.8 & 81.9 & 57.7 & 6.08 & 21.0 \\
+\midrule
+\multicolumn{9}{l}{\textit{Matched signals, pooled training without OpenACC (OpenACC held out)}} \\
+IDM + white noise & 100.0 & -- & 0 & 0 & 0 & 2.97 & 2.97 & 100.0 \\
+IDM + AR(1) noise & 100.0 & -- & 0 & 0 & 0 & 3.19 & 3.19 & 100.0 \\
+Diffusion & 33.2 & 62 [22, 141] & 13.0 & 2.1 & 22.7 & 1.72 & 1.73 & 95.2 \\
+GP residual on IDM & 72.5 & 49 [38, 120] & 0 & 13.5 & 5.3 & 2.73 & 2.64 & 80.5 \\
+Quantile PIDL (one-step target) & 3.4 & 26 [11, 58] & 57.7 & 21.1 & 69.0 & 4.15 & 2.86 & 49.8 \\
+Deep ensemble (kept member) & 0 & 10 [8, 15] & 98.4 & 51.6 & 74.1 & 38.5 & 2.82 & 17.0 \\
+LSTM, constant sigma & $<$0.1 & 18 [11, 34] & 84.5 & 59.3 & 71.2 & 77.9 & 3.10 & 17.6 \\
+\midrule
+\multicolumn{9}{l}{\textit{Matched signals, pooled training (five data sets)}} \\
+IDM + white noise & 100.0 & -- & 0 & 0 & 0 & 2.96 & 2.96 & 100.0 \\
+IDM + AR(1) noise & 100.0 & -- & 0 & 0 & 0 & 3.12 & 3.12 & 100.0 \\
+Diffusion & 19.8 & 60 [26, 132] & 11.9 & 1.4 & 32.4 & 1.53 & 1.54 & 96.5 \\
+GP residual on IDM & 44.3 & 106 [39, 124] & 0 & 9.8 & 4.7 & 2.78 & 2.72 & 70.8 \\
+Quantile PIDL (one-step target) & 0.1 & 22 [15, 45] & 75.5 & 20.8 & 77.9 & 4.37 & 3.66 & 39.6 \\
+Deep ensemble (kept member) & 0 & 12 [9, 18] & 99.7 & 48.0 & 80.6 & 15.6 & 3.42 & 20.0 \\
+LSTM, constant sigma & $<$0.1 & 25 [14, 48] & 65.1 & 45.3 & 72.8 & 27.5 & 2.70 & 25.2 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{The engine flags a collision (gap $\leq 0$) and continues the motion; nothing is removed. Collision-free: no vehicle of the platoon collides over the whole time line. First collision: time of the first collision of any vehicle, median [10\%, 90\%] over the colliding rollouts, from the start of the time line (the first 30~s are the constant-speed burn-in). Survivors: the CRPS over the rollouts in which neither the scored vehicle nor one ahead of it collided, a survivor-biased score, with the share of rollouts kept.}}
+\end{table}

@@ -1,0 +1,54 @@
+% tab:c14_information: Equal information: Diffusion conditions its 5 s plan on the 3 s history and the leader's speed over the next 5 s (in E1 and E2 the recorded leader, in the platoon cascade the simulated trajectory of its predecessor); Diffusion, history only, the same DDPM without the leader channel, sees the 3 s history only, as the one-step networks (LSTM with constant sigma, HeteroMDN, deep ensemble). Recorded signals, target a: one-step metrics, rollout coverage, CRPS and collisions, and the H3.2 reduction on the ACC platoons; the last groups repeat the platoon comparison with the models trained on the pooled domains (matched signals, leader window 61), where the history-only model was trained on the same pooled data as Diffusion.
+% Sources: artifacts/e1/tables/one_step_metrics.csv, artifacts/e1_ctrl/tables/one_step_metrics.csv, artifacts/e2/tables/coverage_by_horizon.csv, artifacts/e2_ctrl/tables/coverage_by_horizon.csv, artifacts/e3/tables/h32.csv, artifacts/e3/tables/amplitude_crps.csv, artifacts/e3/tables/collision_diagnostics.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c14_information} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{Equal information: Diffusion conditions its 5~s plan on the 3~s history and the leader's speed over the next 5~s (in E1 and E2 the recorded leader, in the platoon cascade the simulated trajectory of its predecessor); Diffusion, history only, the same DDPM without the leader channel, sees the 3~s history only, as the one-step networks (LSTM with constant sigma, HeteroMDN, deep ensemble). Recorded signals, target $a$: one-step metrics, rollout coverage, CRPS and collisions, and the H3.2 reduction on the ACC platoons; the last groups repeat the platoon comparison with the models trained on the pooled domains (matched signals, leader window 61), where the history-only model was trained on the same pooled data as Diffusion.\label{tab:c14_information}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\begin{tabularx}{\fulllength}{llCCCCC}
+\toprule
+\textbf{Quantity} & \textbf{Data set\textsuperscript{1}} & \textbf{Diffusion} & \begin{tabular}[b]{@{}c@{}}\textbf{Diffusion,}\\{}\textbf{history only}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{LSTM,}\\{}\textbf{constant sigma}\end{tabular} & \textbf{HeteroMDN} & \begin{tabular}[b]{@{}c@{}}\textbf{Deep}\\{}\textbf{ensemble}\end{tabular} \\
+\midrule
+\multicolumn{7}{l}{\textit{One-step prediction (E1), mean over five training seeds}} \\
+NLL (nats) & highD & $-$2.43 & $-$2.12 & $-$2.78 & $-$2.93 & $-$2.97 \\
+ & NGSIM I-80 & 16.3 & 11.5 & 467 & 82.5 & 40.7 \\
+ & OpenACC & 0.42 & $-$0.01 & 279 & 6.76 & 2.79 \\
+CRPS (m/s$^2$) & highD & 0.011 & 0.019 & 0.0079 & 0.0077 & 0.0071 \\
+ & NGSIM I-80 & 0.27 & 0.30 & 0.31 & 0.30 & 0.27 \\
+ & OpenACC & 0.073 & 0.13 & 0.098 & 0.21 & 0.17 \\
+PICP & highD & 0.99 & 0.98 & 0.93 & 0.91 & 0.95 \\
+ & NGSIM I-80 & 0.42 & 0.46 & 0.08 & 0.19 & 0.33 \\
+ & OpenACC & 0.77 & 0.83 & 0.46 & 0.64 & 0.73 \\
+\midrule
+\multicolumn{7}{l}{\textit{Closed-loop rollouts (E2), 90\% interval of the gap, 500 events per data set}} \\
+PICP raw, 1~s & highD & 0.60 & 0.72 & 0.22 & 0.19 & 0.21 \\
+ & NGSIM I-80 & 0.33 & 0.42 & 0.03 & 0.05 & 0.12 \\
+PICP raw, 10~s & highD & 0.89 & 0.91 & 0.42 & 0.32 & 0.47 \\
+ & NGSIM I-80 & 0.81 & 0.79 & 0.08 & 0.15 & 0.33 \\
+PICP ACI online, 10~s & highD & 0.89 & 0.90 & 0.90 & 0.90 & 0.90 \\
+ & NGSIM I-80 & 0.89 & 0.89 & 0.89 & 0.88 & 0.89 \\
+CRPS of the gap, 10~s (m) & highD & 2.11 & 4.13 & 4.40 & 5.13 & 3.80 \\
+ & NGSIM I-80 & 6.27 & 12.2 & 22.9 & 17.0 & 13.7 \\
+Collided by 10~s (\%) & highD & $<$0.1 & 0.9 & 0.9 & 1.2 & 0.9 \\
+ & NGSIM I-80 & 12.1 & 23.0 & 32.5 & 29.0 & 28.9 \\
+\midrule
+\multicolumn{7}{l}{\textit{Platoons (E3), recorded signals, ACC platoons (47 profiles, 23 files)}} \\
+Amplitude CRPS (m/s) & ACC & 2.30 & 13.2 & 58.1 & -- & 23.9 \\
+Reduction\textsuperscript{2} & ACC & \begin{tabular}[c]{@{}c@{}}0.34 inc.\\{}[0.09, 0.50]\\{}[$-$0.26, 0.57]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$2.80 ref.\\{}[$-$3.74, $-$2.12]\\{}[$-$4.65, $-$1.94]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$15.8 ref.\\{}[$-$22.2, $-$10.9]\\{}[$-$24.8, $-$8.6]\end{tabular} & -- & \begin{tabular}[c]{@{}c@{}}$-$5.90 ref.\\{}[$-$9.38, $-$3.50]\\{}[$-$11.20, $-$2.65]\end{tabular} \\
+Vehicle 1 collided (\%) & ACC & 8.8 & 44.3 & 49.9 & -- & 58.3 \\
+\midrule
+\multicolumn{7}{l}{\textit{Platoons (E3), pooled training, OpenACC held out, ACC platoons (47 profiles, 23 files)}} \\
+Amplitude CRPS (m/s) & ACC & 1.88 & 5.14 & 76.1 & -- & 36.1 \\
+Reduction\textsuperscript{2} & ACC & \begin{tabular}[c]{@{}c@{}}0.47 supp.\\{}[0.39, 0.53]\\{}[0.27, 0.55]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$0.45 ref.\\{}[$-$0.99, $-$0.08]\\{}[$-$1.73, 0.05]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$20.5 ref.\\{}[$-$28.0, $-$15.0]\\{}[$-$31.7, $-$12.1]\end{tabular} & -- & \begin{tabular}[c]{@{}c@{}}$-$9.19 ref.\\{}[$-$12.29, $-$7.14]\\{}[$-$13.79, $-$6.30]\end{tabular} \\
+Vehicle 1 collided (\%) & ACC & 2.1 & 17.1 & 59.7 & -- & 50.5 \\
+\midrule
+\multicolumn{7}{l}{\textit{Platoons (E3), pooled training, OpenACC seen, ACC platoons (47 profiles, 23 files)}} \\
+Amplitude CRPS (m/s) & ACC & 1.54 & 4.65 & 25.7 & -- & 15.3 \\
+Reduction\textsuperscript{2} & ACC & \begin{tabular}[c]{@{}c@{}}0.56 supp.\\{}[0.45, 0.64]\\{}[0.29, 0.67]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$0.32 inc.\\{}[$-$0.78, 0.00]\\{}[$-$1.35, 0.11]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$6.28 ref.\\{}[$-$7.80, $-$5.12]\\{}[$-$8.17, $-$4.58]\end{tabular} & -- & \begin{tabular}[c]{@{}c@{}}$-$3.34 ref.\\{}[$-$4.71, $-$2.20]\\{}[$-$5.57, $-$1.63]\end{tabular} \\
+Vehicle 1 collided (\%) & ACC & 1.6 & 13.4 & 45.5 & -- & 47.9 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} One-step: Diffusion models on 10\,000 sampled windows per data set, the others on all windows; rollouts: 32 rollouts per event for the Diffusion models, 200 for the others; deep ensemble: per-step draws in the rollouts, the member kept per rollout in the platoons; HeteroMDN was not run in the platoons. \textsuperscript{2} Against IDM + white noise, with the verdict by the file interval: supp.\ = supported (lower bound $\geq 0.20$), ref.\ = refuted (upper bound $< 0.05$), inc.\ = inconclusive; second line: 95\% interval over profiles; third line: over recording files.}}
+\end{table}

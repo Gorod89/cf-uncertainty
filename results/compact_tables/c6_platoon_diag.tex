@@ -1,0 +1,29 @@
+% tab:c6_platoon_diag: Platoon diagnostics, main run, recorded signals, extended set of leader profiles: share of the rollouts in which vehicle 1, 5 or 20 collided (whole time line) and in which vehicle 1 collided during the burn-in; coverage of the 90% interval of the speed amplitude over all measured vehicles, raw, with the leave-one-profile-out static correction and with ACI online; growth exponent β of the speed standard deviation along the platoon (sd_i = sd_1 i^{β}, profile window) with its 95% bootstrap interval over profiles, over vehicles 1–20 and on the common support of the measured platoons.
+% Sources: artifacts/report/tables/t6_collisions.csv, artifacts/report/tables/t6_amplitude_coverage.csv, artifacts/report/tables/t6_growth.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c6_platoon_diag} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{Platoon diagnostics, main run, recorded signals, extended set of leader profiles: share of the rollouts in which vehicle 1, 5 or 20 collided (whole time line) and in which vehicle 1 collided during the burn-in; coverage of the 90\% interval of the speed amplitude over all measured vehicles, raw, with the leave-one-profile-out static correction and with ACI online; growth exponent $\beta$ of the speed standard deviation along the platoon ($\mathrm{sd}_i = \mathrm{sd}_1\, i^{\beta}$, profile window) with its 95\% bootstrap interval over profiles, over vehicles 1--20 and on the common support of the measured platoons.\label{tab:c6_platoon_diag}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\fulllength}{lCCCCCCCcc}
+\toprule
+ & \multicolumn{4}{c}{\textbf{Collisions (\% of rollouts)}} & \multicolumn{3}{c}{\textbf{Coverage of the 90\% amplitude interval}} & \multicolumn{2}{c}{\textbf{Growth exponent $\beta$ [95\% CI]}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-8} \cmidrule(lr){9-10}
+\textbf{Model} & \textbf{Veh.~1} & \textbf{Veh.~5} & \textbf{Veh.~20} & \textbf{Burn-in\textsuperscript{1}} & \textbf{Raw} & \textbf{Static} & \textbf{ACI online} & \textbf{Vehicles 1--20} & \textbf{Common support\textsuperscript{4}} \\
+\midrule
+IDM + white noise & 0 & 0 & 0 & 0 & 0.30 & 0.90 & 0.81 & \begin{tabular}[c]{@{}c@{}}$-$0.01\\{}[$-$0.06, 0.03]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$0.06\\{}[$-$0.09, $-$0.03]\end{tabular} \\
+IDM + AR(1) noise & 0 & 0 & 0 & 0 & 0.96 & 0.90 & 0.90 & \begin{tabular}[c]{@{}c@{}}$-$0.43\\{}[$-$0.54, $-$0.34]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$0.13\\{}[$-$0.16, $-$0.08]\end{tabular} \\
+LSTM, constant sigma & 51.8 & 66.7 & 81.9 & 11.0 & 0.79 & 0.91 & 0.87 & \begin{tabular}[c]{@{}c@{}}$-$0.22\\{}[$-$0.31, $-$0.14]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$0.30\\{}[$-$0.50, $-$0.13]\end{tabular} \\
+Deep ensemble (kept member) & 59.9 & 80.1 & 83.8 & 27.0 & 0.89 & 0.90 & 0.87 & \begin{tabular}[c]{@{}c@{}}$-$0.05\\{}[$-$0.09, $-$0.02]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$0.15\\{}[$-$0.26, $-$0.04]\end{tabular} \\
+GP residual on IDM & 4.2 & 4.6 & 1.9 & 0 & 0.20 & 0.90 & 0.84 & \begin{tabular}[c]{@{}c@{}}$-$0.19\\{}[$-$0.26, $-$0.12]\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.01\\{}[$-$0.03, 0.05]\end{tabular} \\
+Quantile PIDL (1 s target) & 48.9 & 83.5 & 92.0 & 8.6 & 0.57 & 0.91 & 0.86 & \begin{tabular}[c]{@{}c@{}}$-$0.05\\{}[$-$0.09, 0.00]\end{tabular} & \begin{tabular}[c]{@{}c@{}}$-$0.12\\{}[$-$0.20, $-$0.01]\end{tabular} \\
+Diffusion\textsuperscript{2} & 7.7 & 13.8 & 54.1 & 0.1 & 0.66 & 0.90 & 0.84 & \begin{tabular}[c]{@{}c@{}}0.19\\{}[0.15, 0.24]\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.12\\{}[0.09, 0.15]\end{tabular} \\
+\midrule
+Measured platoons\textsuperscript{3} & -- & -- & -- & -- & -- & -- & -- & \begin{tabular}[c]{@{}c@{}}0.12\\{}[0.08, 0.16]\end{tabular} & \begin{tabular}[c]{@{}c@{}}0.09\\{}[0.05, 0.12]\end{tabular} \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} Vehicle 1 during the 30~s constant-speed burn-in before the profile. \textsuperscript{2} 9\,600 rollouts (32 per profile and training seed); the other models 30\,000 (100). \textsuperscript{3} Fitted over vehicles 1--4, the positions measured in at least half of the profiles (the models: vehicles 1--20, extrapolated beyond the measured positions). \textsuperscript{4} The 54 profiles with at least four measured followers (22 recording files), vehicles 1--4, window of the measured data, for every model and the measurements alike; intervals over files in Supplementary File S1.}}
+\end{table}

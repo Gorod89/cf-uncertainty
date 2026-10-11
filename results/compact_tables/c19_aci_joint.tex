@@ -1,0 +1,27 @@
+% tab:c19_aci_joint: Calibration of the rollout corrections on one label stream, NGSIM I-80, recorded signals, target $a$, horizon 10~s: coverage of the 90\% gap interval (cov.), median width of the finite intervals (m), share of infinite intervals (inf., \%) and the coverage over the first 50 events of the stream (cold start), for the static correction of highD validation, the static correction recalibrated prequentially on the same labels as ACI, and ACI online in a random order, in chronological order and with the labels delayed by the horizon (mean delay 1.8 events). Infinite intervals count as covering and are excluded from the width; no interval score is reported because it is infinite for those events. Source: \texttt{artifacts/e2/tables/coverage\_by\_horizon.csv}.
+% Sources: artifacts/e2/tables/coverage_by_horizon.csv
+% Written by paper/v11/tools/make_c19.py; do not edit by hand.
+\begin{table}[H]
+\caption{Calibration of the rollout corrections on one label stream, NGSIM I-80, recorded signals, target $a$, horizon 10~s: coverage of the 90\% gap interval (cov.), median width of the finite intervals (m), share of infinite intervals (inf., \%) and the coverage over the first 50 events of the stream (cold start), for the static correction of highD validation, the static correction recalibrated prequentially on the same labels as ACI, and ACI online in a random order, in chronological order and with the labels delayed by the horizon (mean delay 1.8 events). Infinite intervals count as covering and are excluded from the width; no interval score is reported because it is infinite for those events. Source: \texttt{artifacts/e2/tables/coverage\_by\_horizon.csv}.\label{tab:c19_aci_joint}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabularx}{\fulllength}{lCCCCCCCCCCCCCCCCCCCC}
+\toprule
+\textbf{Model} & \multicolumn{4}{c}{\textbf{static}} & \multicolumn{4}{c}{\textbf{static preq.}} & \multicolumn{4}{c}{\textbf{ACI}} & \multicolumn{4}{c}{\textbf{ACI chrono.}} & \multicolumn{4}{c}{\textbf{ACI delayed}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13} \cmidrule(lr){14-17} \cmidrule(lr){18-21}
+ & cov. & width & inf. & cold & cov. & width & inf. & cold & cov. & width & inf. & cold & cov. & width & inf. & cold & cov. & width & inf. & cold \\
+\midrule
+IDM + white noise & 0.91 & 18 & 0 & -- & 0.90 & 17 & 0 & 0.93 & 0.90 & 17 & 0 & 0.92 & 0.90 & 17 & 0 & 0.92 & 0.90 & 17 & 0 & 0.92 \\
+IDM + AR(1) noise & 0.62 & 18 & 0 & -- & 0.76 & 46 & 0 & 0.62 & 0.89 & 156 & 0 & 0.76 & 0.88 & 131 & 0 & 0.82 & 0.89 & 121 & 0 & 0.80 \\
+LSTM, constant sigma & 0.31 & 13 & 0 & -- & 0.65 & 43 & 0 & 0.32 & 0.89 & 279 & 0.6 & 0.73 & 0.89 & 303 & 1.4 & 0.71 & 0.89 & 316 & 3.7 & 0.70 \\
+HeteroMDN & 0.55 & 28 & 0 & -- & 0.72 & 45 & 0 & 0.58 & 0.88 & 100 & 0.3 & 0.72 & 0.89 & 106 & 1.0 & 0.70 & 0.89 & 103 & 1.6 & 0.70 \\
+Deep ensemble & 0.80 & 41 & 0 & -- & 0.83 & 46 & 0 & 0.80 & 0.89 & 56 & 0 & 0.82 & 0.90 & 56 & 0 & 0.78 & 0.90 & 57 & 0 & 0.78 \\
+MC dropout & 0.89 & 75 & 0 & -- & 0.90 & 77 & 0 & 0.88 & 0.90 & 114 & 0 & 0.88 & 0.90 & 115 & 0.2 & 0.91 & 0.90 & 113 & 0 & 0.91 \\
+GP residual on IDM & 0.82 & 15 & 0 & -- & 0.85 & 16 & 0 & 0.87 & 0.90 & 20 & 0 & 0.90 & 0.91 & 20 & 0 & 0.89 & 0.91 & 20 & 0 & 0.89 \\
+Quantile PIDL & 0.52 & 23 & 0 & -- & 0.70 & 38 & 0 & 0.55 & 0.88 & 71 & 0.4 & 0.72 & 0.89 & 77 & 1.7 & 0.71 & 0.89 & 79 & 1.0 & 0.72 \\
+Diffusion & 0.81 & 23 & 0 & -- & 0.84 & 25 & 0 & 0.88 & 0.89 & 28 & 0 & 0.88 & 0.89 & 28 & 0 & 0.82 & 0.90 & 28 & 0 & 0.81 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}

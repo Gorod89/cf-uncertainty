@@ -1,0 +1,40 @@
+% tab:c4_coverage: H3.4 in closed-loop rollouts, recorded signals, target a: coverage (PICP) of the 90% interval of the gap at horizons of 1 and 10 s, raw and with ACI online (calibrated on highD validation), median width of the ACI online interval at 10 s, share of the ACI intervals that are the whole line and share of the rollouts collided by 10 s, on the highD test set and NGSIM I-80.
+% Sources: artifacts/report/tables/t4_coverage__raw__a.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c4_coverage} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{H3.4 in closed-loop rollouts, recorded signals, target $a$: coverage (PICP) of the 90\% interval of the gap at horizons of 1 and 10~s, raw and with ACI online (calibrated on highD validation), median width of the ACI online interval at 10~s, share of the ACI intervals that are the whole line and share of the rollouts collided by 10~s, on the highD test set and NGSIM I-80.\label{tab:c4_coverage}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\small
+\begin{tabularx}{\fulllength}{lCCCCCCC}
+\toprule
+ & \multicolumn{2}{c}{\textbf{PICP, raw}} & \multicolumn{2}{c}{\textbf{PICP, ACI online}} &  &  &  \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+\textbf{Model} & \textbf{1 s} & \textbf{10 s} & \textbf{1 s} & \textbf{10 s} & \textbf{ACI width at 10 s (m)} & \textbf{Whole line\textsuperscript{1} (\%)} & \textbf{Collided by 10 s (\%)} \\
+\midrule
+\multicolumn{8}{l}{\textit{highD test}} \\
+IDM + white noise & 0.78 & 0.47 & 0.90 & 0.89 & 22.3 & 0 & 0 \\
+IDM + AR(1) noise & 0.72 & 0.76 & 0.91 & 0.91 & 34.7 & 0 & $<$0.1 \\
+LSTM, constant sigma & 0.22 & 0.42 & 0.91 & 0.90 & 23.9 & 0 & 0.9 \\
+HeteroMDN & 0.19 & 0.32 & 0.91 & 0.90 & 21.8 & 0 & 1.2 \\
+Deep ensemble & 0.21 & 0.47 & 0.91 & 0.90 & 17.3 & 0 & 0.9 \\
+MC dropout & 0.47 & 0.56 & 0.90 & 0.89 & 28.7 & 0 & 2.3 \\
+GP residual on IDM & 0.54 & 0.27 & 0.91 & 0.90 & 26.0 & 0 & 0.6 \\
+Quantile PIDL & 0.17 & 0.40 & 0.91 & 0.90 & 19.0 & 0 & 0.8 \\
+Diffusion & 0.60 & 0.89 & 0.90 & 0.89 & 11.8 & 0 & $<$0.1 \\
+\midrule
+\multicolumn{8}{l}{\textit{NGSIM I-80}} \\
+IDM + white noise & 0.47 & 0.38 & 0.90 & 0.90 & 17.2 & 0 & 0 \\
+IDM + AR(1) noise & 0.21 & 0.33 & 0.89 & 0.89 & 156 & 0.3 & 2.0 \\
+LSTM, constant sigma & 0.03 & 0.08 & 0.89 & 0.89 & 284 & 2.6 & 32.5 \\
+HeteroMDN & 0.05 & 0.15 & 0.89 & 0.88 & 101 & 1.4 & 29.0 \\
+Deep ensemble & 0.12 & 0.33 & 0.90 & 0.89 & 55.9 & 2.2 & 28.9 \\
+MC dropout & 0.33 & 0.66 & 0.89 & 0.90 & 114 & 1.2 & 18.2 \\
+GP residual on IDM & 0.19 & 0.17 & 0.89 & 0.90 & 20.0 & 0.2 & 0.2 \\
+Quantile PIDL & 0.05 & 0.15 & 0.89 & 0.88 & 72.4 & 3.1 & 30.4 \\
+Diffusion & 0.33 & 0.81 & 0.90 & 0.89 & 27.6 & 2.2 & 12.1 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} Share of the ACI online intervals at a level $1 - \alpha_t \geq 1$, which are the whole line (Gibbs and Cand\`es; counted as covering), largest over the horizons 1, 3, 5 and 10~s.}}
+\end{table}

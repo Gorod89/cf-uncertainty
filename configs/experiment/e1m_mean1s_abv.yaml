@@ -1,6 +1,6 @@
 # Review control V7-R02 (docs/design.md 18.9): the cell (centred inputs, target from the processed speed) of e1m_mean1s
 # evaluated on the events of e1m_causal and e1m_rt (the shifted sets without their validation fold), nothing trained:
-# the e1h_mean1s checkpoints reused as in e1m_mean1s.yaml. Completes the three cells on identical events.
+# the e1h_mean1s checkpoints reused as in e1m_mean1s.yaml. Completes the three cells; the causal cell keeps 1-7 % more events after its processing, scripts/common_support_cells.py restricts it to the common windows.
 #   python scripts/run_e1.py --config configs/experiment/e1m_mean1s_abv.yaml --dry-run
 #   bash scripts/run_e1_retry.sh artifacts/e1m_mean1s_abv/logs/run.out 8 --config configs/experiment/e1m_mean1s_abv.yaml
 base: e1m_mean1s.yaml

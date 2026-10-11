@@ -1,0 +1,216 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-09 22:27:36",
+  "idm": {
+    "key": {
+      "idm_from": "artifacts/e1m/idm.json",
+      "name": "closed_loop",
+      "params": {
+        "T": 0.6170622357170897,
+        "a_max": 0.36822475501830465,
+        "b": 0.41608382312496583,
+        "delta": 4.0,
+        "s0": 2.056538117495184,
+        "v0": 29.393301156136367
+      },
+      "source_key": {
+        "data": "highd",
+        "fold": 0,
+        "max_events": 3000,
+        "objective": "spacing",
+        "seed": 0,
+        "signal": {
+          "harmonise": {
+            "max_abs_c": 0.3,
+            "max_gap_rms": 2.0,
+            "min_gap": 0.5,
+            "order": 2,
+            "window": 11
+          },
+          "signal": "harmonised"
+        }
+      }
+    },
+    "name": "closed_loop"
+  },
+  "kwargs": {
+    "idm": {
+      "T": 0.6170622357170897,
+      "a_max": 0.36822475501830465,
+      "b": 0.41608382312496583,
+      "delta": 4.0,
+      "s0": 2.056538117495184,
+      "v0": 29.393301156136367
+    },
+    "rho": null,
+    "sigma": null,
+    "target": "a",
+    "train": {
+      "batch_size": 1024,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.001,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 40,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 6,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    }
+  },
+  "log": {
+    "aleatoric": "conditional variance sigma_eta^2 of the one-step law (stationary: sigma_stationary^2)",
+    "conditional_rms": 0.04252273699666247,
+    "lag": 1,
+    "mean_resid": 0.09104373765257051,
+    "n_pairs": 646028,
+    "n_train": 646028,
+    "rho": 0.9988096720976678,
+    "rho_fitted": true,
+    "rms_prev": 0.8586422767743359,
+    "seconds": 0.3838482999999542,
+    "sigma_eta": 0.04215491891088432,
+    "sigma_fitted": true,
+    "sigma_stationary": 0.8642297854989061,
+    "target": "a",
+    "val_nll": -1.7486191592878773
+  },
+  "model": "idm_ar_noise",
+  "n_train": 646028,
+  "n_val": 618058,
+  "pool": {
+    "data": [
+      "highd",
+      "ngsim",
+      "ngsim_us101",
+      "waymo",
+      "openacc"
+    ],
+    "max_sequences_per_dataset": 40000,
+    "max_windows_per_dataset": 150000,
+    "seq_stride": 5,
+    "stride": 2,
+    "subsample_seed": 0
+  },
+  "pool_windows": {
+    "highd": {
+      "train": {
+        "events": 7505,
+        "kept": 150000,
+        "windows": 457805
+      },
+      "val": {
+        "events": 2502,
+        "kept": 150000,
+        "windows": 152622
+      }
+    },
+    "ngsim": {
+      "train": {
+        "events": 4477,
+        "kept": 150000,
+        "windows": 1019715
+      },
+      "val": {
+        "events": 1531,
+        "kept": 150000,
+        "windows": 339613
+      }
+    },
+    "ngsim_us101": {
+      "train": {
+        "events": 4396,
+        "kept": 150000,
+        "windows": 1006827
+      },
+      "val": {
+        "events": 1450,
+        "kept": 150000,
+        "windows": 336392
+      }
+    },
+    "openacc": {
+      "train": {
+        "events": 2725,
+        "kept": 150000,
+        "windows": 700537
+      },
+      "val": {
+        "events": 980,
+        "kept": 150000,
+        "windows": 251564
+      }
+    },
+    "waymo": {
+      "train": {
+        "events": 560,
+        "kept": 46028,
+        "windows": 46028
+      },
+      "val": {
+        "events": 219,
+        "kept": 18058,
+        "windows": 18058
+      }
+    }
+  },
+  "registry_name": "idm_ar_noise",
+  "seconds": 0.4104366999963531,
+  "seed": 0,
+  "signal": [
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 11
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 61
+      },
+      "signal": "harmonised"
+    }
+  ],
+  "target": "a"
+}

@@ -1,0 +1,29 @@
+% tab:c8_e6: E6 transfer gaps, target a, matched signals: one-step NLL (nats) on a held-out data set minus the NLL on the pooled test folds of the training domain, for the three leave-one-domain-out trainings (the five data sets pooled, without the held-out ones), next to the gap to the highD test set of the models trained on highD only (E5); PICP of the 90% interval on the held-out set in parentheses; mean over five training seeds.
+% Sources: artifacts/report/tables/t1_one_step__lodo_ngsim__a.csv, artifacts/report/tables/t1_one_step__lodo_ngsim_all__a.csv, artifacts/report/tables/t1_one_step__lodo_openacc__a.csv, artifacts/report/tables/t1_one_step__matched__a.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c8_e6} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{E6 transfer gaps, target $a$, matched signals: one-step NLL (nats) on a held-out data set minus the NLL on the pooled test folds of the training domain, for the three leave-one-domain-out trainings (the five data sets pooled, without the held-out ones), next to the gap to the highD test set of the models trained on highD only (E5); PICP of the 90\% interval on the held-out set in parentheses; mean over five training seeds.\label{tab:c8_e6}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\small
+\begin{tabularx}{\fulllength}{lCCCCCC}
+\toprule
+ & \multicolumn{4}{c}{\textbf{Pooled domain, held-out data set}} & \multicolumn{2}{c}{\textbf{highD only (E5)}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-7}
+ & \textbf{Without NGSIM I-80} & \multicolumn{2}{c}{\textbf{Without both NGSIM sets}} & \textbf{Without OpenACC} &  &  \\
+\cmidrule(lr){2-2} \cmidrule(lr){3-4} \cmidrule(lr){5-5}
+\textbf{Model} & \textbf{NGSIM I-80} & \textbf{NGSIM I-80} & \textbf{NGSIM US-101} & \textbf{OpenACC} & \textbf{NGSIM I-80} & \textbf{OpenACC} \\
+\midrule
+IDM + white noise & $-$0.19 (0.97) & $-$0.23 (0.97) & $-$0.27 (0.98) & $+$0.02 (0.96) & $-$0.21 (0.98) & $-$0.11 (0.97) \\
+IDM + AR(1) noise & $-$0.02 (0.96) & $-$0.08 (0.96) & $-$0.25 (0.97) & $-$0.10 (0.97) & $-$0.04 (0.97) & $-$0.12 (0.97) \\
+LSTM, constant sigma & $+$0.57 (0.88) & $+$0.99 (0.78) & $+$0.66 (0.80) & $+$58.8 (0.92) & $+$3.49 (0.61) & $+$297 (0.83) \\
+HeteroMDN & $+$0.45 (0.90) & $+$1.32 (0.75) & $+$1.00 (0.74) & $+$1.00 (0.94) & $+$2.05 (0.76) & $+$1.63 (0.91) \\
+Deep ensemble & $+$0.45 (0.93) & $+$0.96 (0.81) & $+$0.72 (0.81) & $+$0.33 (0.97) & $+$1.60 (0.88) & $+$0.85 (0.97) \\
+MC dropout & $+$0.18 (0.98) & $+$0.55 (0.90) & $+$0.46 (0.92) & $+$0.17 (1.00) & $+$0.93 (0.98) & $+$0.81 (1.00) \\
+GP residual on IDM & $+$0.32 (0.89) & $+$0.54 (0.86) & $+$0.26 (0.85) & 0.00 (0.93) & $+$0.88 (0.82) & $+$0.24 (0.89) \\
+Quantile PIDL & $+$0.70 (0.83) & $+$1.88 (0.70) & $+$1.58 (0.69) & $-$0.11 (0.96) & $+$2.78 (0.74) & $+$0.64 (0.94) \\
+Diffusion & $+$0.23 (0.96) & $+$0.92 (0.83) & $+$0.82 (0.83) & $+$0.18 (0.95) & $+$1.03 (0.91) & $+$1.01 (0.94) \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\end{table}

@@ -1,0 +1,50 @@
+% tab:c10_h32_cluster: H3.2 with the dependence of the platoon profiles (extended set, window profile + tail): reduction 1 - CRPS/CRPS_{ref} of the amplitude CRPS against IDM + white noise of the same variant, with the 95% interval of the bootstrap over profiles and over recording files, the verdict by each interval, per signal and training variant.
+% Sources: artifacts/report/tables/t5_h32_cluster__e3.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c10_h32_cluster} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{H3.2 with the dependence of the platoon profiles (extended set, window profile + tail): reduction $1 - \mathrm{CRPS}/\mathrm{CRPS}_{\mathrm{ref}}$ of the amplitude CRPS against IDM + white noise of the same variant, with the 95\% interval of the bootstrap over profiles and over recording files, the verdict by each interval, per signal and training variant.\label{tab:c10_h32_cluster}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\fulllength}{lCcccCcc}
+\toprule
+ & \multicolumn{4}{c}{\textbf{ACC platoons (47 profiles, 23 files)}} & \multicolumn{3}{c}{\textbf{Human-driven platoons (12 profiles, 3 files)}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-8}
+\textbf{Model} & \textbf{Reduction} & \begin{tabular}[b]{@{}c@{}}\textbf{95\% CI}\\{}\textbf{profiles}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{95\% CI}\\{}\textbf{files}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Verdict}\\{}\textbf{profiles / files}\end{tabular} & \textbf{Reduction} & \begin{tabular}[b]{@{}c@{}}\textbf{95\% CI}\\{}\textbf{files}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Verdict}\\{}\textbf{profiles / files}\end{tabular} \\
+\midrule
+\multicolumn{8}{l}{\textit{Recorded signals, highD training}} \\
+IDM + AR(1) noise & 0.06 & [$-$0.20, 0.24] & [$-$0.52, 0.31] & inc. / inc. & $-$2.36 & [$-$2.49, $-$0.87] & ref. / ref. \\
+Diffusion & 0.34 & [0.09, 0.50] & [$-$0.26, 0.57] & inc. / inc. & $-$0.84 & [$-$1.00, $-$0.02] & ref. / ref. \\
+GP residual on IDM & 0.15 & [$-$0.08, 0.35] & [$-$0.40, 0.45] & inc. / inc. & $-$2.75 & [$-$4.44, $-$0.88] & ref. / ref. \\
+Quantile PIDL (1 s target) & $-$0.59 & [$-$1.03, $-$0.28] & [$-$1.51, $-$0.19] & ref. / ref. & $-$7.02 & [$-$7.78, $-$4.26] & ref. / ref. \\
+Deep ensemble (kept member) & $-$5.90 & [$-$9.38, $-$3.50] & [$-$11.20, $-$2.65] & ref. / ref. & $-$23.0 & [$-$31.5, $-$1.9] & ref. / ref. \\
+LSTM, constant sigma & $-$15.8 & [$-$22.2, $-$10.9] & [$-$24.8, $-$8.6] & ref. / ref. & $-$49.7 & [$-$73.0, $-$7.6] & ref. / ref. \\
+\midrule
+\multicolumn{8}{l}{\textit{Harmonised signals, highD training}} \\
+Diffusion & 0.40 & [0.19, 0.53] & [$-$0.09, 0.59] & inc. / inc. & $-$0.84 & [$-$1.35, 0.02] & ref. / ref. \\
+GP residual on IDM & 0.14 & [$-$0.10, 0.33] & [$-$0.42, 0.43] & inc. / inc. & $-$2.95 & [$-$5.15, $-$1.29] & ref. / ref. \\
+Quantile PIDL (1 s target) & $-$0.37 & [$-$0.81, $-$0.04] & [$-$1.50, 0.08] & ref. / inc. & $-$2.12 & [$-$6.76, $-$1.81] & ref. / ref. \\
+Deep ensemble (kept member) & $-$13.9 & [$-$20.4, $-$9.2] & [$-$22.8, $-$7.2] & ref. / ref. & $-$48.2 & [$-$65.7, $-$1.3] & ref. / ref. \\
+LSTM, constant sigma & $-$2.69 & [$-$4.25, $-$1.55] & [$-$4.81, $-$1.30] & ref. / ref. & $-$6.48 & [$-$6.95, $-$1.06] & ref. / ref. \\
+\midrule
+\multicolumn{8}{l}{\textit{Matched signals, pooled training without OpenACC (OpenACC held out)}} \\
+IDM + AR(1) noise & 0.15 & [$-$0.12, 0.33] & [$-$0.42, 0.39] & inc. / inc. & $-$2.37 & [$-$2.92, $-$0.47] & ref. / ref. \\
+Diffusion & 0.47 & [0.39, 0.53] & [0.27, 0.55] & supp. / supp. & $-$0.48 & [$-$0.58, 0.14] & ref. / inc. \\
+GP residual on IDM & 0.19 & [$-$0.03, 0.38] & [$-$0.22, 0.40] & inc. / inc. & $-$1.49 & [$-$1.82, $-$1.01] & ref. / ref. \\
+Quantile PIDL (one-step target) & $-$0.16 & [$-$0.55, 0.12] & [$-$0.89, 0.22] & inc. / inc. & $-$3.61 & [$-$4.90, $-$1.68] & ref. / ref. \\
+Deep ensemble (kept member) & $-$9.19 & [$-$12.29, $-$7.14] & [$-$13.79, $-$6.30] & ref. / ref. & $-$45.7 & [$-$53.8, $-$4.7] & ref. / ref. \\
+LSTM, constant sigma & $-$20.5 & [$-$28.0, $-$15.0] & [$-$31.7, $-$12.1] & ref. / ref. & $-$84.0 & [$-$127.2, $-$2.1] & ref. / ref. \\
+\midrule
+\multicolumn{8}{l}{\textit{Matched signals, pooled training (five data sets)}} \\
+IDM + AR(1) noise & 0.16 & [$-$0.10, 0.33] & [$-$0.39, 0.39] & inc. / inc. & $-$2.26 & [$-$2.79, $-$0.46] & ref. / ref. \\
+Diffusion & 0.56 & [0.45, 0.64] & [0.29, 0.67] & supp. / supp. & $-$0.90 & [$-$1.08, 0.15] & ref. / inc. \\
+GP residual on IDM & 0.21 & [0.03, 0.36] & [$-$0.16, 0.40] & inc. / inc. & $-$2.04 & [$-$3.51, $-$0.99] & ref. / ref. \\
+Quantile PIDL (one-step target) & $-$0.22 & [$-$0.61, 0.06] & [$-$1.06, 0.14] & inc. / inc. & $-$3.91 & [$-$4.70, $-$1.76] & ref. / ref. \\
+Deep ensemble (kept member) & $-$3.34 & [$-$4.71, $-$2.20] & [$-$5.57, $-$1.63] & ref. / ref. & $-$14.3 & [$-$15.9, $-$1.2] & ref. / ref. \\
+LSTM, constant sigma & $-$6.28 & [$-$7.80, $-$5.12] & [$-$8.17, $-$4.58] & ref. / ref. & $-$34.4 & [$-$48.4, $-$3.0] & ref. / ref. \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{Verdict: supp.\ = supported (lower bound $\geq 0.20$), ref.\ = refuted (upper bound $< 0.05$), inc.\ = inconclusive. Files: paired bootstrap over the recording files with all their profiles (10\,000 replicates; the profile-weighted estimate is unchanged). The reductions of the five training seeds alone are given in Supplementary File S1.}}
+\end{table}

@@ -1,0 +1,4 @@
+target,dataset,clock,n_events,n_followers,span_s,events_per_s
+a,highd,untimed,500,500,,
+a,ngsim,absolute,500,495,2787.0,0.17940437746681018
+a,openacc,per_run,500,45,33907.59999999754,0.014745956658685258

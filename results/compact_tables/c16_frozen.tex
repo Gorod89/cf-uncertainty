@@ -1,0 +1,28 @@
+% tab:c16_frozen: H3.3 with the frozen mean (recorded signals, target a, highD test set): NLL per driving regime of the LSTM with constant sigma, of the same LSTM with its mean frozen and a learned state-dependent sigma(x), and of HeteroMDN; the paired differences against the constant-sigma model with their 95% intervals and Holm-adjusted p; and the variance ratios of the frozen-mean model.
+% Sources: artifacts/e1_ctrl/tables/h33_nll.csv, artifacts/e1_ctrl/tables/regime_ordering.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c16_frozen} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{H3.3 with the frozen mean (recorded signals, target $a$, highD test set): NLL per driving regime of the LSTM with constant sigma, of the same LSTM with its mean frozen and a learned state-dependent sigma(x), and of HeteroMDN; the paired differences against the constant-sigma model with their 95\% intervals and Holm-adjusted $p$; and the variance ratios of the frozen-mean model.\label{tab:c16_frozen}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\fulllength}{lCCCCcCcCCC}
+\toprule
+ &  & \multicolumn{3}{c}{\textbf{NLL (nats)}} & \multicolumn{2}{c}{\textbf{Frozen $-$ constant}} & \multicolumn{2}{c}{\textbf{HeteroMDN $-$ constant}} & \multicolumn{2}{c}{\textbf{Frozen: ratio to steady}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+\textbf{Regime} & \begin{tabular}[b]{@{}c@{}}\textbf{Share}\\{}\textbf{(\%)}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Constant}\\{}\textbf{sigma}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Frozen}\\{}\textbf{mean}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Hetero-}\\{}\textbf{MDN}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Difference}\\{}\textbf{[95\% CI]}\end{tabular} & \textbf{$p_{\mathrm{Holm}}$} & \begin{tabular}[b]{@{}c@{}}\textbf{Difference}\\{}\textbf{[95\% CI]}\end{tabular} & \textbf{$p_{\mathrm{Holm}}$} & \begin{tabular}[b]{@{}c@{}}\textbf{Predicted}\\{}\textbf{variance}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{Squared}\\{}\textbf{residual}\end{tabular} \\
+\midrule
+Congested & 2.4 & $-$2.27 & $-$2.44 & $-$2.07 & \begin{tabular}[c]{@{}c@{}}$-$0.17\\{}[$-$0.26, $-$0.10]\end{tabular} & 0.0049 & \begin{tabular}[c]{@{}c@{}}0.20\\{}[0.10, 0.28]\end{tabular} & 0.0049 & 2.50 & 2.61 \\
+Braking & 5.7 & $-$1.97 & $-$2.33 & $-$2.29 & \begin{tabular}[c]{@{}c@{}}$-$0.36\\{}[$-$0.62, $-$0.20]\end{tabular} & 0.0049 & \begin{tabular}[c]{@{}c@{}}$-$0.33\\{}[$-$0.57, $-$0.17]\end{tabular} & 0.0049 & 9.07 & 3.44 \\
+Approaching & 21.1 & $-$2.80 & $-$2.82 & $-$2.90 & \begin{tabular}[c]{@{}c@{}}$-$0.03\\{}[$-$0.05, 0.01]\end{tabular} & 0.41 & \begin{tabular}[c]{@{}c@{}}$-$0.10\\{}[$-$0.13, $-$0.07]\end{tabular} & 0.0049 & 1.14 & 1.22 \\
+Free & 22.8 & $-$2.92 & $-$2.98 & $-$3.09 & \begin{tabular}[c]{@{}c@{}}$-$0.06\\{}[$-$0.07, $-$0.05]\end{tabular} & 0.0049 & \begin{tabular}[c]{@{}c@{}}$-$0.17\\{}[$-$0.18, $-$0.16]\end{tabular} & 0.0049 & 0.86 & 0.89 \\
+Steady & 24.6 & $-$2.88 & $-$2.91 & $-$3.02 & \begin{tabular}[c]{@{}c@{}}$-$0.03\\{}[$-$0.05, 0.00]\end{tabular} & 0.41 & \begin{tabular}[c]{@{}c@{}}$-$0.14\\{}[$-$0.16, $-$0.12]\end{tabular} & 0.0049 & 1 & 1 \\
+Other & 23.4 & $-$2.79 & $-$2.82 & $-$2.94 & \begin{tabular}[c]{@{}c@{}}$-$0.03\\{}[$-$0.04, $-$0.03]\end{tabular} & 0.0049 & \begin{tabular}[c]{@{}c@{}}$-$0.15\\{}[$-$0.16, $-$0.14]\end{tabular} & 0.0049 & 1.22 & 1.25 \\
+\midrule
+All windows & 100 & $-$2.78 & $-$2.84 & $-$2.93 & \begin{tabular}[c]{@{}c@{}}$-$0.06\\{}[$-$0.08, $-$0.04]\end{tabular} & 0.0049 & \begin{tabular}[c]{@{}c@{}}$-$0.15\\{}[$-$0.16, $-$0.13]\end{tabular} & 0.0049 & -- & -- \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{Constant sigma: the LSTM with constant sigma; frozen mean: its mean and features frozen (same seed), a variance head trained on them; the squared residual is therefore the same for both. Differences: paired, negative = the first model better; 95\% event-bootstrap intervals; Holm over all data sets, regimes and both pairs of the root (the smallest attainable adjusted $p$ is set by the bootstrap replicates). Ratios: mean predicted variance and mean squared residual of the frozen-mean model per regime relative to steady following. All ratios differ from 1 (Holm-adjusted $p < 0.05$).}}
+\end{table}

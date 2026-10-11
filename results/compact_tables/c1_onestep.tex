@@ -1,0 +1,30 @@
+% tab:c1_onestep: One-step metrics, recorded signals, target a (one-step acceleration): negative log-likelihood (NLL, nats) and coverage of the 90% prediction interval (PICP) per model on the highD test set and the four shifted data sets; mean over five training seeds.
+% Sources: artifacts/report/tables/t1_one_step__raw__a.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c1_onestep} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{One-step metrics, recorded signals, target $a$ (one-step acceleration): negative log-likelihood (NLL, nats) and coverage of the 90\% prediction interval (PICP) per model on the highD test set and the four shifted data sets; mean over five training seeds.\label{tab:c1_onestep}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\small
+\begin{tabularx}{\fulllength}{lCCCCCCCCCC}
+\toprule
+ & \multicolumn{2}{c}{\textbf{highD}} & \multicolumn{2}{c}{\textbf{NGSIM I-80}} & \multicolumn{2}{c}{\textbf{NGSIM US-101}} & \multicolumn{2}{c}{\textbf{Waymo}} & \multicolumn{2}{c}{\textbf{OpenACC}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+\textbf{Model} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} \\
+\midrule
+IDM + white noise & 1.41 & 0.95 & 1.90 & 0.89 & 1.61 & 0.92 & 1.34 & 0.96 & 1.42 & 0.96 \\
+IDM + AR(1) noise & $-$1.64 & 0.95 & 4.51 & 0.68 & 1.96 & 0.68 & $-$1.21 & 0.92 & 2.20 & 0.91 \\
+LSTM, constant sigma & $-$2.78 & 0.93 & 467 & 0.08 & 329 & 0.07 & 27.7 & 0.31 & 279 & 0.46 \\
+HeteroMDN & $-$2.93 & 0.91 & 82.5 & 0.19 & 87.7 & 0.14 & 6.39 & 0.50 & 6.76 & 0.64 \\
+Deep ensemble & $-$2.97 & 0.95 & 40.7 & 0.33 & 45.9 & 0.27 & 2.79 & 0.62 & 2.79 & 0.73 \\
+MC dropout & $-$2.40 & 1.00 & 3.97 & 0.52 & 3.89 & 0.53 & $-$0.71 & 0.86 & $-$0.68 & 0.88 \\
+GP residual on IDM & 0.22 & 0.93 & 5.75 & 0.54 & 3.60 & 0.53 & 1.52 & 0.71 & 0.66 & 0.87 \\
+Quantile PIDL & $-$2.94 & 0.91 & 102 & 0.16 & 125 & 0.12 & 17.5 & 0.43 & 10.5 & 0.54 \\
+Diffusion\textsuperscript{1} & $-$2.43 & 0.99 & 16.3 & 0.42 & 17.4 & 0.40 & 0.11 & 0.74 & 0.42 & 0.77 \\
+\midrule
+Events / followers\textsuperscript{2} & \multicolumn{2}{c}{2\,503 / 2\,503} & \multicolumn{2}{c}{7\,651 / 5\,521} & \multicolumn{2}{c}{7\,353 / 5\,866} & \multicolumn{2}{c}{967 / 849} & \multicolumn{2}{c}{4\,715 / 49} \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} Evaluated on 10\,000 windows of each data set; the other models on all windows. \textsuperscript{2} Evaluated events and distinct followers per data set: the windows of an event, and the events of a follower, are dependent; the bootstrap intervals resample events (followers: Supplementary File S1).}}
+\end{table}

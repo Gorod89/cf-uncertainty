@@ -1072,7 +1072,7 @@ with the centred inputs of e1m_mean1s (harmonised highD, window 11; the matched 
 artifacts/e1m/matching.json) and the behavioural target from the recorded speed (train.target_from: recorded), and
 evaluates them on the events of e1m_causal (the shifted sets without their validation fold).
 `configs/experiment/e1m_mean1s_abv.yaml` evaluates the e1h_mean1s checkpoints (centred inputs, target from the
-processed speed) on the same events, nothing trained. The three cells on identical events are then: (centred,
+processed speed) on the same windows, nothing trained. The three cells share the fold-exclusion rule; the two centred cells share their windows exactly, while the causal processing keeps 1-7 % more events (no gap-reconstruction constraint), so comparisons with it use its own sample or the windows the three share (scripts/common_support_cells.py, third review). The cells are: (centred,
 processed target) = e1m_mean1s_abv, (centred, recorded target) = e1m_rt, (causal, recorded target) = e1m_causal.
 
 Reading fixed before the run: e1m_rt against e1m_causal isolates the input filter at a fixed target and fixed

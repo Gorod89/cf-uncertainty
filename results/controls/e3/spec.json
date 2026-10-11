@@ -1,0 +1,26 @@
+{
+  "dt": 0.1,
+  "hist_len": 30,
+  "idm": {
+    "T": 0.6148564773322113,
+    "a_max": 0.3745073439410679,
+    "b": 0.4535381384500749,
+    "delta": 4.0,
+    "s0": 2.2946682421691094,
+    "v0": 28.880260991541736
+  },
+  "n_steps": 1899,
+  "platoon": {
+    "batch_profiles": 60,
+    "burn_in_s": 30.0,
+    "gap_cap": 120.0,
+    "max_batch": 100000,
+    "n_followers": 20,
+    "n_rollouts": 100,
+    "n_rollouts_sampled": 32,
+    "seed": 0,
+    "tail_s": 40.0,
+    "v_max": null
+  },
+  "profiles_digest": "795db5238151fe79"
+}

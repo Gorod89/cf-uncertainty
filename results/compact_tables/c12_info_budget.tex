@@ -1,0 +1,29 @@
+% tab:c12_info_budget: Information budget of the corrections, recorded signals, target a: coverage of the 90% gap interval at 10 s of the static correction, of the static correction recalibrated on the same labels as ACI, and of ACI online in a random order, in chronological order, and with delayed labels, on the highD test set and NGSIM I-80.
+% Sources: artifacts/report/tables/t4_info_budget__raw__a.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c12_info_budget} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{Information budget of the corrections, recorded signals, target $a$: coverage of the 90\% gap interval at 10~s of the static correction, of the static correction recalibrated on the same labels as ACI, and of ACI online in a random order, in chronological order, and with delayed labels, on the highD test set and NGSIM I-80.\label{tab:c12_info_budget}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\setlength{\tabcolsep}{2pt}
+\begin{tabularx}{\fulllength}{lCCCCCCCCCCCC}
+\toprule
+ & \multicolumn{6}{c}{\textbf{highD test}} & \multicolumn{6}{c}{\textbf{NGSIM I-80}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-13}
+\textbf{Model} & \textbf{Static} & \begin{tabular}[b]{@{}c@{}}\textbf{Static}\\{}\textbf{preq.}\end{tabular} & \textbf{ACI} & \begin{tabular}[b]{@{}c@{}}\textbf{ACI}\\{}\textbf{chrono.}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{ACI}\\{}\textbf{delayed}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{First}\\{}\textbf{100}\end{tabular} & \textbf{Static} & \begin{tabular}[b]{@{}c@{}}\textbf{Static}\\{}\textbf{preq.}\end{tabular} & \textbf{ACI} & \begin{tabular}[b]{@{}c@{}}\textbf{ACI}\\{}\textbf{chrono.}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{ACI}\\{}\textbf{delayed}\end{tabular} & \begin{tabular}[b]{@{}c@{}}\textbf{First}\\{}\textbf{100}\end{tabular} \\
+\midrule
+IDM + white noise & 0.90 & 0.90 & 0.89 & 0.90 & 0.90 & 0.88 & 0.91 & 0.90 & 0.90 & 0.90 & 0.90 & 0.89 \\
+IDM + AR(1) noise & 0.93 & 0.92 & 0.91 & 0.91 & 0.91 & 0.89 & 0.62 & 0.76 & 0.89 & 0.88 & 0.89 & 0.84 \\
+LSTM, constant sigma & 0.91 & 0.90 & 0.90 & 0.91 & 0.91 & 0.92 & 0.31 & 0.65 & 0.89 & 0.89 & 0.89 & 0.80 \\
+HeteroMDN & 0.91 & 0.91 & 0.90 & 0.90 & 0.91 & 0.90 & 0.55 & 0.72 & 0.88 & 0.89 & 0.89 & 0.79 \\
+Deep ensemble & 0.90 & 0.90 & 0.90 & 0.90 & 0.90 & 0.88 & 0.80 & 0.83 & 0.89 & 0.90 & 0.90 & 0.82 \\
+MC dropout & 0.88 & 0.89 & 0.89 & 0.90 & 0.90 & 0.90 & 0.89 & 0.90 & 0.90 & 0.90 & 0.90 & 0.90 \\
+GP residual on IDM & 0.91 & 0.91 & 0.90 & 0.91 & 0.91 & 0.93 & 0.82 & 0.85 & 0.90 & 0.91 & 0.91 & 0.89 \\
+Quantile PIDL & 0.92 & 0.92 & 0.90 & 0.91 & 0.91 & 0.91 & 0.52 & 0.70 & 0.88 & 0.89 & 0.89 & 0.81 \\
+Diffusion & 0.89 & 0.89 & 0.89 & 0.90 & 0.90 & 0.91 & 0.81 & 0.84 & 0.89 & 0.89 & 0.90 & 0.85 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{Static: the conformal correction of highD validation; static preq.\ (prequential): recalibrated on every label of the evaluated stream seen so far (the labels ACI uses, no learning rate); ACI: online in a random order; chrono.: in chronological order; delayed: chronological, a label used only 10~s after its interval was issued (NGSIM I-80: event start times, 1.8 events in flight on average; highD: no comparable times, 10 events). First 100: coverage of delayed ACI over the first 100 events of the stream.}}
+\end{table}

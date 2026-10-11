@@ -1485,6 +1485,42 @@ def control_t3_tables(ctx: Context) -> list[Table]:
     return out
 
 
+def common_support_tables(ctx: Context) -> list[Table]:
+    """T1: the three cells of the past-only control on their common windows (scripts/common_support_cells.py,
+    design.md 18.9): NLL, CRPS, coverage and width per model and cell, and the paired difference causal - centred
+    (recorded target) with event and follower bootstrap intervals."""
+    out = []
+    root = ctx.roots.get("e1m_causal")
+    path = root / "tables" / "common_support.csv" if root is not None else None
+    if path is None or not path.exists():  # optional: written by scripts/common_support_cells.py
+        return out
+    df = _read(path)
+    df["dataset_label"] = [DATASET_LABEL.get(d, d) for d in df["dataset"]]
+    df = _sort(df, dataset=DATASETS, model=MODEL_ORDER)
+    diff = []
+    for _, r in df.iterrows():
+        if pd.notna(r.get("nll_diff_vs_rt", np.nan)):
+            diff.append(f"{num(r['nll_diff_vs_rt'])} [{num(r['nll_diff_lo_event'])}, {num(r['nll_diff_hi_event'])}] "
+                        f"/ [{num(r['nll_diff_lo_follower'])}, {num(r['nll_diff_hi_follower'])}]")
+        else:
+            diff.append(DASH)
+    view = pd.DataFrame({"Data set": df["dataset_label"], "Model": [_label(m, MODEL_LABEL, ctx) for m in df["model"]],
+                         "Cell": df["cell"], "windows (common / own)": [f"{int(a):,} / {int(b):,}" for a, b in zip(df["n_windows_common"], df["n_windows_root"])],
+                         "NLL": [num(x) for x in df["nll"]], "CRPS": [num(x) for x in df["crps"]],
+                         "PICP": [prob(x) for x in df["picp90"]], "width": [num(x) for x in df["width90"]],
+                         "NLL causal - centred (recorded target) [events] / [followers]": diff})  # fmt: skip
+    out.append(Table(
+        "t1_common_support__cells__mean_1s", "T1",
+        "The three cells of the past-only control (target mean_1s from the processed or the recorded speed; centred or "
+        "causal matched inputs) evaluated on the windows the three cells share: NLL, CRPS, coverage and width of the "
+        "90 % interval per model (mean over the windows of each seed, then over the seeds), the number of common windows "
+        "against the cell's own evaluated windows, and for the causal cell the paired difference of the NLL against the "
+        "centred cell with the recorded target, with 95 % bootstrap intervals over events and over followers.",
+        [path], df, view, group_depth=2,
+    ))  # fmt: skip
+    return out
+
+
 def density_tables(ctx: Context) -> list[Table]:
     """T1: the density sensitivity of the sampled law of Diffusion (design.md 18.6): NLL, CRPS, coverage per number
     of samples and bandwidth factor, mean over seeds."""
@@ -1516,7 +1552,7 @@ def density_tables(ctx: Context) -> list[Table]:
 
 def build_tables(ctx: Context) -> list[Table]:
     tables: list[Table] = []
-    for builder in (t1_tables, control_t1_tables, density_tables, t2_tables, e1_cluster_tables, t3_tables,
+    for builder in (t1_tables, control_t1_tables, common_support_tables, density_tables, t2_tables, e1_cluster_tables, t3_tables,
                     control_t3_tables, t4_tables, info_budget_tables, t5_tables,
                     h32_cluster_tables, t6_tables, collision_diag_tables):
         tables += builder(ctx)

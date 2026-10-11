@@ -1,0 +1,27 @@
+% tab:c18_density: Density sensitivity of the sampled law of Diffusion (recorded signals, target a): mean NLL of the kernel density estimate for S = 16, 32 and 64 first-step samples and bandwidths of 0.5, 1 and 2 times Silverman's rule, sample CRPS and PICP of the 90% interval, on the highD test set and NGSIM I-80.
+% Sources: artifacts/e1/tables/density_sensitivity.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c18_density} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{Density sensitivity of the sampled law of Diffusion (recorded signals, target $a$): mean NLL of the kernel density estimate for $S$ = 16, 32 and 64 first-step samples and bandwidths of 0.5, 1 and 2 times Silverman's rule, sample CRPS and PICP of the 90\% interval, on the highD test set and NGSIM I-80.\label{tab:c18_density}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\fulllength}{lCCCCCCCCCCCC}
+\toprule
+ & \multicolumn{6}{c}{\textbf{highD test}} & \multicolumn{6}{c}{\textbf{NGSIM I-80}} \\
+\cmidrule(lr){2-7} \cmidrule(lr){8-13}
+ & \multicolumn{3}{c}{\textbf{NLL (nats), bandwidth}} &  &  &  & \multicolumn{3}{c}{\textbf{NLL (nats), bandwidth}} &  &  &  \\
+\cmidrule(lr){2-4} \cmidrule(lr){8-10}
+\textbf{Samples $S$} & \textbf{0.5$\times$} & \textbf{1$\times$} & \textbf{2$\times$} & \textbf{CRPS} & \begin{tabular}[b]{@{}c@{}}\textbf{CRPS}\\{}\textbf{(fair)}\end{tabular} & \textbf{PICP} & \textbf{0.5$\times$} & \textbf{1$\times$} & \textbf{2$\times$} & \textbf{CRPS} & \begin{tabular}[b]{@{}c@{}}\textbf{CRPS}\\{}\textbf{(fair)}\end{tabular} & \textbf{PICP} \\
+\midrule
+16 & $-$2.31 & $-$2.37 & $-$2.23 & 0.0120 & 0.0108 & 0.97 & 65.4 & 16.4 & 4.21 & 0.290 & 0.284 & 0.40 \\
+32 & $-$2.40 & $-$2.40 & $-$2.26 & 0.0114 & 0.0108 & 0.99 & 59.2 & 15.0 & 4.00 & 0.286 & 0.283 & 0.43 \\
+64 & $-$2.43 & $-$2.41 & $-$2.29 & 0.0111 & 0.0108 & 0.99 & 60.4 & 15.5 & 4.25 & 0.285 & 0.283 & 0.45 \\
+\midrule
+32, E1 table\textsuperscript{1} & -- & $-$2.40 & -- & 0.0113 & -- & 0.99 & -- & 14.7 & -- & 0.286 & -- & 0.43 \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} The stored values of the E1 tables (an independent 32-sample draw, bandwidth 1$\times$). Training seed 0, 10\,000 windows per data set (the rows E1 evaluates); $S$ = 16 and 32 are nested subsets of one 64-sample draw; bandwidth in multiples of Silverman's rule; CRPS (m/s$^2$): plain and fair sample CRPS; PICP of the 90\% interval of the sample quantiles. Median NLL over the windows: highD $-$2.52 to $-$2.31, NGSIM I-80 0.46 to 1.16 nats.}}
+\end{table}

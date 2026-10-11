@@ -1,0 +1,142 @@
+{
+  "highd": {
+    "counts": {
+      "e1m_mean1s_abv": {
+        "events": 2503,
+        "windows": 140168
+      },
+      "e1m_rt": {
+        "events": 2503,
+        "windows": 140168
+      },
+      "e1m_causal": {
+        "events": 2503,
+        "windows": 140168
+      }
+    },
+    "windows_common": 140168,
+    "events_common": 2503,
+    "centred_pair_equal": true,
+    "recorded_target_max_difference_on_common": 0.0
+  },
+  "highd_val": {
+    "counts": {
+      "e1m_mean1s_abv": {
+        "events": 2502,
+        "windows": 140112
+      },
+      "e1m_rt": {
+        "events": 2502,
+        "windows": 140112
+      },
+      "e1m_causal": {
+        "events": 2503,
+        "windows": 140168
+      }
+    },
+    "windows_common": 140112,
+    "events_common": 2502,
+    "centred_pair_equal": true,
+    "recorded_target_max_difference_on_common": 0.0
+  },
+  "ngsim": {
+    "counts": {
+      "e1m_mean1s_abv": {
+        "events": 5941,
+        "windows": 334346
+      },
+      "e1m_rt": {
+        "events": 5941,
+        "windows": 334346
+      },
+      "e1m_causal": {
+        "events": 6085,
+        "windows": 343495
+      }
+    },
+    "windows_common": 334346,
+    "events_common": 5941,
+    "centred_pair_equal": true,
+    "recorded_target_max_difference_on_common": 0.0
+  },
+  "ngsim_us101": {
+    "counts": {
+      "e1m_mean1s_abv": {
+        "events": 5859,
+        "windows": 330461
+      },
+      "e1m_rt": {
+        "events": 5859,
+        "windows": 330461
+      },
+      "e1m_causal": {
+        "events": 5896,
+        "windows": 332756
+      }
+    },
+    "windows_common": 330461,
+    "events_common": 5859,
+    "centred_pair_equal": true,
+    "recorded_target_max_difference_on_common": 0.0
+  },
+  "ngsim_fn": {
+    "counts": {
+      "e1m_mean1s_abv": {
+        "events": 1533,
+        "windows": 174355
+      },
+      "e1m_rt": {
+        "events": 1533,
+        "windows": 174355
+      },
+      "e1m_causal": {
+        "events": 1549,
+        "windows": 175802
+      }
+    },
+    "windows_common": 174355,
+    "events_common": 1533,
+    "centred_pair_equal": true,
+    "recorded_target_max_difference_on_common": 0.0
+  },
+  "waymo": {
+    "counts": {
+      "e1m_mean1s_abv": {
+        "events": 745,
+        "windows": 114738
+      },
+      "e1m_rt": {
+        "events": 745,
+        "windows": 114738
+      },
+      "e1m_causal": {
+        "events": 748,
+        "windows": 115194
+      }
+    },
+    "windows_common": 114738,
+    "events_common": 745,
+    "centred_pair_equal": true,
+    "recorded_target_max_difference_on_common": 0.0
+  },
+  "openacc": {
+    "counts": {
+      "e1m_mean1s_abv": {
+        "events": 3426,
+        "windows": 347154
+      },
+      "e1m_rt": {
+        "events": 3426,
+        "windows": 347154
+      },
+      "e1m_causal": {
+        "events": 3668,
+        "windows": 370863
+      }
+    },
+    "windows_common": 347154,
+    "events_common": 3426,
+    "centred_pair_equal": true,
+    "recorded_target_max_difference_on_common": 0.0
+  }
+}

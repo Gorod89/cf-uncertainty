@@ -1,0 +1,26 @@
+% tab:c5_platoon: H3.2 per driver mode, recorded signals, extended set of leader profiles: amplitude CRPS (m/s) and its reduction 1 - CRPS/CRPS_{ref} against IDM + white noise (the reference), paired by profile, with its 95% bootstrap interval over profiles and the verdict (supported: lower bound ≥ 0.20; refuted: upper bound < 0.05) for the ACC and the human-driven platoons, and the pooled reduction over all profiles.
+% Sources: artifacts/report/tables/t5_h32__e3__raw.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c5_platoon} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{H3.2 per driver mode, recorded signals, extended set of leader profiles: amplitude CRPS (m/s) and its reduction $1 - \mathrm{CRPS}/\mathrm{CRPS}_{\mathrm{ref}}$ against IDM + white noise (the reference), paired by profile, with its 95\% bootstrap interval over profiles and the verdict (supported: lower bound $\geq 0.20$; refuted: upper bound $< 0.05$) for the ACC and the human-driven platoons, and the pooled reduction over all profiles.\label{tab:c5_platoon}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\begin{tabularx}{\fulllength}{lCccCccc}
+\toprule
+ & \multicolumn{3}{c}{\textbf{ACC platoons (47 profiles)}} & \multicolumn{3}{c}{\textbf{Human-driven platoons (12)}} & \textbf{All profiles (60)\textsuperscript{1}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-8}
+\textbf{Model} & \textbf{CRPS (m/s)} & \begin{tabular}[b]{@{}c@{}}\textbf{Reduction}\\{}\textbf{[95\% CI]}\end{tabular} & \textbf{Verdict} & \textbf{CRPS (m/s)} & \begin{tabular}[b]{@{}c@{}}\textbf{Reduction}\\{}\textbf{[95\% CI]}\end{tabular} & \textbf{Verdict} & \begin{tabular}[b]{@{}c@{}}\textbf{Reduction}\\{}\textbf{[95\% CI]}\end{tabular} \\
+\midrule
+IDM + white noise & 3.47 & -- & reference & 1.11 & -- & reference & -- \\
+IDM + AR(1) noise & 3.25 & \begin{tabular}[c]{@{}c@{}}0.06\\{}[$-$0.20, 0.24]\end{tabular} & inconclusive & 3.73 & \begin{tabular}[c]{@{}c@{}}$-$2.36\\{}[$-$2.95, $-$1.97]\end{tabular} & refuted & \begin{tabular}[c]{@{}c@{}}$-$0.12\\{}[$-$0.42, 0.10]\end{tabular} \\
+LSTM, constant sigma & 58.1 & \begin{tabular}[c]{@{}c@{}}$-$15.8\\{}[$-$22.2, $-$10.9]\end{tabular} & refuted & 56.2 & \begin{tabular}[c]{@{}c@{}}$-$49.7\\{}[$-$68.9, $-$37.3]\end{tabular} & refuted & \begin{tabular}[c]{@{}c@{}}$-$18.4\\{}[$-$24.5, $-$13.6]\end{tabular} \\
+Deep ensemble (kept member) & 23.9 & \begin{tabular}[c]{@{}c@{}}$-$5.90\\{}[$-$9.38, $-$3.50]\end{tabular} & refuted & 26.6 & \begin{tabular}[c]{@{}c@{}}$-$23.0\\{}[$-$29.6, $-$18.5]\end{tabular} & refuted & \begin{tabular}[c]{@{}c@{}}$-$7.21\\{}[$-$10.76, $-$4.86]\end{tabular} \\
+GP residual on IDM & 2.94 & \begin{tabular}[c]{@{}c@{}}0.15\\{}[$-$0.08, 0.35]\end{tabular} & inconclusive & 4.16 & \begin{tabular}[c]{@{}c@{}}$-$2.75\\{}[$-$4.19, $-$1.85]\end{tabular} & refuted & \begin{tabular}[c]{@{}c@{}}$-$0.06\\{}[$-$0.34, 0.16]\end{tabular} \\
+Quantile PIDL (1 s target) & 5.53 & \begin{tabular}[c]{@{}c@{}}$-$0.59\\{}[$-$1.03, $-$0.28]\end{tabular} & refuted & 8.90 & \begin{tabular}[c]{@{}c@{}}$-$7.02\\{}[$-$8.50, $-$6.12]\end{tabular} & refuted & \begin{tabular}[c]{@{}c@{}}$-$1.09\\{}[$-$1.69, $-$0.64]\end{tabular} \\
+Diffusion & 2.30 & \begin{tabular}[c]{@{}c@{}}0.34\\{}[0.09, 0.50]\end{tabular} & inconclusive & 2.04 & \begin{tabular}[c]{@{}c@{}}$-$0.84\\{}[$-$1.26, $-$0.47]\end{tabular} & refuted & \begin{tabular}[c]{@{}c@{}}0.25\\{}[0.01, 0.44]\end{tabular} \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} The 47 ACC, 12 human-driven and 1 mixed platoon profiles, pooled.}}
+\end{table}

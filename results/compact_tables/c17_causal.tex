@@ -1,0 +1,69 @@
+% tab:c17_causal: Causal inputs and a fixed physical target, target mean_1s (1 s mean acceleration): one-step NLL (nats) and PICP of the 90% interval of the five history-based models for the harmonised signals and the centred matched signals of E5 (models trained on harmonised highD, target from the processed speed) and for the causal matched signals (one-sided filter, models retrained on causal highD, target from the recorded speed); mean over five training seeds; with the windows, the achieved roughness ratios and the persistence RMSE of the target. The rows ``common windows'' hold the cells evaluated on the windows the three cells share (the shifted sets without their validation fold, after the processing of each cell; the two centred cells share every window, the causal processing keeps 1–7% more events): the harmonised checkpoints with the processed target and the models retrained on highD with the recorded target, both on the centred matched signals, and the causal cell restricted to the same windows; the row ``Matched, causal'' is the causal cell on its own evaluated sample.
+% Sources: artifacts/e1h_mean1s/tables/one_step_metrics.csv, artifacts/e1m_mean1s/tables/one_step_metrics.csv, artifacts/e1m_causal/tables/one_step_metrics.csv, artifacts/e1m_mean1s_abv/tables/one_step_metrics.csv, artifacts/e1m_rt/tables/one_step_metrics.csv, artifacts/e1_mean1s/tables/extra_signal.csv, artifacts/e1h_mean1s/tables/extra_signal.csv, artifacts/e1m_mean1s/tables/extra_signal.csv, artifacts/e1m_causal/tables/extra_signal.csv, artifacts/e1m/matching.json, artifacts/e1m_causal/matching.json, artifacts/e1m_causal/tables/common_support.csv
+% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with
+% \input{tables/c17_causal} at paragraph level (this file holds the complete float).
+\begin{table}[H]
+\caption{Causal inputs and a fixed physical target, target $\bar a_{1\,\mathrm{s}}$ (1~s mean acceleration): one-step NLL (nats) and PICP of the 90\% interval of the five history-based models for the harmonised signals and the centred matched signals of E5 (models trained on harmonised highD, target from the processed speed) and for the causal matched signals (one-sided filter, models retrained on causal highD, target from the recorded speed); mean over five training seeds; with the windows, the achieved roughness ratios and the persistence RMSE of the target. The rows ``common windows'' hold the cells evaluated on the windows the three cells share (the shifted sets without their validation fold, after the processing of each cell; the two centred cells share every window, the causal processing keeps 1--7\% more events): the harmonised checkpoints with the processed target and the models retrained on highD with the recorded target, both on the centred matched signals, and the causal cell restricted to the same windows; the row ``Matched, causal'' is the causal cell on its own evaluated sample.\label{tab:c17_causal}}
+\begin{adjustwidth}{-\extralength}{0cm}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\fulllength}{lCCCCCCCCCC}
+\toprule
+ & \multicolumn{2}{c}{\textbf{highD test}} & \multicolumn{2}{c}{\textbf{NGSIM I-80}} & \multicolumn{2}{c}{\textbf{NGSIM US-101}} & \multicolumn{2}{c}{\textbf{Waymo}} & \multicolumn{2}{c}{\textbf{OpenACC}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+\textbf{Signals} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} & \textbf{NLL} & \textbf{PICP} \\
+\midrule
+\multicolumn{11}{l}{\textit{LSTM, constant sigma}} \\
+Harmonised & $-$1.72 & 0.92 & 383 & 0.09 & 292 & 0.07 & 19.5 & 0.34 & 80.6 & 0.52 \\
+Matched, centred & $-$1.72 & 0.92 & 1.85 & 0.57 & 0.92 & 0.59 & 0.42 & 0.74 & 68.4 & 0.85 \\
+Matched, causal & $-$1.62 & 0.92 & 259 & 0.09 & 188 & 0.08 & 39.4 & 0.23 & 50.5 & 0.45 \\
+Centred, processed target, common windows & $-$1.72 & 0.92 & 1.85 & 0.57 & 0.94 & 0.59 & 0.29 & 0.74 & 76.5 & 0.85 \\
+Centred, recorded target, common windows & $-$1.76 & 0.92 & 140 & 0.12 & 100 & 0.11 & 27.0 & 0.27 & 71.4 & 0.71 \\
+Causal, recorded target, common windows & $-$1.62 & 0.92 & 258 & 0.09 & 188 & 0.08 & 39.3 & 0.23 & 41.3 & 0.47 \\
+\midrule
+\multicolumn{11}{l}{\textit{HeteroMDN}} \\
+Harmonised & $-$1.81 & 0.92 & 80.3 & 0.17 & 97.0 & 0.12 & 6.89 & 0.49 & 4.98 & 0.63 \\
+Matched, centred & $-$1.81 & 0.92 & 0.16 & 0.75 & $-$0.28 & 0.73 & $-$0.83 & 0.87 & $-$1.22 & 0.93 \\
+Matched, causal & $-$1.69 & 0.91 & 70.0 & 0.17 & 73.3 & 0.13 & 13.2 & 0.34 & 5.27 & 0.59 \\
+Centred, processed target, common windows & $-$1.81 & 0.92 & 0.14 & 0.75 & $-$0.27 & 0.73 & $-$0.82 & 0.87 & $-$1.22 & 0.93 \\
+Centred, recorded target, common windows & $-$1.83 & 0.91 & 70.7 & 0.21 & 59.4 & 0.16 & 11.1 & 0.39 & 0.04 & 0.80 \\
+Causal, recorded target, common windows & $-$1.69 & 0.91 & 70.2 & 0.17 & 73.4 & 0.13 & 13.2 & 0.34 & 5.13 & 0.58 \\
+\midrule
+\multicolumn{11}{l}{\textit{Deep ensemble}} \\
+Harmonised & $-$1.84 & 0.93 & 32.8 & 0.32 & 44.1 & 0.26 & 2.86 & 0.62 & 1.80 & 0.72 \\
+Matched, centred & $-$1.84 & 0.93 & $-$0.45 & 0.82 & $-$0.69 & 0.80 & $-$1.10 & 0.92 & $-$1.34 & 0.96 \\
+Matched, causal & $-$1.73 & 0.93 & 40.4 & 0.23 & 46.2 & 0.18 & 8.67 & 0.39 & 3.47 & 0.62 \\
+Centred, processed target, common windows & $-$1.84 & 0.93 & $-$0.45 & 0.82 & $-$0.69 & 0.80 & $-$1.10 & 0.92 & $-$1.37 & 0.96 \\
+Centred, recorded target, common windows & $-$1.85 & 0.93 & 48.6 & 0.25 & 42.2 & 0.19 & 7.42 & 0.44 & $-$0.42 & 0.85 \\
+Causal, recorded target, common windows & $-$1.73 & 0.93 & 40.4 & 0.23 & 46.3 & 0.18 & 8.66 & 0.39 & 3.38 & 0.61 \\
+\midrule
+\multicolumn{11}{l}{\textit{MC dropout}} \\
+Harmonised & $-$1.81 & 0.97 & 10.2 & 0.35 & 12.0 & 0.32 & 0.81 & 0.70 & 0.37 & 0.78 \\
+Matched, centred & $-$1.81 & 0.97 & $-$0.70 & 0.88 & $-$0.88 & 0.89 & $-$1.04 & 0.95 & $-$1.18 & 0.98 \\
+Matched, causal & $-$1.70 & 0.96 & 16.4 & 0.26 & 18.4 & 0.24 & 3.84 & 0.49 & 1.27 & 0.69 \\
+Centred, processed target, common windows & $-$1.81 & 0.97 & $-$0.71 & 0.88 & $-$0.88 & 0.89 & $-$1.04 & 0.95 & $-$1.20 & 0.98 \\
+Centred, recorded target, common windows & $-$1.79 & 0.97 & 22.5 & 0.29 & 18.2 & 0.25 & 3.02 & 0.55 & $-$0.68 & 0.90 \\
+Causal, recorded target, common windows & $-$1.70 & 0.96 & 16.4 & 0.26 & 18.4 & 0.24 & 3.83 & 0.49 & 1.17 & 0.69 \\
+\midrule
+\multicolumn{11}{l}{\textit{GP residual on IDM}} \\
+Harmonised & 0.15 & 0.93 & 3.88 & 0.60 & 2.25 & 0.60 & 1.19 & 0.75 & 0.45 & 0.88 \\
+Matched, centred & 0.15 & 0.93 & 0.97 & 0.84 & 0.60 & 0.82 & 0.71 & 0.81 & 0.41 & 0.89 \\
+Matched, causal & 0.15 & 0.93 & 5.88 & 0.58 & 3.62 & 0.57 & 2.24 & 0.73 & 0.70 & 0.86 \\
+Centred, processed target, common windows & 0.15 & 0.93 & 0.95 & 0.84 & 0.59 & 0.82 & 0.70 & 0.81 & 0.43 & 0.88 \\
+Centred, recorded target, common windows & 0.15 & 0.93 & 3.76 & 0.59 & 2.67 & 0.57 & 1.19 & 0.73 & 0.46 & 0.88 \\
+Causal, recorded target, common windows & 0.15 & 0.93 & 5.56 & 0.58 & 3.57 & 0.57 & 2.13 & 0.73 & 0.54 & 0.87 \\
+\midrule
+\multicolumn{11}{l}{\textit{Signal processing per data set: Savitzky--Golay window (samples) and achieved roughness ratio to highD\textsuperscript{1}}} \\
+Centred (E5) & \multicolumn{2}{c}{11 (1.00)} & \multicolumn{2}{c}{101 (1.53)} & \multicolumn{2}{c}{101 (1.49)} & \multicolumn{2}{c}{101 (1.93)} & \multicolumn{2}{c}{61 (1.06)} \\
+Causal & \multicolumn{2}{c}{11 (1.00)} & \multicolumn{2}{c}{101 (5.80)} & \multicolumn{2}{c}{101 (4.45)} & \multicolumn{2}{c}{101 (2.48)} & \multicolumn{2}{c}{101 (2.09)} \\
+\midrule
+\multicolumn{11}{l}{\textit{Persistence RMSE of the target $\bar a_{1\,\mathrm{s}}$ (m/s$^2$)\textsuperscript{2}}} \\
+Recorded & \multicolumn{2}{c}{0.16} & \multicolumn{2}{c}{1.08} & \multicolumn{2}{c}{0.92} & \multicolumn{2}{c}{0.40} & \multicolumn{2}{c}{0.24} \\
+Harmonised & \multicolumn{2}{c}{0.16} & \multicolumn{2}{c}{1.07} & \multicolumn{2}{c}{0.91} & \multicolumn{2}{c}{0.40} & \multicolumn{2}{c}{0.23} \\
+Matched, centred & \multicolumn{2}{c}{0.16} & \multicolumn{2}{c}{0.20} & \multicolumn{2}{c}{0.21} & \multicolumn{2}{c}{0.17} & \multicolumn{2}{c}{0.17} \\
+Causal inputs, recorded target & \multicolumn{2}{c}{0.16} & \multicolumn{2}{c}{1.08} & \multicolumn{2}{c}{0.92} & \multicolumn{2}{c}{0.40} & \multicolumn{2}{c}{0.24} \\
+\bottomrule
+\end{tabularx}
+\end{adjustwidth}
+\noindent{\footnotesize{\textsuperscript{1} Windows of the roughness rule of E5 (the follower speed within 10\% of highD's at window 11); the largest window of the grid (101) did not reach it except for OpenACC with the centred filter (61). Centred: chosen on all events; causal: on the validation folds only, and the shifted data sets are then evaluated on their other folds. \textsuperscript{2} Persistence: the same target one target length earlier, on the evaluated windows of each variant (recorded: the stored speed, E1 with recorded signals).}}
+\end{table}
