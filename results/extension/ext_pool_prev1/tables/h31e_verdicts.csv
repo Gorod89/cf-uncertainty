@@ -1,0 +1,2 @@
+model,kind,dataset,subset,pair,rule,conc,conc_lo,conc_hi,verdict_conc_ci,verdict_conc_point,r_epi,r_epi_lo,r_epi_hi,verdict_ci,verdict_point,n_seeds,unit
+diffusion_cf,seed_ensemble,highd_val,all,placebo,rare_mass,8.185976757055899,5.148851060706921,12.674882548457672,supported,supported,1.096970574616505,0.5790915659183093,2.0730340700872083,inconclusive,refuted,5,event

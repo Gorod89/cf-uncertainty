@@ -1,0 +1,25 @@
+# Extension X6 (extension/docs/PLAN.md): the second training domain. Every model of e1.yaml (recorded signals, target
+# a, 5 seeds) trained on the NGSIM I-80 reconstruction instead of highD (fold file of cf-stability, fold 0: fold 0
+# test, fold 1 validation, the rest training); the IDM calibrations of the hybrid models and of the baselines are fitted
+# on the NGSIM training events (the `idm` block of e1.yaml, inherited). Evaluated on the NGSIM I-80 test fold
+# (in-domain reference), its validation fold (placebo of the shift analysis), and the shifted sets highD (test fold),
+# NGSIM US-101, Waymo and OpenACC (every event). QuantilePIDL keeps w_phys = 0.0001 of e1.yaml (not re-selected, as
+# the E6 roots kept the harmonised selection). The FollowNet I-80 extraction is not evaluated (the same site).
+#   ./.venv/Scripts/python.exe scripts/run_e1.py --config extension/configs/experiment/ext_e1_ngsim.yaml --dry-run
+#   bash scripts/run_e1_retry.sh extension/artifacts/ext_e1_ngsim/logs/run.out 8 --config extension/configs/experiment/ext_e1_ngsim.yaml
+#   ./.venv/Scripts/python.exe scripts/analyze_e1.py --root extension/artifacts/ext_e1_ngsim --config extension/configs/experiment/ext_e1_ngsim.yaml --in-domain ngsim --placebo ngsim_val
+base: ../../../configs/experiment/e1.yaml
+root: extension/artifacts/ext_e1_ngsim
+train:
+  data: ngsim                 # configs/data/ngsim.yaml: the NGSIM I-80 reconstruction, driver-disjoint folds
+eval:
+  datasets:
+    highd:       {data: highd,       split: test, stride: 2}   # shifted set (smooth signal), the highD test fold
+    highd_val:   null
+    ngsim:       {data: ngsim,       split: test, stride: 2}   # in-domain reference
+    ngsim_val:   {data: ngsim,       split: val,  stride: 2}   # placebo
+    ngsim_us101: {data: ngsim_us101, split: all,  stride: 8}
+    ngsim_fn:    null
+    waymo:       {data: waymo,       split: all,  stride: 1}
+    openacc:     {data: openacc,     split: all,  stride: 5}
+idm_reference: data/calibration/ngsim_i80/idm_global.json   # cf-stability calibration of the training site, stored as "reference"

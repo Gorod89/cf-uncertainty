@@ -1,0 +1,12 @@
+model,kind,n_pairs,n_supported,n_refuted,n_inconclusive,overall,n_supported_point,n_refuted_point,n_inconclusive_point,overall_point,n_placebo,placebo_verdicts,n_cross_check,cross_check_verdicts
+deep_ensemble,model,4,0,3,1,refuted,0,4,0,refuted,1,ngsim_val:inconclusive,0,
+deep_ensemble,seed_ensemble,4,0,3,1,refuted,0,4,0,refuted,1,ngsim_val:refuted,0,
+diffusion_cf,seed_ensemble,4,0,4,0,refuted,0,4,0,refuted,1,ngsim_val:refuted,0,
+gp_residual_idm,model,4,3,0,1,supported,3,1,0,refuted,1,ngsim_val:refuted,0,
+gp_residual_idm,seed_ensemble,4,0,1,3,refuted,0,1,3,refuted,1,ngsim_val:refuted,0,
+hetero_mdn,seed_ensemble,4,0,4,0,refuted,0,4,0,refuted,1,ngsim_val:inconclusive,0,
+hetero_mdn_mix3,seed_ensemble,4,0,4,0,refuted,0,4,0,refuted,1,ngsim_val:refuted,0,
+lstm_const_sigma,seed_ensemble,4,3,1,0,refuted,3,1,0,refuted,1,ngsim_val:refuted,0,
+mc_dropout,model,4,0,4,0,refuted,0,4,0,refuted,1,ngsim_val:refuted,0,
+mc_dropout,seed_ensemble,4,0,3,1,refuted,0,4,0,refuted,1,ngsim_val:refuted,0,
+quantile_pidl,seed_ensemble,4,0,4,0,refuted,0,4,0,refuted,1,ngsim_val:inconclusive,0,

@@ -1,0 +1,66 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-12 07:21:44",
+  "idm": {
+    "key": {
+      "data": "ngsim",
+      "fold": 0,
+      "max_events": 3000,
+      "objective": "spacing",
+      "seed": 0
+    },
+    "name": "closed_loop"
+  },
+  "kwargs": {
+    "idm": {
+      "T": 1.5057959168600779,
+      "a_max": 0.9122648994510769,
+      "b": 0.3,
+      "delta": 4.0,
+      "s0": 2.0062212046988455,
+      "v0": 26.251093566423396
+    },
+    "rho": null,
+    "sigma": null,
+    "target": "a",
+    "train": {
+      "batch_size": 1024,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.001,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 40,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 6,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    }
+  },
+  "log": {
+    "aleatoric": "conditional variance sigma_eta^2 of the one-step law (stationary: sigma_stationary^2)",
+    "conditional_rms": 0.26598745873804314,
+    "lag": 1,
+    "mean_resid": 0.9177979425082478,
+    "n_pairs": 1046312,
+    "n_train": 1046312,
+    "rho": 0.9944121131597007,
+    "rho_fitted": true,
+    "rms_prev": 2.4916166847861625,
+    "seconds": 0.3531166999891866,
+    "sigma_eta": 0.265202344317306,
+    "sigma_fitted": true,
+    "sigma_stationary": 2.5121531141658795,
+    "target": "a",
+    "val_nll": 0.07978333966741949
+  },
+  "model": "idm_ar_noise",
+  "n_train": 1046312,
+  "n_val": 348533,
+  "registry_name": "idm_ar_noise",
+  "seconds": 0.39442379999672994,
+  "seed": 0,
+  "target": "a"
+}

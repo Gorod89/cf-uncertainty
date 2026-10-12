@@ -1,0 +1,36 @@
+% tab:c21_follownet: Implementation check under the FollowNet protocol (extension X5)
+% Sources: extension/artifacts/ext_followcheck/tables/summary.csv, extension/artifacts/ext_followcheck/tables/follownet_check.csv
+% Written by extension/paper/v14/tools/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c21_follownet} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{Implementation check under the FollowNet protocol (extension X5): closed-loop simulation of every event behind its recorded leader (semi-implicit Euler at 10~Hz, acceleration clipped to $[-8, 4]$~m/s$^2$, 3~s observed, collision = gap $\leq 0$) with the point prediction of each law (mean; median of the quantile law; mean of the 32 sampled 5~s plans of the diffusion laws, re-planned every 5~s, with the recorded leader future for Diffusion and without it for the history-only twin); MSE of the spacing per event averaged over events [m$^2$] and collision rate [per mille], mean over the five training seeds (min--max), on the highD test fold (2503 FollowNet highD events, driver-disjoint from training) and on the FollowNet NGSIM I-80 events (1937, a shifted set). The published rows are FollowNet's Tables 2 and 3 (its own split and 15~s events): an anchor for the order of magnitude, not a matched comparison.\label{tab:c21_follownet}}
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{lCCCC}
+\toprule
+ & \multicolumn{2}{c}{\textbf{highD test fold}} & \multicolumn{2}{c}{\textbf{NGSIM I-80 (FollowNet)}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+\textbf{Law} & \textbf{MSE spacing} & \textbf{Collisions, per mille} & \textbf{MSE spacing} & \textbf{Collisions, per mille} \\
+\midrule
+IDM + white noise & 17.3 & 0.0 & 83.6 & 0.0 \\
+IDM + white noise (MLE fit) & 26.6 & 0.0 & 231 & 0.0 \\
+IDM + AR(1) noise & 20.9 & 0.0 & 2886 & 2.6 \\
+LSTM, constant $\sigma$ & 20.5 (17.1--29.6) & 15.9 (4.0--41.6) & 92191 (2302--256987) & 392.6 (158.0--500.3) \\
+HeteroMDN & 65.3 (22.7--130) & 18.9 (4.8--38.8) & 5883 (1984--10769) & 418.5 (226.6--692.8) \\
+HeteroMDN, 3 components & 44.4 (23.2--61.4) & 39.3 (12.8--61.9) & 6226 (3213--8962) & 445.1 (212.2--773.9) \\
+Deep ensemble & 34.3 (27.7--43.4) & 11.7 (3.6--19.2) & 2637 (572--7249) & 431.0 (313.4--572.0) \\
+MC dropout & 137 (95.9--167) & 51.1 (14.8--109.9) & 75374 (4050--177633) & 326.2 (153.3--502.3) \\
+GP residual on IDM & 17.6 (17.0--18.3) & 6.7 (6.0--7.2) & 205 (180--241) & 1.5 (1.0--2.6) \\
+Quantile PIDL & 17.4 (14.3--20.3) & 13.3 (3.2--23.2) & 2137 (1029--3175) & 436.2 (303.0--567.4) \\
+Diffusion & 7.37 (7.14--7.81) & 0.0 (0.0--0.0) & 271 (115--592) & 43.4 (12.9--56.8) \\
+Diffusion, history only & 122 (98.0--140) & 3.4 (2.8--4.4) & 2242 (1108--2775) & 138.2 (120.3--172.9) \\
+LSTM, variance head at fixed mean & 20.5 (17.1--29.6) & 15.9 (4.0--41.6) & 92191 (2302--256987) & 392.6 (158.0--500.3) \\
+\midrule
+GHR (published) & 23.76 & 0.00 & 62.18 & 0.00 \\
+IDM (published) & 27.50 & 0.00 & 54.97 & 0.00 \\
+NN (published) & 24.06 & 39.87 & 29.00 & 3.46 \\
+LSTM (published) & 22.90 & 3.72 & 23.86 & 17.30 \\
+DDPG (published) & 38.52 & 0.00 & 46.93 & 0.00 \\
+\bottomrule
+\end{tabularx}
+\end{table*}

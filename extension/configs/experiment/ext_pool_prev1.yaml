@@ -1,0 +1,12 @@
+# Extension X1 stage B (extension/docs/PLAN.md): DiffusionCF trained at a preview budget of 1 s (10 steps) on the
+# pooled root e6_pool (matched signals, caps, 5 seeds, target a, the frozen e1m IDM prior, the evaluated sets): the
+# leader's future beyond the budget is held constant at training and prediction time (preview_steps). Everything else
+# is inherited from configs/experiment/e6_pool.yaml; only diffusion_cf is trained here.
+#   ./.venv/Scripts/python.exe scripts/run_e1.py --config extension/configs/experiment/ext_pool_prev1.yaml --dry-run
+#   bash scripts/run_e1_retry.sh extension/artifacts/ext_pool_prev1/logs/run.out 8 --config extension/configs/experiment/ext_pool_prev1.yaml
+base: ../../../configs/experiment/e6_pool.yaml
+root: extension/artifacts/ext_pool_prev1
+models: [diffusion_cf]
+reuse_checkpoints: null
+model_overrides:
+  diffusion_cf: {preview_steps: 10}

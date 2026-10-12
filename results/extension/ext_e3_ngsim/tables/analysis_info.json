@@ -1,0 +1,133 @@
+{
+  "root": "extension\\artifacts\\ext_e3_ngsim",
+  "settings": {
+    "profiles": "configs/platoon/profiles.yaml",
+    "empirical_growth": "configs/empirical_growth.yaml",
+    "platoon": {
+      "burn_in_s": 30.0,
+      "n_followers": 20,
+      "n_rollouts": 100,
+      "n_rollouts_sampled": 32,
+      "history_s": 3.0,
+      "tail_s": 40.0,
+      "max_batch": 100000,
+      "seed": 0,
+      "gap_cap": 120.0,
+      "batch_profiles": 60,
+      "v_max": null
+    },
+    "sets": {
+      "headline": 10,
+      "extended": null
+    },
+    "calibration": {
+      "alpha": 0.1,
+      "gamma": 0.01,
+      "n_min": 5,
+      "finite_quantile": false
+    },
+    "bootstrap": {
+      "n_boot": 1000,
+      "ci": 0.95,
+      "seed": 0,
+      "n_boot_cluster": 10000,
+      "cluster_seed": 20261009
+    },
+    "h32": {
+      "support_min": 0.2,
+      "refute_max": 0.05,
+      "reference": "idm_white_noise",
+      "references_extra": [
+        "lstm_const_sigma"
+      ],
+      "min_profiles": 5
+    }
+  },
+  "sets": {
+    "headline": [
+      "p01",
+      "p02",
+      "p03",
+      "p04",
+      "p05",
+      "p06",
+      "p07",
+      "p08",
+      "p09",
+      "p10"
+    ],
+    "extended": [
+      "p01",
+      "p02",
+      "p03",
+      "p04",
+      "p05",
+      "p06",
+      "p07",
+      "p08",
+      "p09",
+      "p10",
+      "p11",
+      "p12",
+      "p13",
+      "p14",
+      "p15",
+      "p16",
+      "p17",
+      "p18",
+      "p19",
+      "p20",
+      "p21",
+      "p22",
+      "p23",
+      "p24",
+      "p25",
+      "p26",
+      "p27",
+      "p28",
+      "p29",
+      "p30",
+      "p31",
+      "p32",
+      "p33",
+      "p34",
+      "p35",
+      "p36",
+      "p37",
+      "p38",
+      "p39",
+      "p40",
+      "p41",
+      "p42",
+      "p43",
+      "p44",
+      "p45",
+      "p46",
+      "p47",
+      "p48",
+      "p49",
+      "p50",
+      "p51",
+      "p52",
+      "p53",
+      "p54",
+      "p55",
+      "p56",
+      "p57",
+      "p58",
+      "p59",
+      "p60"
+    ]
+  },
+  "profiles_digest": "795db5238151fe79",
+  "summary_set": "extended",
+  "figures": [
+    "crps_by_index__raw.png",
+    "growth__raw.png",
+    "crps_bars__raw.png",
+    "crps_by_index__w61.png",
+    "growth__w61.png",
+    "crps_bars__w61.png"
+  ],
+  "seconds": 41.9740010999958
+}

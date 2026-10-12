@@ -1,0 +1,30 @@
+# Extension X1 stage B (extension/docs/PLAN.md): the platoon cells of the diffusion laws TRAINED at a preview budget
+# (extension/artifacts/ext_{pool,lodo}_prev{1,2}: budgets 1 s and 2 s on the pooled roots e6_pool / e6_lodo_openacc), in
+# the root of stage A (same run spec: profiles, initial gaps, followers, rollouts, seeds), so that one analysis covers
+# every cell. The reference idm_white_noise of a cell is the one of its pooled root; the leader window is 61 (E5).
+# Run after the four trainings:
+#   bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_preview/logs/run_b.out 8 --config extension/configs/experiment/ext_e3_preview_b.yaml
+#   ./.venv/Scripts/python.exe scripts/analyze_e3.py --root extension/artifacts/ext_e3_preview
+root: extension/artifacts/ext_e3_preview
+device: auto
+tf32: false
+checkpoints: {}                                        # no raw variant in this file (the stored units of stage A)
+variants:
+  pool_t1: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_pool_prev1/checkpoints}}}
+  pool_t2: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_pool_prev2/checkpoints}}}
+  lodo_openacc_t1: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_lodo_prev1/checkpoints}}}
+  lodo_openacc_t2: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_lodo_prev2/checkpoints}}}
+models:
+  idm_white_noise: {target: a, sampler_mode: per_step, hold_steps: 1}
+  diffusion_cf:    {target: a, sampler_mode: per_step, hold_steps: 1}
+seeds: [0, 1, 2, 3, 4]
+platoon: {n_followers: 20, n_rollouts: 100, n_rollouts_sampled: 32, history_s: 3.0, burn_in_s: 30.0, tail_s: 40.0,
+          max_batch: 100000, seed: 0, gap_cap: 120.0, batch_profiles: 60, v_max: null}
+profiles: configs/platoon/profiles.yaml
+run_profiles: extended
+idm: artifacts/e1/idm.json
+sets: {headline: 10, extended: null}
+calibration: {alpha: 0.1, gamma: 0.01, n_min: 5}
+bootstrap: {n_boot: 1000, ci: 0.95, seed: 0}
+h32: {support_min: 0.20, refute_max: 0.05, reference: idm_white_noise, references_extra: [], min_profiles: 5}
+

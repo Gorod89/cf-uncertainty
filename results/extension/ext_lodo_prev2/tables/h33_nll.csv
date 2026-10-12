@@ -1,0 +1,1 @@
+dataset,subset,model_a,model_b,group,n_windows,n_events,nll_a,nll_a_lo,nll_a_hi,nll_b,nll_b_lo,nll_b_hi,diff,diff_lo,diff_hi,se,pvalue,ci_overlap,n_seeds_a,n_seeds_b,p_holm,reject,unit

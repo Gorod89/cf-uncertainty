@@ -1,0 +1,44 @@
+% tab:c22_preview: Preview sweep (extension X1)
+% Sources: extension/artifacts/ext_e3_preview/tables/preview_sweep.csv
+% Written by extension/paper/v14/tools/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c22_preview} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{Preview sweep (extension X1): reduction of the amplitude CRPS of the diffusion law against the IDM + white noise reference of its cell, extended set of leader profiles, response window, per driver mode (47 ACC and 12 human-driven platoons), with the 95\% file-cluster interval and its verdict (supp.: lower bound $\geq 0.20$; ref.: upper bound $< 0.05$; inc.: otherwise), and the mean share of collided rollouts over the 20 followers and all 60 profiles (coll., on the ACC line of each row); by training regime (highD, recorded signals, leader window 11; pooled and OpenACC held out, matched signals, leader window 61). Rows: the preview horizon $h$ handed at every re-plan on the stored checkpoints (the last seen value held beyond $h$), i.i.d.\ noise and staleness at the full horizon, and the laws trained at a budget of 1 and 2~s on the pooled roots.\label{tab:c22_preview}}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{llCcCcCc}
+\toprule
+ & & \multicolumn{2}{c}{\textbf{highD}} & \multicolumn{2}{c}{\textbf{pooled}} & \multicolumn{2}{c}{\textbf{OpenACC held out}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+\textbf{Preview} & \textbf{Mode} & \textbf{reduction [file interval]} & \textbf{coll.} & \textbf{reduction [file interval]} & \textbf{coll.} & \textbf{reduction [file interval]} & \textbf{coll.} \\
+\midrule
+$h = 0$ (constant leader) & ACC & 0.27 [0.00, 0.41] inc. & 0.79 & 0.38 [0.01, 0.54] inc. & 0.83 & 0.31 [$-$0.09, 0.49] inc. & 0.81 \\
+ & Human & $-$3.32 [$-$4.67, $-$0.08] ref. &  & $-$2.63 [$-$2.97, $-$0.30] ref. &  & $-$1.96 [$-$2.52, $-$0.47] ref. &  \\
+$h = 0.5$~s & ACC & 0.33 [0.06, 0.46] inc. & 0.79 & 0.42 [0.10, 0.57] inc. & 0.81 & 0.36 [0.01, 0.51] inc. & 0.79 \\
+ & Human & $-$2.80 [$-$4.18, $-$0.19] ref. &  & $-$2.27 [$-$2.43, $-$0.11] ref. &  & $-$1.75 [$-$2.14, $-$0.36] ref. &  \\
+$h = 1$~s & ACC & 0.31 [$-$0.14, 0.49] inc. & 0.78 & 0.46 [0.13, 0.60] inc. & 0.78 & 0.42 [0.09, 0.55] inc. & 0.77 \\
+ & Human & $-$2.30 [$-$3.71, 0.01] ref. &  & $-$1.93 [$-$2.42, 0.12] inc. &  & $-$1.52 [$-$1.69, $-$0.07] ref. &  \\
+$h = 2$~s & ACC & 0.34 [$-$0.17, 0.55] inc. & 0.62 & 0.52 [0.26, 0.63] supp. & 0.65 & 0.48 [0.22, 0.58] supp. & 0.61 \\
+ & Human & $-$1.29 [$-$2.14, $-$0.15] ref. &  & $-$1.25 [$-$1.82, 0.21] inc. &  & $-$0.94 [$-$1.26, 0.17] inc. &  \\
+$h = 3$~s & ACC & 0.36 [$-$0.09, 0.55] inc. & 0.38 & 0.54 [0.30, 0.64] supp. & 0.42 & 0.47 [0.27, 0.55] supp. & 0.35 \\
+ & Human & $-$0.70 [$-$1.05, $-$0.14] ref. &  & $-$0.93 [$-$1.40, 0.03] ref. &  & $-$0.51 [$-$0.66, 0.14] inc. &  \\
+$h = 5$~s (full plan) & ACC & 0.34 [$-$0.26, 0.57] inc. & 0.30 & 0.56 [0.29, 0.67] supp. & 0.16 & 0.47 [0.27, 0.55] supp. & 0.12 \\
+ & Human & $-$0.84 [$-$1.00, $-$0.02] ref. &  & $-$0.90 [$-$1.08, 0.15] inc. &  & $-$0.48 [$-$0.58, 0.14] inc. &  \\
+noise 0.25~m/s & ACC & 0.36 [$-$0.20, 0.58] inc. & 0.28 & 0.57 [0.31, 0.68] supp. & 0.16 & 0.47 [0.27, 0.55] supp. & 0.11 \\
+ & Human & $-$0.78 [$-$0.90, 0.03] ref. &  & $-$1.01 [$-$1.24, 0.18] inc. &  & $-$0.51 [$-$0.60, 0.16] inc. &  \\
+noise 0.5~m/s & ACC & 0.40 [$-$0.08, 0.59] inc. & 0.25 & 0.57 [0.31, 0.68] supp. & 0.19 & 0.47 [0.28, 0.56] supp. & 0.12 \\
+ & Human & $-$0.77 [$-$0.93, 0.05] ref. &  & $-$1.32 [$-$1.58, 0.20] inc. &  & $-$0.57 [$-$0.66, 0.18] inc. &  \\
+noise 1.0~m/s & ACC & 0.46 [0.09, 0.61] inc. & 0.21 & 0.55 [0.23, 0.68] supp. & 0.29 & 0.49 [0.27, 0.58] supp. & 0.16 \\
+ & Human & $-$1.02 [$-$1.29, 0.02] ref. &  & $-$2.30 [$-$2.73, 0.09] inc. &  & $-$0.95 [$-$1.08, 0.15] inc. &  \\
+delay 0.5~s & ACC & 0.22 [$-$0.57, 0.53] inc. & 0.49 & 0.58 [0.27, 0.70] supp. & 0.46 & 0.49 [0.25, 0.59] supp. & 0.38 \\
+ & Human & $-$0.96 [$-$1.20, $-$0.03] ref. &  & $-$1.18 [$-$1.56, 0.16] inc. &  & $-$0.59 [$-$0.67, 0.16] inc. &  \\
+delay 1.0~s & ACC & 0.14 [$-$0.75, 0.49] inc. & 0.64 & 0.56 [0.21, 0.70] supp. & 0.66 & 0.49 [0.20, 0.61] inc. & 0.60 \\
+ & Human & $-$1.21 [$-$1.55, $-$0.06] ref. &  & $-$1.57 [$-$2.17, 0.22] inc. &  & $-$0.84 [$-$1.04, 0.21] inc. &  \\
+trained at 1~s & ACC & -- & -- & 0.03 [$-$0.73, 0.34] inc. & 0.77 & 0.01 [$-$0.79, 0.33] inc. & 0.79 \\
+ & Human & -- & -- & $-$4.24 [$-$4.93, $-$1.05] ref. &  & $-$3.93 [$-$4.59, $-$1.10] ref. &  \\
+trained at 2~s & ACC & -- & -- & 0.40 [$-$0.20, 0.63] inc. & 0.60 & 0.37 [$-$0.19, 0.60] inc. & 0.66 \\
+ & Human & -- & -- & $-$2.30 [$-$2.80, $-$0.11] ref. &  & $-$2.39 [$-$2.65, $-$0.17] ref. &  \\
+\bottomrule
+\end{tabularx}
+\end{table*}

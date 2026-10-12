@@ -17,7 +17,7 @@ import pathlib
 import re
 import subprocess
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents if (p / "pyproject.toml").exists())  # the repository root
 TABLES = ROOT / "results/compact_tables"  # the compact tables of the article as published
 
 REGENERATE = {  # source directory prefix -> the command that regenerates it (from the repository root)
@@ -33,6 +33,12 @@ REGENERATE = {  # source directory prefix -> the command that regenerates it (fr
     "artifacts/e3_vcap/": "python scripts/analyze_e3.py --root artifacts/e3_vcap",
     "artifacts/e6_pool_ctrl/": "python scripts/analyze_e1.py --root artifacts/e6_pool_ctrl --config configs/experiment/e6_pool_ctrl.yaml --in-domain pool_test",
     "artifacts/e6_lodo_openacc_ctrl/": "python scripts/analyze_e1.py --root artifacts/e6_lodo_openacc_ctrl --config configs/experiment/e6_lodo_openacc_ctrl.yaml --in-domain pool_test",
+    # the extension roots (extension/docs/PLAN.md; the runs of extension/scripts/queue.sh)
+    "extension/artifacts/ext_e3_preview/": "bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_preview/logs/run.out 8 --config extension/configs/experiment/ext_e3_preview.yaml (then ext_e3_preview_b.yaml after the four budget trainings); python scripts/analyze_e3.py --root extension/artifacts/ext_e3_preview; python extension/scripts/preview_sweep.py",
+    "extension/artifacts/ext_cost/": "python extension/scripts/cost_table.py",
+    "extension/artifacts/ext_followcheck/": "python extension/scripts/follownet_check.py",
+    "extension/artifacts/ext_e1_ngsim/": "bash scripts/run_e1_retry.sh extension/artifacts/ext_e1_ngsim/logs/run.out 8 --config extension/configs/experiment/ext_e1_ngsim.yaml; python scripts/analyze_e1.py --root extension/artifacts/ext_e1_ngsim --config extension/configs/experiment/ext_e1_ngsim.yaml --in-domain ngsim --placebo ngsim_val",
+    "extension/artifacts/ext_e3_ngsim/": "bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_ngsim/logs/run.out 8 --config extension/configs/experiment/ext_e3_ngsim.yaml; python scripts/analyze_e3.py --root extension/artifacts/ext_e3_ngsim",
 }
 
 
@@ -49,15 +55,21 @@ def sha256(path: pathlib.Path) -> str:
 
 
 ASSET_ONLY = ("artifacts/e3/tables/profile_index.csv", "artifacts/e3/tables/profile_index_seed.csv")  # 16 and 5 MB: release asset
+EXT_ASSET_ONLY = tuple(f"extension/artifacts/{r}/tables/{f}" for r in ("ext_e3_preview", "ext_e3_ngsim")
+                       for f in ("profile_index.csv", "profile_index_seed.csv"))  # 23 + 7 and 4 + 1 MB: release asset
 
 
 def published(path: str) -> str:
     if path in ASSET_ONLY:
         return "release asset e3_platoon_tables.tar.gz: " + path[len("artifacts/e3/"):]
+    if path in EXT_ASSET_ONLY:
+        return "release asset ext_platoon_tables.tar.gz: " + path[len("extension/artifacts/"):]
     if path.startswith("artifacts/report/"):
         return "results/report/" + path[len("artifacts/report/"):]
     if path.startswith("artifacts/"):
         return "results/controls/" + path[len("artifacts/"):]
+    if path.startswith("extension/artifacts/"):
+        return "results/extension/" + path[len("extension/artifacts/"):]
     return path
 
 
@@ -67,7 +79,9 @@ def main() -> None:
     args = ap.parse_args()
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     lines = ["# Sources of the article tables", "",
-             "Manuscript version v13 (public release v1.3.1). For every result table of the article: the files it was "
+             "Manuscript version v13 (tables c1-c19, public release v1.3.1) and its extension v14 (tables c20-c24, public release "
+             "v1.4.0; the sources of the extension tables are published under results/extension/<root>/tables/, the per-profile "
+             "platoon tables of the two new platoon roots in the release asset ext_platoon_tables.tar.gz). For every result table of the article: the files it was "
              "built from (SHA-256 of the file as published), the script that wrote the table and the command that "
              "regenerates its sources from the experiment artefacts. Paths under `results/report/` are the report "
              "assembly (`scripts/make_report.py`), paths under `results/controls/` the analysis tables of the experiment "
@@ -105,7 +119,7 @@ def main() -> None:
                 missing.append(s)
         regen = sorted({cmd for prefix, cmd in REGENERATE.items() if any(s.startswith(prefix) for s in sources)})
         wrote = writer.group(1).strip() if writer else "by hand"
-        wrote = re.sub(r"paper/v\d+/tools/", "scripts/compact_tables/", wrote)  # the published copy of the generator
+        wrote = re.sub(r"(paper/v\d+/tools/|extension/paper/v\d+/tools/)", "scripts/compact_tables/", wrote)  # the published copy of the generator
         lines.append(f"| `{label.group(1) if label else tex.stem}` | {cap.group(1).replace('|', '/') if cap else ''} | "
                      f"{'<br>'.join(cells) or '(hand-written)'} | {wrote} | "
                      f"{'<br>'.join(f'`{c}`' for c in regen)} |")

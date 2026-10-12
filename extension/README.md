@@ -1,0 +1,19 @@
+# Extension of the cf-uncertainty study (journal resubmission work)
+
+Everything of the six extension items (preview sweep, cost table, protocol framing, shortening, reimplementation
+check, second training domain) lives in this directory. `paper/v13` and its supplement are the frozen submission
+version and are never edited here; the extended manuscript is a new numbered version under `extension/paper/`
+(`v14` and up), copied from `paper/v13` when the text work starts.
+
+| Path | Content |
+|---|---|
+| `docs/PLAN.md` | the plan: questions, designs, pre-registered reading rules, cost estimates, order of work |
+| `docs/decisions.md` | decisions and deviations recorded while running (appended, dated) |
+| `configs/experiment/` | configurations of the new roots and E3 cells (`base:` points at `configs/experiment/` of the repository) |
+| `scripts/` | new scripts (preview sweep, cost benchmark, FollowNet-protocol check); the runners of `scripts/` of the repository are reused |
+| `artifacts/` | roots of the new runs (`ext_*`); the roots of `artifacts/` of the repository are read, never rewritten |
+| `paper/` | `v14/`: the extended manuscript (created from `paper/v13` at the start of the text work) |
+
+Conventions of the repository apply (`docs/design.md` section 1): `dv = v - v_lead`, the one shared environment,
+every claim of the text traced to a table, nothing of the existing artefacts invalidated (the new options of the
+engine and of the diffusion sampler default to the stored behaviour, checked by the tests).

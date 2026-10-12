@@ -17,6 +17,7 @@ kwargs:
   replan_every: 50          # rollout: steps between two sampled plans (<= seq_len)
   predict_seed: 0           # noise seed of predict_dist / sample_sequences
   clip_x0: true             # clip the x0 prediction to the normalised [A_MIN, A_MAX]
+  preview_steps: null       # training-time preview budget of the leader's future in steps (extension X1 stage B; null: the whole plan)
 train:                      # overrides of configs/train/default.yaml (those of diffusion_cf)
   max_epochs: 12            # 1 epoch without EMA (EMA warm-up) + 11 epochs with EMA
   batch_size: 64

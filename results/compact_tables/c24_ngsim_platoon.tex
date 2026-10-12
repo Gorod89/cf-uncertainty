@@ -1,0 +1,21 @@
+% tab:c24_ngsim_platoon: Second training domain (extension X6), platoon level
+% Sources: extension/artifacts/ext_e3_ngsim/tables/h32.csv, extension/artifacts/ext_e3_ngsim/tables/collisions.csv, extension/artifacts/ext_e3_ngsim/tables/growth.csv
+% Written by extension/paper/v14/tools/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c24_ngsim_platoon} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{Second training domain (extension X6), platoon level: the platoon experiment with the NGSIM-trained checkpoints, leader window 11 as recorded (the window-61 cells change no verdict and are in Supplementary File S3). Reduction of the amplitude CRPS against the NGSIM-calibrated IDM + white noise of the cell (ACC reference 3.10~m/s) on the ACC and the human-driven platoons with the file-cluster interval and verdict; the ACC amplitude CRPS [m/s]; the share of rollouts in which the first follower, the twentieth follower and any follower collided; and the growth exponent $\beta$ of the speed standard deviation along the platoon over the 20 simulated vehicles, profile window, with its file-cluster interval (measured platoons: 0.12 over all profiles, 0.085 on the common support).\label{tab:c24_ngsim_platoon}}
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{lCCcccc c}
+\toprule
+\textbf{Law} & \textbf{ACC reduction [file interval]} & \textbf{Human reduction [file interval]} & \textbf{ACC CRPS} & \textbf{coll. 1} & \textbf{coll. 20} & \textbf{coll. any} & \textbf{growth $\beta$} \\
+\midrule
+IDM + AR(1) noise & $-$2.23 [$-$4.78, $-$1.24] ref. & $-$8.83 [$-$12.5, $-$6.22] ref. & 10.01 & 0.01 & 0.03 & 0.48 & $-$0.57 [$-$0.62, $-$0.52] \\
+LSTM, constant $\sigma$ & $-$28.9 [$-$55.5, $-$8.63] ref. & $-$17.1 [$-$18.0, $-$5.59] ref. & 92.68 & 0.22 & 0.10 & 0.83 & $-$0.07 [$-$0.24, $-$0.03] \\
+Deep ensemble & $-$25.6 [$-$46.2, $-$8.53] ref. & $-$32.6 [$-$38.2, $-$7.68] ref. & 82.68 & 0.31 & 0.46 & 1.00 & $-$0.01 [$-$0.03, 0.00] \\
+GP residual on IDM & 0.26 [$-$0.16, 0.44] inc. & 0.02 [$-$1.09, 0.61] inc. & 2.30 & 0.13 & 0.28 & 0.68 & $-$0.07 [$-$0.12, 0.02] \\
+Quantile PIDL & $-$0.44 [$-$1.03, $-$0.20] ref. & $-$1.83 [$-$3.20, $-$1.02] ref. & 4.46 & 0.07 & 0.27 & 0.94 & $-$0.90 [$-$1.08, $-$0.75] \\
+Diffusion & 0.36 [$-$0.04, 0.52] inc. & $-$2.01 [$-$3.39, $-$0.06] ref. & 1.98 & 0.06 & 0.25 & 0.76 & 0.02 [$-$0.04, 0.11] \\
+\bottomrule
+\end{tabularx}
+\end{table*}

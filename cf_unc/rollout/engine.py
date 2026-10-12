@@ -46,8 +46,9 @@ import torch
 from cf_unc.constants import A_MAX, A_MIN, DT, HIST_LEN, N_FEATURES, S_EPS
 from cf_unc.data.schema import Event, EventSet
 from cf_unc.models.base import SAMPLER_MODES, CFModel, resolve_device
+from cf_unc.preview import PreviewSpec
 
-__all__ = ["RolloutConfig", "RolloutResult", "rollout_events", "stream_seed", "accepts_keyword"]
+__all__ = ["PreviewSpec", "RolloutConfig", "RolloutResult", "rollout_events", "stream_seed", "accepts_keyword"]
 
 _F64 = torch.float64
 _STEP_TOL = 1e-9  # horizons must be integer multiples of DT up to this relative tolerance
@@ -68,6 +69,9 @@ class RolloutConfig:
     seed             base seed of the random streams
     s_floor          floor of the gap in the model input [m]
     v_max            optional cap of the follower speed [m/s] (None: no cap, design.md section 7); a sensitivity of E3
+    preview          optional ``PreviewSpec`` (or its mapping) handed to a sampler that accepts ``preview`` (DiffusionCF):
+                     the leader's future truncated, noisy or stale at every re-plan (extension X1); a model whose
+                     sampler does not take it is rolled out as without it; None: the stored behaviour
     """
 
     n_rollouts: int = 200
@@ -80,9 +84,11 @@ class RolloutConfig:
     seed: int = 0
     s_floor: float = S_EPS
     v_max: float | None = None
+    preview: PreviewSpec | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "horizons_s", tuple(float(h) for h in self.horizons_s))
+        object.__setattr__(self, "preview", PreviewSpec.from_any(self.preview))
         if int(self.n_rollouts) < 1 or int(self.hold_steps) < 1 or int(self.max_batch) < 1 or int(self.stream_events) < 1:
             raise ValueError("n_rollouts, hold_steps, max_batch and stream_events must be >= 1")
         if self.sampler_mode not in SAMPLER_MODES:
@@ -285,6 +291,7 @@ def rollout_events(
     h_steps = cfg.horizon_steps
     n_h = h_steps.size
     pass_v_lead = accepts_keyword(model.init_sampler, "v_lead")
+    pass_preview = cfg.preview is not None and accepts_keyword(model.init_sampler, "preview")
 
     # per-event inputs (float64): history, leader over the window, initial follower state, truth
     window = np.arange(n_k + 1)
@@ -341,6 +348,8 @@ def rollout_events(
                 kwargs: dict[str, Any] = {}
                 if pass_v_lead:
                     kwargs["v_lead"] = lv[a - e0 : z - e0].expand(z - a, n_r, n_k + 1).reshape((z - a) * n_r, n_k + 1).float()
+                if pass_preview:
+                    kwargs["preview"] = cfg.preview
                 state = model.init_sampler((z - a) * n_r, gen, cfg.sampler_mode, **kwargs)
                 streams.append((rows, gen, state))
 

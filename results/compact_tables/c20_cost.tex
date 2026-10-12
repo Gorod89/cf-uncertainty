@@ -1,0 +1,26 @@
+% tab:c20_cost: Computational cost of the laws (extension X2)
+% Sources: extension/artifacts/ext_cost/tables/cost.csv
+% Written by extension/paper/v14/tools/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c20_cost} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{Computational cost of the laws (extension X2): parameters, training wall time per seed on highD (458\,000 windows, mean over five seeds), one-step inference time of the predictive law per 1000 highD test windows on the GPU and on the CPU (median of repeated calls; the diffusion law samples 32 sequences of 50 DDIM steps per window and is timed on fewer rows), and the platoon simulation time per unit (one profile, 20 followers, 100 rollouts, 32 for the diffusion law; median over the platoon cells run with the current engine: the pooled cells and the two highD cells of the smoothing matrix) and per simulated vehicle-rollout-second (microseconds); one workstation with an NVIDIA RTX 6000 Ada GPU. The laws without platoon units are those outside the platoon model set.\label{tab:c20_cost}}
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{lCCCCCC}
+\toprule
+\textbf{Law} & \textbf{Parameters} & \textbf{Training [s / seed]} & \textbf{Inference GPU [ms / 1000 windows]} & \textbf{Inference CPU [ms / 1000 windows]} & \textbf{Platoon [s / unit]} & \textbf{Platoon [$\mu$s / vehicle-rollout-s]} \\
+\midrule
+IDM + white noise & 7 & $<1$ & 0.02 & 0.02 & 0.29 & 0.8 \\
+IDM + white noise (MLE fit) & 7 & $<1$ & 0.02 & 0.02 & -- & -- \\
+IDM + AR(1) noise & 8 & $<1$ & 0.3 & 0.2 & 0.30 & 0.8 \\
+LSTM, constant $\sigma$ & 21\,889 & 213 & 0.4 & 4.5 & 0.72 & 1.9 \\
+HeteroMDN & 21\,954 & 229 & 0.3 & 6.1 & -- & -- \\
+HeteroMDN, 3 components & 22\,409 & 177 & 0.4 & 4.4 & -- & -- \\
+Deep ensemble & 109\,770 & 980 & 1.5 & 24 & 2.31 & 6.1 \\
+MC dropout & 21\,954 & 200 & 4.9 & 14 & -- & -- \\
+GP residual on IDM & 181\,221 & 206 & 0.7 & 2.1 & 1.24 & 3.3 \\
+Quantile PIDL & 22\,149 & 311 & 1.0 & 5.2 & 1.65 & 4.3 \\
+Diffusion & 216\,385 & 430 & 1300.9 & 76962 & 1.05 & 8.7 \\
+\bottomrule
+\end{tabularx}
+\end{table*}

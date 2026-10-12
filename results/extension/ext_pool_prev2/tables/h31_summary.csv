@@ -1,0 +1,2 @@
+model,kind,n_pairs,n_supported,n_refuted,n_inconclusive,overall,n_supported_point,n_refuted_point,n_inconclusive_point,overall_point,n_placebo,placebo_verdicts,n_cross_check,cross_check_verdicts
+diffusion_cf,seed_ensemble,0,0,0,0,inconclusive,0,0,0,inconclusive,1,highd_val:refuted,0,

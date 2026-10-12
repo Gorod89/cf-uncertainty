@@ -1,0 +1,12 @@
+model,kind,main,rule,conc,conc_lo,conc_hi,verdict_conc_ci,verdict_conc_point,n_pairs,n_supported,n_refuted,n_inconclusive,overall,n_supported_point,n_refuted_point,n_inconclusive_point,overall_point,n_placebo,placebo_verdicts,n_cross_check,cross_check_verdicts
+deep_ensemble,model,True,rare_mass,16.929707702993497,9.693662811565284,27.859536704194753,supported,supported,4,3,0,1,supported,3,1,0,refuted,1,ngsim_val:inconclusive,0,
+deep_ensemble,seed_ensemble,False,rare_mass,16.215519638942926,9.671070638288501,25.70852230265684,supported,supported,4,3,0,1,supported,3,1,0,refuted,1,ngsim_val:refuted,0,
+diffusion_cf,seed_ensemble,False,rare_mass,7.37490993532197,5.18871587992411,10.333204151613858,supported,supported,4,3,1,0,refuted,3,1,0,refuted,1,ngsim_val:refuted,0,
+gp_residual_idm,model,True,rare_mass,37.49620378114563,31.81689460303459,44.41633266116178,supported,supported,4,3,0,1,supported,3,1,0,refuted,1,ngsim_val:refuted,0,
+gp_residual_idm,seed_ensemble,False,rare_mass,4.136073333916604,3.726101860505505,4.614959029739608,supported,supported,4,1,1,2,refuted,1,1,2,refuted,1,ngsim_val:refuted,0,
+hetero_mdn,seed_ensemble,False,rare_mass,19.249316219883912,7.979804292463728,41.452881916245744,supported,supported,4,3,1,0,refuted,3,1,0,refuted,1,ngsim_val:inconclusive,0,
+hetero_mdn_mix3,seed_ensemble,False,rare_mass,10.651769850130833,7.4661590470112875,14.185008575684504,supported,supported,4,3,1,0,refuted,3,1,0,refuted,1,ngsim_val:refuted,0,
+lstm_const_sigma,seed_ensemble,False,rare_mass,5.734923388431563,5.098199337184419,6.376196389440793,supported,supported,4,3,1,0,refuted,3,1,0,refuted,1,ngsim_val:refuted,0,
+mc_dropout,model,True,rare_mass,2.3870529653856356,2.2164097876033613,2.573260609805247,supported,supported,4,3,1,0,refuted,3,1,0,refuted,1,ngsim_val:refuted,0,
+mc_dropout,seed_ensemble,False,rare_mass,6.760307310008057,4.947226132408845,8.92051112391565,supported,supported,4,3,0,1,supported,3,1,0,refuted,1,ngsim_val:refuted,0,
+quantile_pidl,seed_ensemble,False,rare_mass,20.59694297227106,6.141256673897328,51.07630105240068,supported,supported,4,3,1,0,refuted,3,1,0,refuted,1,ngsim_val:inconclusive,0,

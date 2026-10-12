@@ -1,0 +1,33 @@
+# Extension X6 (extension/docs/PLAN.md): platoons with the laws trained on NGSIM I-80 (extension/artifacts/ext_e1_ngsim).
+# Variant raw = the profiles file as selected (leader window 11), variant w61 = the leader smoothed again with the matched
+# OpenACC window of E5 (61 samples), as the cells raw / raw_w61 of e3.yaml for the highD training. QuantilePIDL runs on
+# target a with hold 1 (no mean_1s checkpoints, as in the pooled cells); diffusion_cf_hist has no NGSIM-trained
+# checkpoint and is absent. Profiles, initial gaps (artifacts/e1/idm.json), followers, rollouts, collision policy, seeds
+# and the reference idm_white_noise of each cell (here the NGSIM-calibrated one) as in e3.yaml.
+#   ./.venv/Scripts/python.exe scripts/run_e3.py --config extension/configs/experiment/ext_e3_ngsim.yaml --dry-run
+#   bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_ngsim/logs/run.out 8 --config extension/configs/experiment/ext_e3_ngsim.yaml
+#   ./.venv/Scripts/python.exe scripts/analyze_e3.py --root extension/artifacts/ext_e3_ngsim
+root: extension/artifacts/ext_e3_ngsim
+device: auto
+tf32: false
+checkpoints: {a: extension/artifacts/ext_e1_ngsim/checkpoints}
+variants:
+  w61: {a: extension/artifacts/ext_e1_ngsim/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}}
+models:
+  idm_white_noise:  {target: a, sampler_mode: per_step,       hold_steps: 1}
+  idm_ar_noise:     {target: a, sampler_mode: per_step,       hold_steps: 1}
+  lstm_const_sigma: {target: a, sampler_mode: per_step,       hold_steps: 1}
+  deep_ensemble:    {target: a, sampler_mode: per_trajectory, hold_steps: 1}
+  gp_residual_idm:  {target: a, sampler_mode: per_trajectory, hold_steps: 1}
+  quantile_pidl:    {target: a, sampler_mode: per_step,       hold_steps: 1}
+  diffusion_cf:     {target: a, sampler_mode: per_step,       hold_steps: 1}
+seeds: [0, 1, 2, 3, 4]
+platoon: {n_followers: 20, n_rollouts: 100, n_rollouts_sampled: 32, history_s: 3.0, burn_in_s: 30.0, tail_s: 40.0,
+          max_batch: 100000, seed: 0, gap_cap: 120.0, batch_profiles: 60, v_max: null}
+profiles: configs/platoon/profiles.yaml
+run_profiles: extended
+idm: artifacts/e1/idm.json
+sets: {headline: 10, extended: null}
+calibration: {alpha: 0.1, gamma: 0.01, n_min: 5}
+bootstrap: {n_boot: 1000, ci: 0.95, seed: 0}
+h32: {support_min: 0.20, refute_max: 0.05, reference: idm_white_noise, references_extra: [lstm_const_sigma], min_profiles: 5}

@@ -189,6 +189,7 @@ def simulate_platoon(
     keep_mean_speed: bool = True,
     keep_paths: bool = False,
     ids: Sequence[str] | None = None,
+    preview: Any = None,
 ) -> PlatoonResult:
     """Cascade of ``cfg.n_followers`` followers behind every leader profile (module docstring).
 
@@ -198,6 +199,8 @@ def simulate_platoon(
     n_rollouts    R (default ``cfg.n_rollouts``);  hold_steps / sampler_mode: see ``RolloutConfig``
     n_steps       K (default: the smallest K that holds every profile); must be >= B + n_e - 1 + T for all e
     keep_paths    also return every path (memory: 3 x E x V x R x (K + 1) float64; for tests and diagnostics)
+    preview       optional ``PreviewSpec`` (or its mapping, ``RolloutConfig.preview``): the predecessor's future handed
+                  to a plan sampler truncated, noisy or stale (extension X1); None: the stored behaviour
     """
     t_start = time.perf_counter()
     n_e, n_v = len(profiles), int(cfg.n_followers)
@@ -227,6 +230,7 @@ def simulate_platoon(
     base = RolloutConfig(
         n_rollouts=n_r, horizon_s=n_k * DT, horizons_s=(n_k * DT,), hold_steps=int(hold_steps), sampler_mode=sampler_mode,
         max_batch=int(cfg.max_batch), stream_events=n_e, seed=0, v_max=None if cfg.v_max is None else float(cfg.v_max),
+        preview=preview,
     )  # fmt: skip
     if base.n_steps != n_k:
         raise RuntimeError(f"time line of {n_k} steps is not representable ({base.n_steps})")

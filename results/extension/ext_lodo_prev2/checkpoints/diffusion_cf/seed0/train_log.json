@@ -1,0 +1,261 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-12 03:43:47",
+  "idm": null,
+  "kwargs": {
+    "channels": 64,
+    "clip_x0": true,
+    "eta": 1.0,
+    "hidden": 64,
+    "kernel": 5,
+    "n_blocks": 4,
+    "n_samples": 32,
+    "n_sampling_steps": 50,
+    "predict_seed": 0,
+    "preview_steps": 20,
+    "replan_every": 50,
+    "seq_len": 50,
+    "t_train": 1000,
+    "train": {
+      "batch_size": 64,
+      "ema_decay": 0.999,
+      "grad_clip": 1.0,
+      "lr": 0.001,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 12,
+      "max_seconds": null,
+      "min_delta": 1e-05,
+      "min_lr": 1e-05,
+      "patience": 4,
+      "val_batch_size": 8192,
+      "weight_decay": 0.0
+    }
+  },
+  "log": {
+    "best_epoch": 11,
+    "best_val": 0.05084374473811174,
+    "config": {
+      "batch_size": 64,
+      "ema_decay": 0.999,
+      "grad_clip": 1.0,
+      "lr": 0.001,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 12,
+      "max_seconds": null,
+      "min_delta": 1e-05,
+      "min_lr": 1e-05,
+      "patience": 4,
+      "val_batch_size": 8192,
+      "weight_decay": 0.0
+    },
+    "ema_warmup_epochs": 1,
+    "epochs": 12,
+    "history": [
+      {
+        "ema": false,
+        "epoch": 0,
+        "lr": 0.001,
+        "train": 0.07779571940303769,
+        "val": 0.07035271740998163
+      },
+      {
+        "ema": true,
+        "epoch": 1,
+        "lr": 0.001,
+        "train": 0.06316104484638868,
+        "val": 0.06051274122484863
+      },
+      {
+        "ema": true,
+        "epoch": 2,
+        "lr": 0.001,
+        "train": 0.0598693967541325,
+        "val": 0.057964008677310795
+      },
+      {
+        "ema": true,
+        "epoch": 3,
+        "lr": 0.001,
+        "train": 0.05853679995309942,
+        "val": 0.05635117408925447
+      },
+      {
+        "ema": true,
+        "epoch": 4,
+        "lr": 0.001,
+        "train": 0.05714004047635592,
+        "val": 0.05516553963853753
+      },
+      {
+        "ema": true,
+        "epoch": 5,
+        "lr": 0.001,
+        "train": 0.056575091483720495,
+        "val": 0.054214153316027164
+      },
+      {
+        "ema": true,
+        "epoch": 6,
+        "lr": 0.001,
+        "train": 0.05576011312279299,
+        "val": 0.05342829772919189
+      },
+      {
+        "ema": true,
+        "epoch": 7,
+        "lr": 0.001,
+        "train": 0.05504343744067493,
+        "val": 0.05272896657355768
+      },
+      {
+        "ema": true,
+        "epoch": 8,
+        "lr": 0.001,
+        "train": 0.05431473065885863,
+        "val": 0.0521482296226563
+      },
+      {
+        "ema": true,
+        "epoch": 9,
+        "lr": 0.001,
+        "train": 0.05385536951030538,
+        "val": 0.05160034536254847
+      },
+      {
+        "ema": true,
+        "epoch": 10,
+        "lr": 0.001,
+        "train": 0.05315492884075625,
+        "val": 0.05117746664006
+      },
+      {
+        "ema": true,
+        "epoch": 11,
+        "lr": 0.001,
+        "train": 0.05272058143287071,
+        "val": 0.05084374473811174
+      }
+    ],
+    "n_params": 216385,
+    "n_train": 132865,
+    "seconds": 123.39770609998959,
+    "total_seconds": 125.65936089999741,
+    "val_loss": 0.05084374473811174,
+    "val_nll": -2.1233223733456645,
+    "val_nll_method": "approximate: KDE of 32 first-step samples, <= 500 windows"
+  },
+  "model": "diffusion_cf",
+  "n_train": 132865,
+  "n_val": 122579,
+  "pool": {
+    "data": [
+      "highd",
+      "ngsim",
+      "ngsim_us101",
+      "waymo"
+    ],
+    "max_sequences_per_dataset": 40000,
+    "max_windows_per_dataset": 150000,
+    "seq_stride": 5,
+    "stride": 2,
+    "subsample_seed": 0
+  },
+  "pool_windows": {
+    "highd": {
+      "train": {
+        "events": 7505,
+        "kept": 40000,
+        "windows": 112575
+      },
+      "val": {
+        "events": 2502,
+        "kept": 37530,
+        "windows": 37530
+      }
+    },
+    "ngsim": {
+      "train": {
+        "events": 4477,
+        "kept": 40000,
+        "windows": 364461
+      },
+      "val": {
+        "events": 1531,
+        "kept": 40000,
+        "windows": 121001
+      }
+    },
+    "ngsim_us101": {
+      "train": {
+        "events": 4396,
+        "kept": 40000,
+        "windows": 360119
+      },
+      "val": {
+        "events": 1450,
+        "kept": 40000,
+        "windows": 120494
+      }
+    },
+    "waymo": {
+      "train": {
+        "events": 560,
+        "kept": 12865,
+        "windows": 12865
+      },
+      "val": {
+        "events": 219,
+        "kept": 5049,
+        "windows": 5049
+      }
+    }
+  },
+  "registry_name": "diffusion_cf",
+  "seconds": 125.6745355000021,
+  "seed": 0,
+  "signal": [
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 11
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    }
+  ],
+  "target": null
+}

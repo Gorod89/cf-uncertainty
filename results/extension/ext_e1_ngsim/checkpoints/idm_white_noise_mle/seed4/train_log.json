@@ -1,0 +1,55 @@
+{
+  "copied_from": "seed0",
+  "device": "cuda",
+  "finished": "2026-10-12 04:45:38",
+  "idm": {
+    "key": {
+      "data": "ngsim",
+      "fold": 0,
+      "max_events": 3000,
+      "objective": "accel",
+      "seed": 0
+    },
+    "name": "mle"
+  },
+  "kwargs": {
+    "idm": {
+      "T": 0.3000017722390399,
+      "a_max": 0.3000002783778176,
+      "b": 4.999801765615695,
+      "delta": 4.0,
+      "s0": 0.6867748485700587,
+      "v0": 19.570011206239492
+    },
+    "sigma": null,
+    "train": {
+      "batch_size": 1024,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.001,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 40,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 6,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    }
+  },
+  "log": {
+    "n_train": 1046312,
+    "seconds": 0.07717760000377893,
+    "sigma": 0.9669755100223225,
+    "sigma_fitted": true,
+    "val_nll": 1.3818381632232017
+  },
+  "model": "idm_white_noise_mle",
+  "n_train": 1046312,
+  "n_val": 348533,
+  "registry_name": "idm_white_noise",
+  "seconds": 0.0772158999752719,
+  "seed": 0,
+  "target": "a"
+}

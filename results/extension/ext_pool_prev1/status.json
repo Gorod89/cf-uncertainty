@@ -1,0 +1,38 @@
+{
+  "checkpoints": {
+    "done": 5,
+    "total": 5,
+    "trained_now": 5
+  },
+  "current": null,
+  "device": "cuda",
+  "done": 45,
+  "elapsed_s": 1433.1,
+  "failures": [],
+  "finished": true,
+  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_pool_prev1",
+  "signal": "matched",
+  "started": "2026-10-12 02:32:33",
+  "tables": {
+    "done": 40,
+    "total": 40,
+    "written_now": 40
+  },
+  "target": "a",
+  "total": 45,
+  "train_data": [
+    "highd",
+    "ngsim",
+    "ngsim_us101",
+    "waymo",
+    "openacc"
+  ],
+  "trained": [
+    "diffusion_cf/seed0",
+    "diffusion_cf/seed1",
+    "diffusion_cf/seed2",
+    "diffusion_cf/seed3",
+    "diffusion_cf/seed4"
+  ],
+  "updated": "2026-10-12 02:56:26"
+}

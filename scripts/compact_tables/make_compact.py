@@ -6,9 +6,10 @@ tables of the experiment roots, published as results/controls/<root>/tables/). S
 with that layout (for example after copying results/report to <dir>/report and results/controls/<root> to
 <dir>/<root>), then
 
-    CF_UNC_ARTIFACTS=<dir> PYTHONUTF8=1 python scripts/compact_tables/make_compact.py --out <build dir>
+    CF_UNC_ARTIFACTS=<dir> PYTHONUTF8=1 python scripts/compact_tables/make_compact.py --out <build dir> [--layout ieee]
 
 The tables are written to <build dir>/tables/ and the figures copied to <build dir>/figures/ (scripts/compact_tables/README.md).
+--layout ieee writes IEEEtran floats (table* / table) instead of the MDPI floats of the submitted article.
 
 The original module docstring follows.
 
@@ -63,7 +64,7 @@ import pandas as pd
 
 import os
 
-REPO = Path(__file__).resolve().parents[2]  # scripts/compact_tables -> repository root
+REPO = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())  # the repository root
 SUB = REPO / "results" / "compact_tables"  # default output directory of the public copy; --out changes it
 SUBMITTED = REPO / "paper" / "submission"  # the submitted version: never written
 FROZEN = (SUBMITTED, REPO / "paper" / "v3")  # earlier versions: never written by this tool
@@ -294,6 +295,7 @@ class Group:
 
 
 RULE = r"\midrule"
+LAYOUT = "mdpi"  # "mdpi": the MDPI floats of v13; "ieee": IEEEtran floats (--layout ieee, extension X4)
 
 
 @dataclass
@@ -342,14 +344,19 @@ def render(t: Table) -> str:
            "% Sources: " + ", ".join(source_path(s) for s in t.sources),
            "% Written by paper/v4/tools/make_compact.py; do not edit by hand. Insert with",
            f"% \\input{{tables/{t.name}}} at paragraph level (this file holds the complete float).",
-           r"\begin{table}[H]",
+           (r"\begin{table*}[t]" if t.wide else r"\begin{table}[t]") if LAYOUT == "ieee" else r"\begin{table}[H]",
            rf"\caption{{{t.caption}\label{{tab:{t.name}}}}}"]
-    if t.wide:
+    if LAYOUT == "ieee":
+        out.append(r"\centering")
+    if t.wide and LAYOUT != "ieee":
         out.append(r"\begin{adjustwidth}{-\extralength}{0cm}")
     out.append("\\" + t.font)
     if t.tabcolsep is not None:
         out.append(rf"\setlength{{\tabcolsep}}{{{t.tabcolsep:g}pt}}")
-    width = r"\fulllength" if t.wide else r"\textwidth"
+    if LAYOUT == "ieee":
+        width = r"\textwidth" if t.wide else r"\columnwidth"
+    else:
+        width = r"\fulllength" if t.wide else r"\textwidth"
     out += [rf"\begin{{tabularx}}{{{width}}}{{{t.spec}}}", r"\toprule"]
     for h in t.heads:
         out += head_lines(h)
@@ -368,13 +375,13 @@ def render(t: Table) -> str:
                 raise SystemExit(f"{t.name}: row with {len(item)} cells, expected {n}: {item}")
             out.append(" & ".join(item) + r" \\")
     out += [r"\bottomrule", r"\end{tabularx}"]
-    if t.wide:
+    if t.wide and LAYOUT != "ieee":
         out.append(r"\end{adjustwidth}")
     if t.notes:
-        if not t.wide:
+        if not t.wide or LAYOUT == "ieee":
             out.append("")
         out.append(r"\noindent{\footnotesize{" + " ".join(t.notes) + "}}")
-    out.append(r"\end{table}")
+    out.append(r"\end{table*}" if (t.wide and LAYOUT == "ieee") else r"\end{table}")
     return "\n".join(out) + "\n"
 
 
@@ -1658,7 +1665,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--no-copy", action="store_true", help="do not copy the figures to <out>/figures/")
     ap.add_argument("--out", default=str(SUB), help="paper directory to write into (default: %(default)s)")
+    ap.add_argument("--layout", choices=["mdpi", "ieee"], default="mdpi",
+                    help="float layout: the MDPI floats of v13 or IEEEtran floats (table* / table, [t], no adjustwidth)")
     args = ap.parse_args()
+    global LAYOUT
+    LAYOUT = args.layout
     out = Path(args.out).resolve()
     for frozen in FROZEN:
         if out == frozen.resolve() or frozen.resolve() in out.parents:

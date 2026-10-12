@@ -1,0 +1,24 @@
+{
+  "current": null,
+  "device": "cuda",
+  "done": 4200,
+  "elapsed_s": 4632.0,
+  "failures": [],
+  "finished": true,
+  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_e3_ngsim",
+  "skipped": {},
+  "started": "2026-10-12 07:25:54",
+  "total": 4200,
+  "updated": "2026-10-12 08:43:06",
+  "variants": {
+    "raw": {
+      "done": 2100,
+      "total": 2100
+    },
+    "w61": {
+      "done": 2100,
+      "total": 2100
+    }
+  },
+  "written_now": 4200
+}

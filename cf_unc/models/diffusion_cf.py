@@ -11,6 +11,11 @@ Diffusion step ``k = 0 .. t_train-1`` is the noise level after ``k + 1`` forward
 
 ``DiffusionCFHist`` (registry name ``diffusion_cf_hist``, review control R2): the same model without the leader-future
 input, conditioned on the history only.
+
+Preview budget (extension X1, extension/docs/PLAN.md): ``preview_steps`` (constructor) holds the leader's future
+constant beyond that many steps at training and prediction time (stage B, a law trained at a budget); a
+``PreviewSpec`` given to ``init_sampler`` truncates, perturbs or delays the preview handed at every re-plan of a
+rollout (stage A, stored checkpoints). Without either, nothing changes.
 """
 
 from __future__ import annotations
@@ -18,7 +23,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import time
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 import numpy as np
 import torch
@@ -30,6 +35,7 @@ from cf_unc.data.windows import WindowSet
 from cf_unc.dist import SampleDist
 from cf_unc.models.base import CFModel, as_history_tensor, register
 from cf_unc.models.nets import Normalizer
+from cf_unc.preview import PreviewSpec
 from cf_unc.train.trainer import Batch, TrainConfig, fit_module
 
 MAX_SEQUENCES = 4096  # sequences denoised at once (contract: <= ~16 000; 2-4k chunks are fastest on CPU)
@@ -44,6 +50,23 @@ DEFAULT_TRAIN: dict[str, Any] = dict(  # 1 EMA warm-up + 11 EMA epochs: 1.5-2.5 
 
 EpsFn = Callable[[torch.Tensor, int], torch.Tensor]  # (x_k (B, L), k) -> predicted noise (B, L)
 DrawFn = Callable[[], torch.Tensor]  # standard normal noise shaped like the sampled batch
+
+
+def hold_beyond(v: torch.Tensor, steps: int | None) -> torch.Tensor:
+    """(N, L) leader speeds with the columns from ``steps`` on replaced by column ``steps - 1`` (the last seen value
+    held constant); ``steps`` None or >= L: ``v`` itself."""
+    if steps is None or int(steps) >= v.shape[1]:
+        return v
+    k = int(steps)
+    return torch.cat([v[:, :k], v[:, k - 1 : k].expand(-1, v.shape[1] - k)], dim=1)
+
+
+def hold_beyond_np(v: np.ndarray, steps: int | None) -> np.ndarray:
+    """NumPy twin of :func:`hold_beyond`."""
+    if steps is None or int(steps) >= v.shape[1]:
+        return v
+    k = int(steps)
+    return np.concatenate([v[:, :k], np.repeat(v[:, k - 1 : k], v.shape[1] - k, axis=1)], axis=1)
 
 
 # ------------------------------------------------------------------------ diffusion maths
@@ -235,17 +258,26 @@ class DiffusionCF(CFModel):
         replan_every: int = 50,
         predict_seed: int = 0,
         clip_x0: bool = True,
+        preview_steps: int | None = None,
         train: dict | None = None,
     ) -> None:
         super().__init__(
             seq_len=seq_len, n_samples=n_samples, n_sampling_steps=n_sampling_steps, t_train=t_train, eta=eta,
             channels=channels, n_blocks=n_blocks, kernel=kernel, hidden=hidden, replan_every=replan_every,
-            predict_seed=predict_seed, clip_x0=clip_x0, train=None if train is None else dict(train),
+            predict_seed=predict_seed, clip_x0=clip_x0, preview_steps=preview_steps,
+            train=None if train is None else dict(train),
         )  # fmt: skip
         if seq_len < 1 or n_samples < 2 or eta < 0.0 or min(channels, n_blocks, kernel, hidden) < 1:
             raise ValueError("need seq_len >= 1, n_samples >= 2, eta >= 0 and positive network sizes")
         if not 1 <= replan_every <= seq_len:
             raise ValueError(f"need 1 <= replan_every <= seq_len, got {replan_every}, {seq_len}")
+        if preview_steps is not None:
+            if isinstance(preview_steps, bool) or not isinstance(preview_steps, (int, np.integer)) or \
+                    not 1 <= int(preview_steps) <= seq_len:  # fmt: skip
+                raise ValueError(f"preview_steps must be None or an integer in [1, seq_len = {seq_len}], got {preview_steps!r}")
+            if not self.needs_leader_future:
+                raise ValueError(f"{type(self).__name__} has no leader input: preview_steps must be None")
+        self.preview_steps = None if preview_steps is None else int(preview_steps)
         unknown = sorted(set(train or {}) - set(TrainConfig.__dataclass_fields__))
         if unknown:
             raise ValueError(f"unknown train options {unknown}")
@@ -266,8 +298,9 @@ class DiffusionCF(CFModel):
         return self.net
 
     def _leader(self, hist: torch.Tensor, v_lead_future: np.ndarray | torch.Tensor | None) -> torch.Tensor | None:
-        """(N, L) leader speed [m/s] at t+1 .. t+L; constant ``v_t - dv_t`` if None. A model without the leader
-        input (``needs_leader_future`` False, DiffusionCFHist) returns None whatever is passed."""
+        """(N, L) leader speed [m/s] at t+1 .. t+L, held constant beyond ``preview_steps``; constant ``v_t - dv_t``
+        if None. A model without the leader input (``needs_leader_future`` False, DiffusionCFHist) returns None
+        whatever is passed."""
         if not self.needs_leader_future:
             return None
         if v_lead_future is None:
@@ -277,7 +310,7 @@ class DiffusionCF(CFModel):
         vlf = vlf.unsqueeze(0) if vlf.ndim == 1 else vlf
         if tuple(vlf.shape) != (hist.shape[0], self.seq_len):
             raise ValueError(f"v_lead_future must have shape ({hist.shape[0]}, {self.seq_len}), got {tuple(vlf.shape)}")
-        return vlf
+        return hold_beyond(vlf, self.preview_steps)
 
     def _arrays(self, ws: WindowSet) -> dict[str, np.ndarray]:
         """Normalised training arrays: hist (N, H, 3), vl (N, L) relative leader speed (only with the leader input),
@@ -289,7 +322,7 @@ class DiffusionCF(CFModel):
             "y": ((ws.y_seq - float(norm.y_mean)) / float(norm.y_std)).astype(np.float32),
         }
         if self.needs_leader_future:
-            rel = ws.v_lead_future.astype(np.float64) - ws.X[:, -1:, 2]
+            rel = hold_beyond_np(ws.v_lead_future.astype(np.float64), self.preview_steps) - ws.X[:, -1:, 2]
             out["vl"] = (rel / float(self.net.vl_scale)).astype(np.float32)
         return out
 
@@ -376,7 +409,7 @@ class DiffusionCF(CFModel):
         self.net = net = Denoiser(**self.arch).to(self.device)
         net.norm.fit(train.X, train.y_seq)
         if self.needs_leader_future:  # the history-only model keeps vl_scale = 1 (unused)
-            rel = train.v_lead_future.astype(np.float64) - train.X[:, -1:, 2]
+            rel = hold_beyond_np(train.v_lead_future.astype(np.float64), self.preview_steps) - train.X[:, -1:, 2]
             net.vl_scale.fill_(max(float(rel.std()), 1e-6))
         val_arrays = None
         if val is not None and len(val) > 0:
@@ -475,28 +508,55 @@ class DiffusionCF(CFModel):
         generator: torch.Generator,
         mode: str = "per_step",
         v_lead: np.ndarray | torch.Tensor | None = None,
+        preview: PreviewSpec | Mapping[str, Any] | None = None,
     ) -> dict:
-        """Rollout state: step counter ``k``, current plan (n_traj, L) and leader speeds ``v_lead`` (n_traj, T_total).
+        """Rollout state: step counter ``k``, current plan (n_traj, L), leader speeds ``v_lead`` (n_traj, T_total)
+        and the ``preview`` spec.
 
         ``v_lead[:, k]`` is the leader speed [m/s] at rollout step k (step 0 = last history sample of the first
-        call); None: constant-leader assumption at every re-plan. ``mode`` is validated only (no epistemic part).
-        A model without the leader input (DiffusionCFHist) ignores ``v_lead`` (stored as None).
+        call); None: constant-leader assumption at every re-plan. ``preview`` (``PreviewSpec`` or its mapping,
+        extension X1): the preview handed at every re-plan is truncated to its horizon, perturbed by its noise and
+        stale by its delay; None (or an identity spec): the stored behaviour. ``mode`` is validated only (no
+        epistemic part). A model without the leader input (DiffusionCFHist) ignores ``v_lead`` and ``preview``
+        (stored as None).
         """
         super().init_sampler(n_traj, generator, mode)
+        spec = PreviewSpec.from_any(preview)
         if not self.needs_leader_future:
-            v_lead = None
+            v_lead, spec = None, None
         if v_lead is not None:
             v_lead = torch.as_tensor(v_lead if torch.is_tensor(v_lead) else np.asarray(v_lead))
             v_lead = v_lead.to(device=self.device, dtype=torch.float32)
             if v_lead.ndim != 2 or v_lead.shape[0] != n_traj or v_lead.shape[1] < 1:
                 raise ValueError(f"v_lead must have shape ({n_traj}, T_total), got {tuple(v_lead.shape)}")
-        return {"k": 0, "plan": torch.zeros((n_traj, self.seq_len), device=self.device), "v_lead": v_lead}
+        if spec is not None and spec.identity:
+            spec = None
+        return {"k": 0, "plan": torch.zeros((n_traj, self.seq_len), device=self.device), "v_lead": v_lead,
+                "preview": spec}  # fmt: skip
+
+    def _preview_window(
+        self, v_lead: torch.Tensor, k: int, spec: PreviewSpec | None, generator: torch.Generator
+    ) -> torch.Tensor:
+        """(B, L) leader speeds handed to the re-plan at rollout step k: ``v_lead[:, k+1 : k+1+L]`` padded with the
+        last available value (the stored behaviour). With a spec the window starts ``delay_steps`` earlier, the
+        columns beyond ``horizon_steps`` repeat the last seen value, and i.i.d. Gaussian noise of ``noise_sigma``
+        [m/s] is drawn from ``generator`` (nothing is drawn at noise 0). The training budget ``preview_steps``
+        applies on top, as in ``_leader``."""
+        start = k + 1 - (0 if spec is None else spec.delay_steps)
+        cols = torch.arange(start, start + self.seq_len, device=self.device)
+        if spec is not None and spec.horizon_steps is not None:
+            cols = cols.clamp(max=start - 1 + spec.horizon_steps)
+        vlf = v_lead[:, cols.clamp(min=0, max=v_lead.shape[1] - 1)]
+        if spec is not None and spec.noise_sigma > 0.0:
+            vlf = vlf + spec.noise_sigma * torch.randn(vlf.shape, generator=generator, device=vlf.device, dtype=vlf.dtype)
+        return hold_beyond(vlf, self.preview_steps)
 
     def sample_step(self, hist: torch.Tensor, state: dict, generator: torch.Generator) -> torch.Tensor:
         """(B,) acceleration [m/s^2] at rollout step k: ``plan[:, k % replan_every]``, re-planned when that is 0.
 
         A re-plan draws one sequence per trajectory given the current ``hist`` (B, H, 3) and the leader speeds
-        ``v_lead[:, k+1 : k+1+L]`` (padded with the last available value).
+        ``v_lead[:, k+1 : k+1+L]`` (padded with the last available value; see ``_preview_window`` for a preview spec
+        and the training budget).
         """
         k = int(state["k"])
         j = k % self.replan_every
@@ -505,9 +565,7 @@ class DiffusionCF(CFModel):
             if state["v_lead"] is None:
                 vlf = self._leader(h, None)  # None for a model without the leader input
             else:
-                v_lead = state["v_lead"]
-                cols = torch.arange(k + 1, k + 1 + self.seq_len, device=self.device).clamp(max=v_lead.shape[1] - 1)
-                vlf = v_lead[:, cols]
+                vlf = self._preview_window(state["v_lead"], k, state.get("preview"), generator)
             state["plan"] = self._sample(h, vlf, 1, generator, MAX_SEQUENCES)[:, 0]
         state["k"] = k + 1
         return state["plan"][:, j]

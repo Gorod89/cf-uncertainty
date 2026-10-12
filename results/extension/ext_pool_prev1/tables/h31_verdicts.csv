@@ -1,0 +1,2 @@
+model,kind,dataset,subset,pair,r_epi,r_epi_lo,r_epi_hi,r_alea,r_alea_lo,r_alea_hi,verdict_ci,verdict_point,r_epi_matched,r_epi_matched_lo,r_epi_matched_hi,r_alea_matched,r_alea_matched_lo,r_alea_matched_hi,verdict_ci_matched,verdict_point_matched,n_seeds,unit
+diffusion_cf,seed_ensemble,highd_val,all,placebo,1.096970574616505,0.5790915659183093,2.0730340700872083,0.8050462012226808,0.716946812384622,0.9105339828518955,inconclusive,refuted,1.1177467858568015,0.8337562888422295,1.4924133018118098,0.9386604350493968,0.8601872855080407,1.015886911272032,refuted,refuted,5,event

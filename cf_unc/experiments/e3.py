@@ -80,10 +80,11 @@ from omegaconf import DictConfig, OmegaConf
 from cf_unc.constants import DT, HIST_LEN
 from cf_unc.data.harmonise import read_matching
 from cf_unc.experiments.e1 import RunLog, _jsonable, _write_json_atomic, configure_torch, seed_everything
-from cf_unc.models import CFModel, load_model, resolve_device
+from cf_unc.models import MODEL_REGISTRY, CFModel, load_model, resolve_device
 from cf_unc.physics.idm import IDMParams
 from cf_unc.platoon.profiles import Profile, load_profiles, profiles_digest, resmooth_profiles, write_profiles
 from cf_unc.platoon.simulate import PlatoonConfig, PlatoonResult, initial_gap, simulate_platoon, time_line_steps
+from cf_unc.preview import PreviewSpec
 from cf_unc.train.run import ROOT, _path, _plain
 
 __all__ = [
@@ -111,7 +112,7 @@ PILOT: dict[str, Any] = {"root": "artifacts/e3_pilot", "seeds": [0], "run_profil
 RAW = "raw"
 MODEL_KEYS = ("model", "target", "sampler_mode", "hold_steps", "checkpoints")  # keys of a model spec and of a variant's override
 SELECT_KEYS = ("variants",)  # keys of a model spec that select where it runs (not part of the unit spec)
-VARIANT_KEYS = ("models", "profile_window", "only_models")  # keys of a variant that are not targets
+VARIANT_KEYS = ("models", "profile_window", "only_models", "preview")  # keys of a variant that are not targets
 UNIT_COLUMNS = (
     "profile", "seed", "vehicle", "rollout", "amplitude", "sd", "amplitude_profile", "sd_profile", "min_gap",
     "first_collision", "leader_amplitude", "leader_sd", "leader_sd_profile", "emp_amplitude", "emp_sd", "s_init",
@@ -179,6 +180,7 @@ class Variant:
     profile_window: int | None = None
     window_source: dict[str, str] | None = None  # {"matching", "data"} when the window was read from a matching file
     only_models: list[str] | None = None  # labels that run in this variant (None: every label)
+    preview: dict[str, Any] | None = None  # PreviewSpec of the leader's future handed to plan samplers (extension X1)
 
 
 def profile_window(value: Any) -> tuple[int, dict[str, str] | None]:
@@ -238,8 +240,10 @@ def parse_variants(cfg: DictConfig | Mapping[str, Any]) -> dict[str, Variant]:
             unknown = sorted(set(only) - labels)
             if unknown:
                 raise ValueError(f"variant {name}: only_models lists {unknown}, which are not keys of models {sorted(labels)}")
+        preview = spec.pop("preview", None)
+        preview = None if preview is None else PreviewSpec.from_any(dict(preview)).to_dict()
         dirs = {str(k): str(v) for k, v in spec.items() if v is not None}
-        out[str(name)] = Variant(str(name), dirs, overrides, w, source, only)
+        out[str(name)] = Variant(str(name), dirs, overrides, w, source, only, preview)
     return out
 
 
@@ -443,6 +447,9 @@ class E3Runner:
             self.prepare_profiles(variant)
             out.update({"profile_window": self.variants[variant].profile_window, "profile_order": self.sg_order,
                         "profiles_digest": self.variant_info[variant]["digest"]})  # fmt: skip
+        preview = self.variants[variant].preview
+        if preview is not None and MODEL_REGISTRY[out["model"]].needs_leader_future:  # the other samplers ignore it
+            out["preview"] = dict(preview)
         return _jsonable(out)
 
     def check_spec(self, path: Path, spec: Mapping[str, Any]) -> bool:
@@ -559,12 +566,12 @@ class E3Runner:
             if all(unit_path(self.root, variant, label, seed, p.id).exists() for p in batch):
                 continue
             self.current = f"{group} ({batch[0].id}..{batch[-1].id})"
-            self.simulate_batch(variant, label, seed, model, batch, n_r, hold, spec["sampler_mode"])
+            self.simulate_batch(variant, label, seed, model, batch, n_r, hold, spec["sampler_mode"], spec.get("preview"))
             self.write_status()
         del model
 
     def simulate_batch(self, variant: str, label: str, seed: int, model: CFModel, batch: list[Profile], n_r: int,
-                       hold: int, mode: str) -> None:  # fmt: skip
+                       hold: int, mode: str, preview: Mapping[str, Any] | None = None) -> None:  # fmt: skip
         n_v = self.pcfg.n_followers
         seeds = stream_seeds(self.pcfg.seed, seed, [p.id for p in batch], n_v)
         seed_everything(seed)
@@ -575,7 +582,7 @@ class E3Runner:
         result = simulate_platoon(
             model, [p.leader_speed for p in batch], [s_init[p.id] for p in batch], seeds, self.pcfg,
             n_rollouts=n_r, hold_steps=hold, sampler_mode=mode, n_steps=self.n_steps, device=self.device,
-            ids=[p.id for p in batch],
+            ids=[p.id for p in batch], preview=PreviewSpec.from_any(None if preview is None else dict(preview)),
         )  # fmt: skip
         seconds = time.perf_counter() - started
         burn = result.burn_in
@@ -595,7 +602,7 @@ class E3Runner:
         self.timing({
             "time": _now(), "variant": variant, "model": label, "seed": seed, "profiles": [p.id for p in batch],
             "n_profiles": len(batch), "seconds": seconds, "seconds_per_unit": seconds / len(batch), "n_rollouts": n_r,
-            "hold_steps": hold, "sampler_mode": mode, "n_steps": result.n_steps, "n_vehicles": n_v,
+            "hold_steps": hold, "sampler_mode": mode, "preview": preview, "n_steps": result.n_steps, "n_vehicles": n_v,
             "seconds_per_vehicle": result.info["seconds_per_vehicle"], "peak_memory_mb": mem, "device": str(self.device),
         })  # fmt: skip
         amp1 = float(np.mean(result.amplitude[:, 0]))
@@ -694,7 +701,7 @@ class E3Runner:
                     "target": self.target_of(variant, label), "hold_steps": int(spec.get("hold_steps", 1)),
                     "sampler_mode": str(spec.get("sampler_mode", "per_step")),
                     "checkpoints": self.checkpoint_dir(variant, label), "done": done,
-                    "missing": len(self.seeds) * len(self.run_ids) - done,
+                    "missing": len(self.seeds) * len(self.run_ids) - done, "preview": self.variants[variant].preview,
                 }  # fmt: skip
                 if ok:
                     row["spec"] = self.compare_spec(self.root / "units" / variant / label / "spec.json",

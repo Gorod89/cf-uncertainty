@@ -1,0 +1,2 @@
+model,kind,main,rule,conc,conc_lo,conc_hi,verdict_conc_ci,verdict_conc_point,n_pairs,n_supported,n_refuted,n_inconclusive,overall,n_supported_point,n_refuted_point,n_inconclusive_point,overall_point,n_placebo,placebo_verdicts,n_cross_check,cross_check_verdicts
+diffusion_cf,seed_ensemble,False,rare_mass,7.574750766269581,5.051535158427841,11.088592443938621,supported,supported,0,0,0,0,inconclusive,0,0,0,inconclusive,1,highd_val:refuted,0,

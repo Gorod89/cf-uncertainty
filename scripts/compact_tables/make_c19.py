@@ -16,7 +16,7 @@ import pandas as pd
 
 import os
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents if (p / "pyproject.toml").exists())  # the repository root
 ART = pathlib.Path(os.environ.get("CF_UNC_ARTIFACTS", str(ROOT / "artifacts")))
 SRC = ART / "e2/tables/coverage_by_horizon.csv"
 OUT = ROOT / "results/compact_tables/c19_aci_joint.tex"

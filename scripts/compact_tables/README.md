@@ -26,3 +26,14 @@ so they are the same on Windows and Linux checkouts.
 `make_compact.py` also reads a few files outside `tables/` (the AR(1) fit logs under `<root>/checkpoints/idm_ar_noise/seed*/train_log.json`,
 the matching files `<root>/matching.json`, `e3/config.yaml` and `e3/spec.json`); the ones that are not derived tables are
 published under `results/controls/` or in the release asset, as the manifest lists.
+
+## Extension tables (release v1.4.0)
+
+`make_ext_tables.py` writes the tables c20-c24 of the extended manuscript (cost, FollowNet-protocol check, preview sweep,
+second training domain) from the extension artefacts, published as `results/extension/<root>/tables/`:
+
+```bash
+CF_UNC_EXT_ARTIFACTS=results/extension PYTHONUTF8=1 python scripts/compact_tables/make_ext_tables.py --out /tmp/cf_build/tables
+```
+
+The published copies are `results/compact_tables/c20_cost.tex` to `c24_ngsim_platoon.tex`; the manifest lists their sources.

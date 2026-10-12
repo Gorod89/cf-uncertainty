@@ -1,0 +1,54 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-12 04:45:28",
+  "idm": {
+    "key": {
+      "data": "ngsim",
+      "fold": 0,
+      "max_events": 3000,
+      "objective": "spacing",
+      "seed": 0
+    },
+    "name": "closed_loop"
+  },
+  "kwargs": {
+    "idm": {
+      "T": 1.5057959168600779,
+      "a_max": 0.9122648994510769,
+      "b": 0.3,
+      "delta": 4.0,
+      "s0": 2.0062212046988455,
+      "v0": 26.251093566423396
+    },
+    "sigma": null,
+    "train": {
+      "batch_size": 1024,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.001,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 40,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 6,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    }
+  },
+  "log": {
+    "n_train": 1046312,
+    "seconds": 0.09141320001799613,
+    "sigma": 2.5121531141658795,
+    "sigma_fitted": true,
+    "val_nll": 2.3337946344306157
+  },
+  "model": "idm_white_noise",
+  "n_train": 1046312,
+  "n_val": 348533,
+  "registry_name": "idm_white_noise",
+  "seconds": 0.09144950000336394,
+  "seed": 0,
+  "target": "a"
+}

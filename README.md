@@ -115,6 +115,9 @@ scripts/make_report.py     tables T1-T6 (csv + booktabs tex), figures F1-F7, ind
 tests/                     pytest suite (markers: slow, data, gpu)
 results/report/            snapshot of artifacts/report for the article
 data/splits, data/calibration   driver-disjoint fold files and IDM calibrations (provenance of the sibling project)
+cf_unc/preview.py          PreviewSpec: the preview of the predecessor's future handed to the diffusion sampler (horizon, noise, delay)
+extension/                 release v1.4.0: configs (extension/configs/experiment), scripts (queue, cost table, preview sweep,
+                           FollowNet-protocol check), plan (extension/docs/PLAN.md); results in results/extension/
 ```
 
 ## Reproduction
@@ -149,6 +152,40 @@ bash scripts/run_e1_retry.sh artifacts/e1m_mean1s_abv/logs/run.out 8 --config co
 # tables and figures of the article (no experiment, no GPU; a few seconds)
 python scripts/make_report.py                                   # artifacts/report/{tables,figures,index.md}
 ```
+
+## Extension (release v1.4.0)
+
+Four additions to the study, run after the submitted article (plan and reading rules in `extension/docs/PLAN.md`,
+design document section 19); their analysis tables are published under `results/extension/<root>/tables/`, the
+compact tables of the extended manuscript as `results/compact_tables/c20_cost.tex` to `c24_ngsim_platoon.tex`.
+
+* **Preview budget of the diffusion law** (`results/extension/ext_e3_preview`): the platoon experiment repeated with
+  the preview of the predecessor's future truncated to a horizon of 0, 0.5, 1, 2, 3 or 5 s, perturbed by i.i.d.
+  noise of 0.25, 0.5 or 1 m/s, or made stale by 0.5 or 1 s, on the stored checkpoints of the three training regimes
+  (`cf_unc/preview.py`, the `preview` key of an E3 variant); and the law trained at a budget of 1 or 2 s on the two
+  pooled roots (`DiffusionCF(preview_steps=...)`, roots `ext_pool_prev1`, `ext_pool_prev2`, `ext_lodo_prev1`,
+  `ext_lodo_prev2`). Collector: `extension/scripts/preview_sweep.py` (`tables/preview_sweep.csv`, `.md`, the figure).
+* **Cost of the laws** (`results/extension/ext_cost`): training time per seed, parameters, one-step inference time
+  on the GPU and the CPU, platoon simulation time per unit (`extension/scripts/cost_table.py`).
+* **Implementation check under the FollowNet protocol** (`results/extension/ext_followcheck`): closed-loop spacing
+  MSE and collision rate of every law on the highD test fold and the FollowNet NGSIM I-80 events, next to the
+  published FollowNet rows (`extension/scripts/follownet_check.py`).
+* **Second training domain** (`results/extension/ext_e1_ngsim`, `ext_e3_ngsim`): every law trained on the NGSIM
+  I-80 reconstruction and evaluated on its test fold, highD, NGSIM US-101, Waymo and OpenACC, and the platoon
+  experiment with these checkpoints at both leader windows.
+
+```bash
+# the whole extension in the order it was run (about 15 GPU hours on one RTX 6000 Ada); every step can be run alone
+bash extension/scripts/queue.sh                                 # log: extension/artifacts/queue.log
+# the tables c20-c24 from the published results (no experiment)
+CF_UNC_EXT_ARTIFACTS=results/extension PYTHONUTF8=1 python scripts/compact_tables/make_ext_tables.py --out /tmp/cf_build/tables
+```
+
+The checkpoints of the five new training roots (75 PyTorch files with their training logs and metrics, 28 MB) are attached to
+release v1.4.0 as `checkpoints_ext.tar.gz` with a SHA-256 manifest (`CHECKPOINTS_EXT_MANIFEST.json`; unpack into
+`extension/artifacts/`), and the per-profile platoon tables, configs, specs and re-smoothed profiles of the two new
+platoon roots as `ext_platoon_tables.tar.gz`. The assets of v1.3.1 (`checkpoints.tar.gz`, `e3_platoon_tables.tar.gz`)
+are unchanged and stay on that release.
 
 ## Models
 
