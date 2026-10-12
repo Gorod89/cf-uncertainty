@@ -1,0 +1,202 @@
+{
+ "source": "data/events/openacc",
+ "objective": "spacing",
+ "max_events": 300,
+ "seed": 0,
+ "sigma_windows": {
+  "hist_len": 30,
+  "stride": 5,
+  "target": "a"
+ },
+ "excluded_recordings": [
+  "ASta_040719_platoon10",
+  "ASta_040719_platoon3",
+  "ASta_040719_platoon5",
+  "ASta_040719_platoon6",
+  "ASta_040719_platoon7",
+  "ASta_040719_platoon8",
+  "ASta_040719_platoon9",
+  "JRC-VC_260219_part2",
+  "VC-JRC_260219_part1",
+  "VC-JRC_270219_part1",
+  "VC-JRC_270219_part2",
+  "VC-JRC_280219_part3",
+  "dynamic_part1",
+  "dynamic_part10",
+  "dynamic_part11",
+  "dynamic_part13",
+  "dynamic_part15",
+  "dynamic_part16",
+  "dynamic_part17",
+  "dynamic_part19",
+  "dynamic_part2",
+  "dynamic_part23",
+  "dynamic_part25",
+  "dynamic_part3",
+  "dynamic_part8",
+  "dynamic_part9"
+ ],
+ "n_events": 4715,
+ "modes": {
+  "acc": {
+   "mode": "ACC",
+   "n_events_mode": 4020,
+   "n_events_calibration_pool": 2786,
+   "n_windows_sigma": 282523,
+   "params": {
+    "v0": 45.0,
+    "T": 1.0201155653498402,
+    "s0": 8.0,
+    "a_max": 1.5208625418023993,
+    "b": 0.3,
+    "delta": 4.0
+   },
+   "sigma": 2.1443636633267777,
+   "report": {
+    "objective": "spacing",
+    "value": 8.648675279800242,
+    "spacing_rmse": 8.648675279800244,
+    "spacing_nrmse": 0.30558192904768133,
+    "accel_rmse": 2.1102714735331993,
+    "accel_resid_std": 1.983102064951502,
+    "accel_resid_mean": 0.7214928218583115,
+    "n_events": 300,
+    "n_samples": 160077,
+    "n_collisions": 0,
+    "collision_samples": 0,
+    "seconds": 12.118111099989619,
+    "params": {
+     "v0": 45.0,
+     "T": 1.0201155653498402,
+     "s0": 8.0,
+     "a_max": 1.5208625418023993,
+     "b": 0.3,
+     "delta": 4.0
+    },
+    "bounds": {
+     "v0": [
+      10.0,
+      45.0
+     ],
+     "T": [
+      0.3,
+      3.5
+     ],
+     "s0": [
+      0.5,
+      8.0
+     ],
+     "a_max": [
+      0.3,
+      4.0
+     ],
+     "b": [
+      0.3,
+      5.0
+     ]
+    },
+    "de": {
+     "value": 8.666233669066706,
+     "nit": 32,
+     "nfev": 2475,
+     "message": "Optimization terminated successfully."
+    },
+    "polish": {
+     "method": "Nelder-Mead",
+     "value": 8.648675279800242,
+     "nfev": 184
+    },
+    "settings": {
+     "max_events": 300,
+     "seed": 0,
+     "maxiter": 100,
+     "popsize": 15,
+     "tol": 0.01,
+     "polish_maxfev": 250,
+     "collision_penalty": 10.0
+    }
+   },
+   "seconds": 12.246150899969507
+  },
+  "human": {
+   "mode": "Human",
+   "n_events_mode": 664,
+   "n_events_calibration_pool": 435,
+   "n_windows_sigma": 43788,
+   "params": {
+    "v0": 44.99251841774299,
+    "T": 0.8735041145795037,
+    "s0": 5.685461430195825,
+    "a_max": 1.5996284850551772,
+    "b": 0.30032025750819147,
+    "delta": 4.0
+   },
+   "sigma": 2.7838154769968244,
+   "report": {
+    "objective": "spacing",
+    "value": 10.713206022827139,
+    "spacing_rmse": 10.713206022827134,
+    "spacing_nrmse": 0.36122120391573476,
+    "accel_rmse": 2.794915389310175,
+    "accel_resid_std": 2.5782260099694927,
+    "accel_resid_mean": 1.0790285792877004,
+    "n_events": 300,
+    "n_samples": 158870,
+    "n_collisions": 0,
+    "collision_samples": 0,
+    "seconds": 10.783712699951138,
+    "params": {
+     "v0": 44.99251841774299,
+     "T": 0.8735041145795037,
+     "s0": 5.685461430195825,
+     "a_max": 1.5996284850551772,
+     "b": 0.30032025750819147,
+     "delta": 4.0
+    },
+    "bounds": {
+     "v0": [
+      10.0,
+      45.0
+     ],
+     "T": [
+      0.3,
+      3.5
+     ],
+     "s0": [
+      0.5,
+      8.0
+     ],
+     "a_max": [
+      0.3,
+      4.0
+     ],
+     "b": [
+      0.3,
+      5.0
+     ]
+    },
+    "de": {
+     "value": 10.726018739700091,
+     "nit": 21,
+     "nfev": 1650,
+     "message": "Optimization terminated successfully."
+    },
+    "polish": {
+     "method": "Nelder-Mead",
+     "value": 10.713206022827139,
+     "nfev": 250
+    },
+    "settings": {
+     "max_events": 300,
+     "seed": 0,
+     "maxiter": 100,
+     "popsize": 15,
+     "tol": 0.01,
+     "polish_maxfev": 250,
+     "collision_penalty": 10.0
+    }
+   },
+   "seconds": 10.816127399972174
+  }
+ }
+}

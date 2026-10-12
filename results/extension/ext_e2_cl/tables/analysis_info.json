@@ -1,0 +1,56 @@
+{
+  "root": "extension\\artifacts\\ext_e2_cl",
+  "targets": [
+    "a"
+  ],
+  "e1_roots": {
+    "a": "extension/artifacts/ext_cl_highd",
+    "mean_1s": "artifacts/e1_mean1s"
+  },
+  "calibration": "highd_val",
+  "in_domain": "highd",
+  "settings": {
+    "calibration": {
+      "alpha": 0.1,
+      "gamma": 0.01,
+      "gammas": [
+        0.005,
+        0.01,
+        0.02,
+        0.05
+      ],
+      "n_min": 20,
+      "onestep_score": "normalised",
+      "corrected": "aci_online",
+      "finite_quantile": false,
+      "streams": true,
+      "delay_events_per_s": 1.0
+    },
+    "bootstrap": {
+      "n_boot": 1000,
+      "ci": 0.95,
+      "seed": 0
+    },
+    "h34": {
+      "nominal": 0.9,
+      "onestep_tol": 0.03,
+      "raw_max": 0.8,
+      "corrected_min": 0.87,
+      "refute_min": 0.87
+    },
+    "base_models": {
+      "deep_ensemble__traj": "deep_ensemble",
+      "mc_dropout__traj": "mc_dropout",
+      "gp_residual_idm__step": "gp_residual_idm"
+    }
+  },
+  "figures": [
+    "coverage_by_horizon__a.png",
+    "coverage_by_horizon__a__ngsim.png",
+    "coverage_by_horizon__a__ngsim_us101.png",
+    "coverage_by_horizon__a__openacc.png",
+    "coverage_by_horizon__a__waymo.png",
+    "width_by_horizon__a.png"
+  ],
+  "seconds": 25.63276389997918
+}

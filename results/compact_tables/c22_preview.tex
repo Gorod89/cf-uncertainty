@@ -1,9 +1,9 @@
 % tab:c22_preview: Preview sweep (extension X1)
 % Sources: extension/artifacts/ext_e3_preview/tables/preview_sweep.csv
-% Written by extension/paper/v14/tools/make_ext_tables.py; do not edit by hand. Insert with
+% Written by scripts/compact_tables/make_ext_tables.py; do not edit by hand. Insert with
 % \input{tables/c22_preview} at paragraph level (this file holds the complete float).
 \begin{table*}[t]
-\caption{Preview sweep (extension X1): reduction of the amplitude CRPS of the diffusion law against the IDM + white noise reference of its cell, extended set of leader profiles, response window, per driver mode (47 ACC and 12 human-driven platoons), with the 95\% file-cluster interval and its verdict (supp.: lower bound $\geq 0.20$; ref.: upper bound $< 0.05$; inc.: otherwise), and the mean share of collided rollouts over the 20 followers and all 60 profiles (coll., on the ACC line of each row); by training regime (highD, recorded signals, leader window 11; pooled and OpenACC held out, matched signals, leader window 61). Rows: the preview horizon $h$ handed at every re-plan on the stored checkpoints (the last seen value held beyond $h$), i.i.d.\ noise and staleness at the full horizon, and the laws trained at a budget of 1 and 2~s on the pooled roots.\label{tab:c22_preview}}
+\caption{Preview sweep (extension X1): reduction of the amplitude CRPS of the diffusion law against the IDM + white noise reference of its cell, extended set of leader profiles, response window, per driver mode (47 ACC and 12 human-driven platoons), with the 95\% file-cluster interval and its verdict (supp.: lower bound $\geq 0.20$; ref.: upper bound $< 0.05$; inc.: otherwise), and the mean share of collided rollouts over the 20 followers and all 60 profiles (coll., on the ACC line of each row); by training regime (highD, recorded signals, leader window 11; pooled and OpenACC held out, matched signals, leader window 61). Rows: the preview horizon $h$ handed at every re-plan on the stored checkpoints (the last seen value held beyond $h$), i.i.d.\ noise and staleness at the full horizon, the laws trained at a budget of 1 and 2~s on the pooled roots, and (extension S4) the pairwise and triple combinations of horizon 2~s, noise 0.5~m/s and delay 0.5~s and the 2~s budget-trained law under noise or delay.\label{tab:c22_preview}}
 \centering
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -39,6 +39,18 @@ trained at 1~s & ACC & -- & -- & 0.03 [$-$0.73, 0.34] inc. & 0.77 & 0.01 [$-$0.7
  & Human & -- & -- & $-$4.24 [$-$4.93, $-$1.05] ref. &  & $-$3.93 [$-$4.59, $-$1.10] ref. &  \\
 trained at 2~s & ACC & -- & -- & 0.40 [$-$0.20, 0.63] inc. & 0.60 & 0.37 [$-$0.19, 0.60] inc. & 0.66 \\
  & Human & -- & -- & $-$2.30 [$-$2.80, $-$0.11] ref. &  & $-$2.39 [$-$2.65, $-$0.17] ref. &  \\
+$h = 2$~s + noise 0.5~m/s & ACC & -- & -- & 0.51 [0.23, 0.63] supp. & 0.68 & 0.48 [0.22, 0.58] supp. & 0.61 \\
+ & Human & -- & -- & $-$1.81 [$-$2.19, 0.19] inc. &  & $-$0.94 [$-$1.18, 0.19] inc. &  \\
+$h = 2$~s + delay 0.5~s & ACC & -- & -- & 0.48 [0.13, 0.62] inc. & 0.77 & 0.43 [0.08, 0.57] inc. & 0.75 \\
+ & Human & -- & -- & $-$1.76 [$-$2.29, 0.21] inc. &  & $-$1.40 [$-$1.54, 0.10] inc. &  \\
+noise 0.5~m/s + delay 0.5~s & ACC & -- & -- & 0.58 [0.28, 0.70] supp. & 0.47 & 0.49 [0.26, 0.59] supp. & 0.36 \\
+ & Human & -- & -- & $-$1.66 [$-$2.13, 0.21] inc. &  & $-$0.75 [$-$0.87, 0.18] inc. &  \\
+$h = 2$~s + noise + delay & ACC & -- & -- & 0.47 [0.14, 0.61] inc. & 0.78 & 0.44 [0.12, 0.57] inc. & 0.74 \\
+ & Human & -- & -- & $-$2.23 [$-$2.51, 0.11] inc. &  & $-$1.30 [$-$1.45, 0.08] inc. &  \\
+trained at 2~s, noise 0.5~m/s & ACC & -- & -- & $-$0.32 [$-$1.45, 0.15] inc. & 0.82 & $-$0.02 [$-$0.73, 0.30] inc. & 0.82 \\
+ & Human & -- & -- & $-$4.59 [$-$5.21, $-$2.13] ref. &  & $-$3.32 [$-$4.34, $-$0.97] ref. &  \\
+trained at 2~s, delay 0.5~s & ACC & -- & -- & 0.24 [$-$0.53, 0.54] inc. & 0.77 & 0.26 [$-$0.40, 0.53] inc. & 0.78 \\
+ & Human & -- & -- & $-$2.91 [$-$3.37, $-$0.52] ref. &  & $-$2.83 [$-$3.35, $-$0.51] ref. &  \\
 \bottomrule
 \end{tabularx}
 \end{table*}

@@ -1,0 +1,215 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-12 18:49:38",
+  "idm": null,
+  "kwargs": {
+    "head_hidden": 64,
+    "hidden": 64,
+    "horizon_steps": 50,
+    "init_from": "artifacts/e6_pool/checkpoints/lstm_const_sigma",
+    "train": {
+      "batch_size": 256,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.0003,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 3,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 2,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    },
+    "weight": 1.0
+  },
+  "log": {
+    "fit": {
+      "best_epoch": 2,
+      "best_val": 0.008131243769181047,
+      "config": {
+        "batch_size": 256,
+        "ema_decay": 0.0,
+        "grad_clip": 1.0,
+        "lr": 0.0003,
+        "lr_factor": 0.5,
+        "lr_patience": 2,
+        "max_epochs": 3,
+        "max_seconds": null,
+        "min_delta": 0.0001,
+        "min_lr": 1e-05,
+        "patience": 2,
+        "val_batch_size": 8192,
+        "weight_decay": 1e-05
+      },
+      "epochs": 3,
+      "history": [
+        {
+          "epoch": 0,
+          "lr": 0.0003,
+          "train": 0.011365851719444533,
+          "val": 0.008662139756893639
+        },
+        {
+          "epoch": 1,
+          "lr": 0.0003,
+          "train": 0.010037856902152966,
+          "val": 0.008648826550062856
+        },
+        {
+          "epoch": 2,
+          "lr": 0.0003,
+          "train": 0.009314465721438205,
+          "val": 0.008131243769181047
+        }
+      ],
+      "n_train": 172865,
+      "seconds": 158.65500389999943
+    },
+    "horizon_steps": 50,
+    "init_from": "artifacts/e6_pool/checkpoints/lstm_const_sigma",
+    "n_train": 172865,
+    "seconds": 158.8012241999968,
+    "sigma": 0.02449989176349752,
+    "sigma_from": "val",
+    "twin": "lstm_const_sigma",
+    "val_nll": -2.2901480460529693,
+    "weight": 1.0
+  },
+  "model": "lstm_const_sigma_cl",
+  "n_train": 172865,
+  "n_val": 162579,
+  "pool": {
+    "data": [
+      "highd",
+      "ngsim",
+      "ngsim_us101",
+      "waymo",
+      "openacc"
+    ],
+    "max_sequences_per_dataset": 40000,
+    "max_windows_per_dataset": 150000,
+    "seq_stride": 5,
+    "stride": 2,
+    "subsample_seed": 0
+  },
+  "pool_windows": {
+    "highd": {
+      "train": {
+        "events": 7505,
+        "kept": 40000,
+        "windows": 112575
+      },
+      "val": {
+        "events": 2502,
+        "kept": 37530,
+        "windows": 37530
+      }
+    },
+    "ngsim": {
+      "train": {
+        "events": 4477,
+        "kept": 40000,
+        "windows": 364461
+      },
+      "val": {
+        "events": 1531,
+        "kept": 40000,
+        "windows": 121001
+      }
+    },
+    "ngsim_us101": {
+      "train": {
+        "events": 4396,
+        "kept": 40000,
+        "windows": 360119
+      },
+      "val": {
+        "events": 1450,
+        "kept": 40000,
+        "windows": 120494
+      }
+    },
+    "openacc": {
+      "train": {
+        "events": 2725,
+        "kept": 40000,
+        "windows": 253791
+      },
+      "val": {
+        "events": 980,
+        "kept": 40000,
+        "windows": 91102
+      }
+    },
+    "waymo": {
+      "train": {
+        "events": 560,
+        "kept": 12865,
+        "windows": 12865
+      },
+      "val": {
+        "events": 219,
+        "kept": 5049,
+        "windows": 5049
+      }
+    }
+  },
+  "registry_name": "lstm_const_sigma_cl",
+  "seconds": 158.80124910001177,
+  "seed": 1,
+  "signal": [
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 11
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 61
+      },
+      "signal": "harmonised"
+    }
+  ],
+  "target": null
+}

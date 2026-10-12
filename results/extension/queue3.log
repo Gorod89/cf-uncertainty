@@ -1,0 +1,17 @@
+=== 2026-10-12 11:16:06 waiting for queue2
+=== 2026-10-12 18:11:56 S7 fine-tuning ext_cl_highd
+=== 2026-10-12 18:29:44 S7 ext_cl_highd finished (exit 0); analysis
+=== 2026-10-12 18:30:21 S7 ext_cl_highd analysis finished (exit 0)
+=== 2026-10-12 18:30:21 S7 fine-tuning ext_cl_pool
+=== 2026-10-12 18:57:25 S7 ext_cl_pool finished (exit 0); analysis
+=== 2026-10-12 18:57:52 S7 ext_cl_pool analysis finished (exit 0)
+=== 2026-10-12 18:57:52 S7 fine-tuning ext_cl_lodo
+=== 2026-10-12 19:18:50 S7 ext_cl_lodo finished (exit 0); analysis
+=== 2026-10-12 19:19:27 S7 ext_cl_lodo analysis finished (exit 0)
+=== 2026-10-12 19:19:27 S7 E2 rollouts of the fine-tuned laws
+=== 2026-10-12 19:38:36 S7 E2 finished (exit 1); analysis
+=== 2026-10-12 19:39:05 S7 E2 analysis finished (exit 0); platoon cells
+=== 2026-10-12 20:12:39 S7 platoon cells finished (exit 0); analysis
+=== 2026-10-12 20:13:10 S8 plan-sharing cells (exit of the analysis: 0)
+=== 2026-10-12 21:54:28 S8 cells finished (exit 0); analysis of ext_e3_replan
+=== 2026-10-12 21:56:03 queue3 finished (exit of the analysis: 0)

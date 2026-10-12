@@ -171,6 +171,10 @@ class RolloutResult:
     v_path: np.ndarray | None = None
     x_path: np.ndarray | None = None
     info: dict[str, Any] = field(default_factory=dict)
+    # plans sampled by a plan sampler at its re-plan steps 0, P, 2P, ... (extension S8, ``record_plans``): planned
+    # follower speeds (E, R, J, L) float32 at the L steps after each re-plan, and the re-plan interval P in steps
+    plans: np.ndarray | None = None
+    plan_every: int | None = None
 
     @property
     def n_events(self) -> int:
@@ -241,6 +245,22 @@ def _leader_override(
     return out[0], out[1]
 
 
+def _plan_override(
+    override: Mapping[str, Any] | None, n_events: int, n_rollouts: int
+) -> tuple[np.ndarray | None, int | None]:
+    """Validated ``(v_plan, plan_every)`` of a leader override (extension S8): planned speeds (E, R, J, L) float32 of
+    the predecessor at its re-plans every ``plan_every`` steps; ``(None, None)`` without ``v_plan``."""
+    if override is None or override.get("v_plan") is None:
+        return None, None
+    arr = np.asarray(override["v_plan"], dtype=np.float32)
+    if arr.ndim != 4 or arr.shape[0] != n_events or arr.shape[1] != n_rollouts or arr.shape[2] < 1 or arr.shape[3] < 1:
+        raise ValueError(f"leader_override['v_plan'] must have shape (E, R, J, L) = ({n_events}, {n_rollouts}, J, L), got {arr.shape}")
+    every = override.get("plan_every")
+    if isinstance(every, bool) or not isinstance(every, (int, np.integer)) or int(every) < 1:
+        raise ValueError(f"leader_override['plan_every'] must be a positive integer (steps between the plans), got {every!r}")
+    return arr, int(every)
+
+
 def _blocks(n_events: int, stream_events: int, n_rollouts: int, max_batch: int) -> list[list[tuple[int, int]]]:
     """Batches of whole random-stream blocks: [[(first_event, last_event_excl), ...], ...]."""
     block = min(int(stream_events), n_events)
@@ -264,6 +284,7 @@ def rollout_events(
     device: str | torch.device | None = None,
     leader_override: Mapping[str, np.ndarray] | None = None,
     keep_paths: bool = False,
+    record_plans: bool = False,
 ) -> RolloutResult:
     """Roll ``model`` out ``cfg.n_rollouts`` times from every event (module docstring).
 
@@ -275,6 +296,10 @@ def rollout_events(
                      [m] (event frame) and speed [m/s] at t0 .. t0 + K replacing the recorded leader (the history
                      stays the recorded one); used by platoon rollouts
     keep_paths       also return the full gap, speed and position paths (E, R, K + 1)
+    record_plans     a plan sampler whose ``init_sampler`` takes ``record_plans`` stores the planned speeds of every
+                     re-plan (``RolloutResult.plans``, extension S8); ``leader_override`` may then carry ``v_plan``
+                     (E, R, J, L) and ``plan_every`` of the predecessor, handed to a sampler that takes ``v_lead_plan``
+                     as the preview of the leader's future (plan sharing) instead of the realised ``v_lead``
     """
     cfg = cfg or RolloutConfig()
     evs = _event_list(events)
@@ -288,6 +313,10 @@ def rollout_events(
     if dev != model.device:
         model.to(dev)
     override = _leader_override(leader_override, n_ev, n_r, n_k)
+    v_plan, plan_every = _plan_override(leader_override, n_ev, n_r)
+    pass_plan = v_plan is not None and accepts_keyword(model.init_sampler, "v_lead_plan")
+    pass_record = bool(record_plans) and accepts_keyword(model.init_sampler, "record_plans")
+    plans_out: np.ndarray | None = None
     h_steps = cfg.horizon_steps
     n_h = h_steps.size
     pass_v_lead = accepts_keyword(model.init_sampler, "v_lead")
@@ -350,12 +379,18 @@ def rollout_events(
                     kwargs["v_lead"] = lv[a - e0 : z - e0].expand(z - a, n_r, n_k + 1).reshape((z - a) * n_r, n_k + 1).float()
                 if pass_preview:
                     kwargs["preview"] = cfg.preview
+                if pass_plan:
+                    kwargs["v_lead_plan"] = torch.as_tensor(v_plan[a:z].reshape((z - a) * n_r, *v_plan.shape[2:]),
+                                                            dtype=torch.float32, device=dev)  # fmt: skip
+                    kwargs["plan_every"] = plan_every
+                if pass_record:
+                    kwargs["record_plans"] = True
                 state = model.init_sampler((z - a) * n_r, gen, cfg.sampler_mode, **kwargs)
-                streams.append((rows, gen, state))
+                streams.append((rows, gen, state, (a, z)))
 
             for k in range(n_k):
                 if k % hold == 0:
-                    for rows, gen, state in streams:
+                    for rows, gen, state, _ in streams:
                         a_cmd[rows] = model.sample_step(track[rows, k : k + hist], state, gen).to(_F64)
                 acc = a_cmd.clamp(A_MIN, A_MAX)
                 v = (v + acc * DT).clamp_(min=0.0, max=cfg.v_max)
@@ -371,6 +406,14 @@ def rollout_events(
                 if paths is not None:
                     p_s[:, k + 1], p_v[:, k + 1], p_x[:, k + 1] = s, v, x
 
+            if pass_record:
+                for _, _, state, (a, z) in streams:
+                    rec = state.get("plans")
+                    if rec:
+                        stacked = torch.stack(rec, dim=1).float().cpu().numpy()  # (rows, J, L)
+                        if plans_out is None:
+                            plans_out = np.empty((n_ev, n_r, *stacked.shape[1:]), dtype=np.float32)
+                        plans_out.reshape(n_ev * n_r, *stacked.shape[1:])[a * n_r : z * n_r] = stacked
             shape = (n_b, n_r)
             out_s[e0:e1] = s_h.reshape(*shape, n_h).cpu().numpy()
             out_v[e0:e1] = v_h.reshape(*shape, n_h).cpu().numpy()
@@ -410,4 +453,6 @@ def rollout_events(
         v_path=None if paths is None else paths["v"],
         x_path=None if paths is None else paths["x"],
         info=info,
+        plans=plans_out,
+        plan_every=None if plans_out is None else int(getattr(model, "replan_every")),
     )

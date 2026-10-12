@@ -1,0 +1,30 @@
+% tab:c30_moderef: H3.2 against the mode-calibrated references (extension S6)
+% Sources: extension/artifacts/ext_e3_idmref/tables/h32_mode_reference.csv
+% Written by scripts/compact_tables/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c30_moderef} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{H3.2 against the references calibrated per driver mode (extension S6): reduction of the amplitude CRPS of every stored law against the IDM + white noise reference calibrated on the OpenACC events of the profiles' driver mode (ACC profiles: the ACC reference; human-driven profiles: the human reference), extended set, response window, 95\% file-cluster interval and verdict, with the stored verdict against the highD reference in parentheses; by training regime. Reference-robust (the two verdicts agree) in 43 of 52 law--mode--cell combinations.\label{tab:c30_moderef}}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{llCCCC}
+\toprule
+\textbf{Law} & \textbf{Mode} & \textbf{highD} & \textbf{harmonised} & \textbf{pooled} & \textbf{OpenACC held out} \\
+\midrule
+IDM + AR(1) noise & ACC & $-$0.28 [$-$0.95, 0.04] ref. (inc.) & -- & $-$0.17 [$-$0.81, 0.14] inc. (inc.) & $-$0.19 [$-$0.84, 0.12] inc. (inc.) \\
+ & Human & $-$0.91 [$-$1.20, $-$0.59] ref. (ref.) & -- & $-$0.77 [$-$1.12, $-$0.40] ref. (ref.) & $-$0.82 [$-$1.18, $-$0.45] ref. (ref.) \\
+LSTM, constant $\sigma$ & ACC & $-$21.94 [$-$34.26, $-$11.10] ref. (ref.) & $-$3.91 [$-$6.76, $-$1.88] ref. (ref.) & $-$9.10 [$-$11.85, $-$6.03] ref. (ref.) & $-$28.87 [$-$44.02, $-$15.69] ref. (ref.) \\
+ & Human & $-$27.85 [$-$34.52, $-$6.30] ref. (ref.) & $-$3.24 [$-$4.35, $-$0.76] ref. (ref.) & $-$18.20 [$-$23.09, $-$3.02] ref. (ref.) & $-$45.06 [$-$61.90, $-$2.15] ref. (ref.) \\
+Deep ensemble & ACC & $-$8.44 [$-$15.13, $-$3.78] ref. (ref.) & $-$18.84 [$-$30.41, $-$9.20] ref. (ref.) & $-$5.02 [$-$8.28, $-$2.36] ref. (ref.) & $-$13.16 [$-$19.22, $-$8.46] ref. (ref.) \\
+ & Human & $-$12.67 [$-$14.61, $-$1.43] ref. (ref.) & $-$26.84 [$-$28.12, $-$0.95] ref. (ref.) & $-$7.30 [$-$7.80, $-$1.14] ref. (ref.) & $-$24.28 [$-$25.90, $-$4.75] ref. (ref.) \\
+GP residual on IDM & ACC & $-$0.16 [$-$0.71, 0.21] inc. (inc.) & $-$0.15 [$-$0.69, 0.21] inc. (inc.) & $-$0.09 [$-$0.42, 0.12] inc. (inc.) & $-$0.12 [$-$0.53, 0.13] inc. (inc.) \\
+ & Human & $-$1.14 [$-$1.61, $-$0.60] ref. (ref.) & $-$1.23 [$-$1.62, $-$0.91] ref. (ref.) & $-$0.65 [$-$1.20, $-$0.11] ref. (ref.) & $-$0.35 [$-$1.02, $-$0.28] ref. (ref.) \\
+Quantile PIDL & ACC & $-$1.18 [$-$2.32, $-$0.60] ref. (ref.) & $-$0.82 [$-$2.16, $-$0.25] ref. (inc.) & $-$0.69 [$-$1.71, $-$0.19] ref. (inc.) & $-$0.62 [$-$1.57, $-$0.05] ref. (inc.) \\
+ & Human & $-$3.57 [$-$3.90, $-$3.21] ref. (ref.) & $-$0.77 [$-$5.63, $-$0.27] ref. (ref.) & $-$1.66 [$-$2.20, $-$1.06] ref. (ref.) & $-$1.50 [$-$2.28, $-$0.62] ref. (ref.) \\
+Diffusion & ACC & 0.09 [$-$0.69, 0.41] inc. (inc.) & 0.20 [$-$0.43, 0.46] inc. (inc.) & 0.39 [0.09, 0.52] inc. (supp.) & 0.26 [0.06, 0.36] inc. (supp.) \\
+ & Human & $-$0.05 [$-$0.14, 0.13] inc. (ref.) & $-$0.04 [$-$0.09, 0.16] inc. (ref.) & $-$0.03 [$-$0.06, 0.15] inc. (inc.) & 0.20 [0.12, 0.29] inc. (inc.) \\
+Diffusion, history only & ACC & $-$4.20 [$-$6.45, $-$2.99] ref. (ref.) & -- & $-$0.83 [$-$2.08, $-$0.25] ref. (inc.) & $-$1.02 [$-$2.57, $-$0.36] ref. (ref.) \\
+ & Human & $-$8.58 [$-$9.29, $-$3.95] ref. (ref.) & -- & $-$1.63 [$-$2.37, $-$0.82] ref. (ref.) & $-$2.56 [$-$3.38, $-$1.91] ref. (ref.) \\
+\bottomrule
+\end{tabularx}
+\end{table*}

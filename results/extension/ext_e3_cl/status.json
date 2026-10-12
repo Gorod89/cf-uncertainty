@@ -1,0 +1,28 @@
+{
+  "current": null,
+  "device": "cuda",
+  "done": 2700,
+  "elapsed_s": 2010.2,
+  "failures": [],
+  "finished": true,
+  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_e3_cl",
+  "skipped": {},
+  "started": "2026-10-12 19:39:08",
+  "total": 2700,
+  "updated": "2026-10-12 20:12:38",
+  "variants": {
+    "lodo_openacc": {
+      "done": 900,
+      "total": 900
+    },
+    "pool": {
+      "done": 900,
+      "total": 900
+    },
+    "raw": {
+      "done": 900,
+      "total": 900
+    }
+  },
+  "written_now": 2700
+}

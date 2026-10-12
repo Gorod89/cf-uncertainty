@@ -39,6 +39,19 @@ REGENERATE = {  # source directory prefix -> the command that regenerates it (fr
     "extension/artifacts/ext_followcheck/": "python extension/scripts/follownet_check.py",
     "extension/artifacts/ext_e1_ngsim/": "bash scripts/run_e1_retry.sh extension/artifacts/ext_e1_ngsim/logs/run.out 8 --config extension/configs/experiment/ext_e1_ngsim.yaml; python scripts/analyze_e1.py --root extension/artifacts/ext_e1_ngsim --config extension/configs/experiment/ext_e1_ngsim.yaml --in-domain ngsim --placebo ngsim_val",
     "extension/artifacts/ext_e3_ngsim/": "bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_ngsim/logs/run.out 8 --config extension/configs/experiment/ext_e3_ngsim.yaml; python scripts/analyze_e3.py --root extension/artifacts/ext_e3_ngsim",
+    # the strengthening items (extension/docs/PLAN.md section S; the runs of extension/scripts/queue2.sh and queue3.sh)
+    "extension/artifacts/ext_reweight/": "python extension/scripts/state_reweight.py",
+    "extension/artifacts/ext_coverage/": "python extension/scripts/conditional_coverage.py",
+    "extension/artifacts/ext_string/": "python extension/scripts/string_stability.py",
+    "extension/artifacts/ext_idm_modes/": "python extension/scripts/calibrate_idm_modes.py",
+    "extension/artifacts/ext_e3_idmref/": "bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_idmref/logs/run.out 8 --config extension/configs/experiment/ext_e3_idmref.yaml; python scripts/analyze_e3.py --root extension/artifacts/ext_e3_idmref; python extension/scripts/idm_ref_rerate.py",
+    "extension/artifacts/ext_e3_replan/": "bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_replan/logs/run.out 8 --config extension/configs/experiment/ext_e3_replan.yaml (then ext_e3_replan_b.yaml); python scripts/analyze_e3.py --root extension/artifacts/ext_e3_replan; python extension/scripts/replan_tradeoff.py",
+    "extension/artifacts/ext_cl_highd/": "bash scripts/run_e1_retry.sh extension/artifacts/ext_cl_highd/logs/run.out 8 --config extension/configs/experiment/ext_cl_highd.yaml; python scripts/analyze_e1.py --root extension/artifacts/ext_cl_highd --config extension/configs/experiment/ext_cl_highd.yaml",
+    "extension/artifacts/ext_cl_pool/": "bash scripts/run_e1_retry.sh extension/artifacts/ext_cl_pool/logs/run.out 8 --config extension/configs/experiment/ext_cl_pool.yaml; python scripts/analyze_e1.py --root extension/artifacts/ext_cl_pool --config extension/configs/experiment/ext_cl_pool.yaml",
+    "extension/artifacts/ext_cl_lodo/": "bash scripts/run_e1_retry.sh extension/artifacts/ext_cl_lodo/logs/run.out 8 --config extension/configs/experiment/ext_cl_lodo.yaml; python scripts/analyze_e1.py --root extension/artifacts/ext_cl_lodo --config extension/configs/experiment/ext_cl_lodo.yaml",
+    "extension/artifacts/ext_e2_cl/": "bash scripts/run_e2_retry.sh extension/artifacts/ext_e2_cl/logs/run.out 8 --config extension/configs/experiment/ext_e2_cl.yaml; python scripts/analyze_e2.py --root extension/artifacts/ext_e2_cl",
+    "extension/artifacts/ext_e3_cl/": "bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_cl/logs/run.out 8 --config extension/configs/experiment/ext_e3_cl.yaml; python scripts/analyze_e3.py --root extension/artifacts/ext_e3_cl",
+    "extension/artifacts/ext_cl_summary/": "python extension/scripts/closed_loop_compare.py",
 }
 
 
@@ -57,6 +70,8 @@ def sha256(path: pathlib.Path) -> str:
 ASSET_ONLY = ("artifacts/e3/tables/profile_index.csv", "artifacts/e3/tables/profile_index_seed.csv")  # 16 and 5 MB: release asset
 EXT_ASSET_ONLY = tuple(f"extension/artifacts/{r}/tables/{f}" for r in ("ext_e3_preview", "ext_e3_ngsim")
                        for f in ("profile_index.csv", "profile_index_seed.csv"))  # 23 + 7 and 4 + 1 MB: release asset
+S_ASSET_ONLY = tuple(f"extension/artifacts/{r}/tables/{f}" for r in ("ext_e3_replan", "ext_e3_idmref", "ext_e3_cl")
+                     for f in ("profile_index.csv", "profile_index_seed.csv"))  # release asset of v1.5.0
 
 
 def published(path: str) -> str:
@@ -64,6 +79,8 @@ def published(path: str) -> str:
         return "release asset e3_platoon_tables.tar.gz: " + path[len("artifacts/e3/"):]
     if path in EXT_ASSET_ONLY:
         return "release asset ext_platoon_tables.tar.gz: " + path[len("extension/artifacts/"):]
+    if path in S_ASSET_ONLY:
+        return "release asset s_platoon_tables.tar.gz: " + path[len("extension/artifacts/"):]
     if path.startswith("artifacts/report/"):
         return "results/report/" + path[len("artifacts/report/"):]
     if path.startswith("artifacts/"):
@@ -79,9 +96,10 @@ def main() -> None:
     args = ap.parse_args()
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     lines = ["# Sources of the article tables", "",
-             "Manuscript version v13 (tables c1-c19, public release v1.3.1) and its extension v14 (tables c20-c24, public release "
-             "v1.4.0; the sources of the extension tables are published under results/extension/<root>/tables/, the per-profile "
-             "platoon tables of the two new platoon roots in the release asset ext_platoon_tables.tar.gz). For every result table of the article: the files it was "
+             "Manuscript version v13 (tables c1-c19, public release v1.3.1), its extension v14 (tables c20-c24, public release "
+             "v1.4.0) and the strengthening items of v15 (tables c25-c31, public release v1.5.0); the sources of the extension tables "
+             "are published under results/extension/<root>/tables/, the per-profile platoon tables of the new platoon roots in the "
+             "release assets ext_platoon_tables.tar.gz (v1.4.0) and s_platoon_tables.tar.gz (v1.5.0). For every result table of the article: the files it was "
              "built from (SHA-256 of the file as published), the script that wrote the table and the command that "
              "regenerates its sources from the experiment artefacts. Paths under `results/report/` are the report "
              "assembly (`scripts/make_report.py`), paths under `results/controls/` the analysis tables of the experiment "

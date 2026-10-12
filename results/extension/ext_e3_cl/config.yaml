@@ -1,0 +1,74 @@
+root: extension/artifacts/ext_e3_cl
+device: auto
+tf32: false
+checkpoints:
+  a: extension/artifacts/ext_cl_highd/checkpoints
+variants:
+  pool:
+    a: extension/artifacts/ext_cl_pool/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    models:
+      idm_white_noise:
+        checkpoints: artifacts/e6_pool/checkpoints
+  lodo_openacc:
+    a: extension/artifacts/ext_cl_lodo/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    models:
+      idm_white_noise:
+        checkpoints: artifacts/e6_lodo_openacc/checkpoints
+models:
+  idm_white_noise:
+    target: a
+    sampler_mode: per_step
+    hold_steps: 1
+    checkpoints: artifacts/e1/checkpoints
+  hetero_mdn_cl:
+    target: a
+    sampler_mode: per_step
+    hold_steps: 1
+  lstm_const_sigma_cl:
+    target: a
+    sampler_mode: per_step
+    hold_steps: 1
+seeds:
+- 0
+- 1
+- 2
+- 3
+- 4
+platoon:
+  n_followers: 20
+  n_rollouts: 100
+  n_rollouts_sampled: 32
+  history_s: 3.0
+  burn_in_s: 30.0
+  tail_s: 40.0
+  max_batch: 100000
+  seed: 0
+  gap_cap: 120.0
+  batch_profiles: 60
+  v_max: null
+profiles: configs/platoon/profiles.yaml
+run_profiles: extended
+idm: artifacts/e1/idm.json
+sets:
+  headline: 10
+  extended: null
+calibration:
+  alpha: 0.1
+  gamma: 0.01
+  n_min: 5
+bootstrap:
+  n_boot: 1000
+  ci: 0.95
+  seed: 0
+h32:
+  support_min: 0.2
+  refute_max: 0.05
+  reference: idm_white_noise
+  references_extra: []
+  min_profiles: 5

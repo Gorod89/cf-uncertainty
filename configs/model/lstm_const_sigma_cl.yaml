@@ -1,0 +1,18 @@
+# LSTM with constant sigma fine-tuned in closed loop (extension S7, cf_unc.models.closed_loop): the stored
+# lstm_const_sigma checkpoint of the same seed trained further with its MSE plus the squared gap and speed errors of a
+# 5 s rollout of the predicted mean behind the recorded leader; sigma refitted on the validation residuals.
+name: lstm_const_sigma_cl
+kwargs:
+  init_from: artifacts/e1/checkpoints/lstm_const_sigma
+  horizon_steps: 50
+  weight: 1.0
+  hidden: 64
+  head_hidden: 64
+train:
+  max_epochs: 3
+  batch_size: 256
+  lr: 3.0e-4
+  patience: 2
+  ema_decay: 0.0
+needs_idm: false
+needs_sequences: true

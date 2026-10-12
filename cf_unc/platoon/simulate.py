@@ -190,6 +190,7 @@ def simulate_platoon(
     keep_paths: bool = False,
     ids: Sequence[str] | None = None,
     preview: Any = None,
+    share_plans: bool = False,
 ) -> PlatoonResult:
     """Cascade of ``cfg.n_followers`` followers behind every leader profile (module docstring).
 
@@ -201,6 +202,10 @@ def simulate_platoon(
     keep_paths    also return every path (memory: 3 x E x V x R x (K + 1) float64; for tests and diagnostics)
     preview       optional ``PreviewSpec`` (or its mapping, ``RolloutConfig.preview``): the predecessor's future handed
                   to a plan sampler truncated, noisy or stale (extension X1); None: the stored behaviour
+    share_plans   plan sharing (extension S8): every plan sampler records its planned speeds at each re-plan, and
+                  vehicle i + 1 is handed the plans of vehicle i (same rollout) as the preview of its leader's
+                  future instead of the realised path; vehicle 1 keeps the recorded leader's future; a model that
+                  samples no plans is simulated as without it
     """
     t_start = time.perf_counter()
     n_e, n_v = len(profiles), int(cfg.n_followers)
@@ -241,6 +246,7 @@ def simulate_platoon(
     mean_speed = np.empty((n_e, n_v, n_k + 1), dtype=np.float32) if keep_mean_speed else None
     paths = {k: np.empty((n_e, n_v, n_r, n_k + 1)) for k in ("s", "v", "x")} if keep_paths else None
     override_x, override_v = lead_x[:, None, :], lead_v[:, None, :]  # vehicle 1: the leader, per profile
+    prev_plans, prev_every = None, None  # plans of the predecessor (plan sharing)
     seconds = []
     for i in range(1, n_v + 1):
         started = time.perf_counter()
@@ -248,10 +254,14 @@ def simulate_platoon(
             steady_event(f"{names[e]}/veh{i}", float(u0[e]), float(gaps[e]), float(override_x[e, 0, 0] - gaps[e]), HIST_LEN + n_k)
             for e in range(n_e)
         ]  # fmt: skip
+        override: dict[str, Any] = {"x_lead": override_x, "v_lead": override_v}
+        if share_plans and prev_plans is not None:
+            override.update(v_plan=prev_plans, plan_every=prev_every)
         res = rollout_events(
             model, events, cfg=replace(base, seed=seeds[i - 1]), device=device, keep_paths=True,
-            leader_override={"x_lead": override_x, "v_lead": override_v},
+            leader_override=override, record_plans=bool(share_plans),
         )  # fmt: skip
+        prev_plans, prev_every = res.plans, res.plan_every
         v_path, s_path = res.v_path, res.s_path  # (E, R, K + 1)
         for e in range(n_e):
             a, b = burn, burn + int(lengths[e])
@@ -279,6 +289,7 @@ def simulate_platoon(
         "n_steps": n_k,
         "trajectories_per_call": n_e * n_r,
         "device": str(model.device),
+        "share_plans": bool(share_plans),
     }
     return PlatoonResult(
         amplitude=out["amplitude"], sd=out["sd"], amplitude_profile=out["amplitude_profile"], sd_profile=out["sd_profile"],

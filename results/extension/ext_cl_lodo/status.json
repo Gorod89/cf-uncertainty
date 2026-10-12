@@ -1,0 +1,42 @@
+{
+  "checkpoints": {
+    "done": 10,
+    "total": 10,
+    "trained_now": 10
+  },
+  "current": null,
+  "device": "cuda",
+  "done": 90,
+  "elapsed_s": 1254.9,
+  "failures": [],
+  "finished": true,
+  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_lodo",
+  "signal": "matched",
+  "started": "2026-10-12 18:57:54",
+  "tables": {
+    "done": 80,
+    "total": 80,
+    "written_now": 80
+  },
+  "target": "a",
+  "total": 90,
+  "train_data": [
+    "highd",
+    "ngsim",
+    "ngsim_us101",
+    "waymo"
+  ],
+  "trained": [
+    "hetero_mdn_cl/seed0",
+    "hetero_mdn_cl/seed1",
+    "hetero_mdn_cl/seed2",
+    "hetero_mdn_cl/seed3",
+    "hetero_mdn_cl/seed4",
+    "lstm_const_sigma_cl/seed0",
+    "lstm_const_sigma_cl/seed1",
+    "lstm_const_sigma_cl/seed2",
+    "lstm_const_sigma_cl/seed3",
+    "lstm_const_sigma_cl/seed4"
+  ],
+  "updated": "2026-10-12 19:18:49"
+}

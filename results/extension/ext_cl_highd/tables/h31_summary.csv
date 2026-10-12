@@ -1,0 +1,3 @@
+model,kind,n_pairs,n_supported,n_refuted,n_inconclusive,overall,n_supported_point,n_refuted_point,n_inconclusive_point,overall_point,n_placebo,placebo_verdicts,n_cross_check,cross_check_verdicts
+hetero_mdn_cl,seed_ensemble,4,0,4,0,refuted,0,4,0,refuted,1,highd_val:refuted,1,ngsim_fn:inconclusive
+lstm_const_sigma_cl,seed_ensemble,4,4,0,0,supported,4,0,0,supported,1,highd_val:refuted,1,ngsim_fn:supported

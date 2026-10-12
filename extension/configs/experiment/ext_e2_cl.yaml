@@ -1,0 +1,12 @@
+# Extension S7 (extension/docs/PLAN.md, section S): closed-loop rollouts (E2) of the closed-loop fine-tuned networks of
+# the highD root ext_cl_highd, target a only; the twins' rows are in artifacts/e2/tables. Analysis as E2 (H3.4).
+#   bash scripts/run_e2_retry.sh extension/artifacts/ext_e2_cl/logs/run.out 8 --config extension/configs/experiment/ext_e2_cl.yaml
+#   PYTHONUTF8=1 ./.venv/Scripts/python.exe scripts/analyze_e2.py --root extension/artifacts/ext_e2_cl
+base: ../../../configs/experiment/e2.yaml
+root: extension/artifacts/ext_e2_cl
+targets:
+  a: {checkpoints: extension/artifacts/ext_cl_highd/checkpoints, hold_steps: 1}
+  mean_1s: null
+models: [hetero_mdn_cl, lstm_const_sigma_cl]
+variants: {deep_ensemble__traj: null, mc_dropout__traj: null, gp_residual_idm__step: null}   # the sampler-mode variants of e2.yaml do not apply
+e1_roots: {a: extension/artifacts/ext_cl_highd}

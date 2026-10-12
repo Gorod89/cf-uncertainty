@@ -1,0 +1,35 @@
+# Extension S4 (extension/docs/PLAN.md, section S): cells added to the preview root ext_e3_preview. The pairwise and
+# triple combinations of horizon 2 s, noise 0.5 m/s and delay 0.5 s on the stored pooled checkpoints, and the 2 s
+# budget-trained laws (ext_pool_prev2, ext_lodo_prev2) under noise 0.5 m/s and under delay 0.5 s. Same run spec as
+# ext_e3_preview.yaml (the stored units of the other cells are left as they are).
+#   bash scripts/run_e3_retry.sh extension/artifacts/ext_e3_preview/logs/run.out 8 --config extension/configs/experiment/ext_e3_preview_c.yaml
+root: extension/artifacts/ext_e3_preview
+device: auto
+tf32: false
+checkpoints: {}                                        # no raw variant in this file (the stored units of stage A)
+variants:
+  pool_h2n05: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {horizon_s: 2.0, noise_sigma: 0.5}}
+  pool_h2d05: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {horizon_s: 2.0, delay_s: 0.5}}
+  pool_n05d05: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {noise_sigma: 0.5, delay_s: 0.5}}
+  pool_h2n05d05: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {horizon_s: 2.0, noise_sigma: 0.5, delay_s: 0.5}}
+  pool_t2_n05: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {noise_sigma: 0.5}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_pool_prev2/checkpoints}}}
+  pool_t2_d05: {a: artifacts/e6_pool/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {delay_s: 0.5}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_pool_prev2/checkpoints}}}
+  lodo_openacc_h2n05: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {horizon_s: 2.0, noise_sigma: 0.5}}
+  lodo_openacc_h2d05: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {horizon_s: 2.0, delay_s: 0.5}}
+  lodo_openacc_n05d05: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {noise_sigma: 0.5, delay_s: 0.5}}
+  lodo_openacc_h2n05d05: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {horizon_s: 2.0, noise_sigma: 0.5, delay_s: 0.5}}
+  lodo_openacc_t2_n05: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {noise_sigma: 0.5}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_lodo_prev2/checkpoints}}}
+  lodo_openacc_t2_d05: {a: artifacts/e6_lodo_openacc/checkpoints, profile_window: {matching: artifacts/e1m/matching.json, data: openacc}, preview: {delay_s: 0.5}, models: {diffusion_cf: {checkpoints: extension/artifacts/ext_lodo_prev2/checkpoints}}}
+models:
+  idm_white_noise: {target: a, sampler_mode: per_step, hold_steps: 1}
+  diffusion_cf:    {target: a, sampler_mode: per_step, hold_steps: 1}
+seeds: [0, 1, 2, 3, 4]
+platoon: {n_followers: 20, n_rollouts: 100, n_rollouts_sampled: 32, history_s: 3.0, burn_in_s: 30.0, tail_s: 40.0,
+          max_batch: 100000, seed: 0, gap_cap: 120.0, batch_profiles: 60, v_max: null}
+profiles: configs/platoon/profiles.yaml
+run_profiles: extended
+idm: artifacts/e1/idm.json
+sets: {headline: 10, extended: null}
+calibration: {alpha: 0.1, gamma: 0.01, n_min: 5}
+bootstrap: {n_boot: 1000, ci: 0.95, seed: 0}
+h32: {support_min: 0.20, refute_max: 0.05, reference: idm_white_noise, references_extra: [], min_profiles: 5}

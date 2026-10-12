@@ -116,8 +116,10 @@ tests/                     pytest suite (markers: slow, data, gpu)
 results/report/            snapshot of artifacts/report for the article
 data/splits, data/calibration   driver-disjoint fold files and IDM calibrations (provenance of the sibling project)
 cf_unc/preview.py          PreviewSpec: the preview of the predecessor's future handed to the diffusion sampler (horizon, noise, delay)
-extension/                 release v1.4.0: configs (extension/configs/experiment), scripts (queue, cost table, preview sweep,
-                           FollowNet-protocol check), plan (extension/docs/PLAN.md); results in results/extension/
+extension/                 releases v1.4.0 and v1.5.0: configs (extension/configs/experiment), scripts (queues, cost table, preview
+                           sweep, FollowNet-protocol check, the nine strengthening items), plan (extension/docs/PLAN.md);
+                           results in results/extension/
+cf_unc/models/closed_loop.py  the one-step networks fine-tuned in closed loop (hetero_mdn_cl, lstm_const_sigma_cl)
 ```
 
 ## Reproduction
@@ -152,6 +154,48 @@ bash scripts/run_e1_retry.sh artifacts/e1m_mean1s_abv/logs/run.out 8 --config co
 # tables and figures of the article (no experiment, no GPU; a few seconds)
 python scripts/make_report.py                                   # artifacts/report/{tables,figures,index.md}
 ```
+
+## Strengthening items (release v1.5.0)
+
+Nine further items after the extension (plan and reading rules in `extension/docs/PLAN.md`, section S); their tables
+are published under `results/extension/<root>/tables/`, the compact tables of the manuscript as
+`results/compact_tables/c25_scorecard.tex` to `c31_closedloop.tex` (generator `scripts/compact_tables/make_ext_tables.py`,
+which reads the article tables from `CF_UNC_ARTIFACTS` and the extension tables from `CF_UNC_EXT_ARTIFACTS`).
+
+* **S1 scorecard** (`c25_scorecard.tex`): one verdict or value of every check per law, from the stored tables.
+* **S2 state-distribution part of the shift** (`results/extension/ext_reweight`): the shifted sets reweighted to the
+  highD occupancy of (s, dv, v); the NLL gap split into a state-distribution and a conditional part
+  (`extension/scripts/state_reweight.py`).
+* **S3 sampler settings** (`results/extension/ext_e3_replan`): the diffusion law re-planned every 1, 2 or 5 s and run with
+  10, 25, 50 or 100 DDIM steps at inference (the model-spec key `sampler` of an E3 variant, `DiffusionCF.configure_sampler`),
+  with the cost of every cell (`extension/scripts/replan_tradeoff.py`).
+* **S4 factorial preview cells** (`results/extension/ext_e3_preview`, rows of `preview_sweep.csv`): the combinations of
+  horizon 2 s, noise 0.5 m/s and delay 0.5 s, and the 2 s budget-trained law under noise or delay.
+* **S5 conditional coverage** (`results/extension/ext_coverage`): coverage of the corrected rollout intervals by regime at
+  the issue instant, the additive CQR variant and the interval score (`extension/scripts/conditional_coverage.py`).
+* **S6 reference per driver mode** (`results/extension/ext_idm_modes`, `ext_e3_idmref`): the IDM calibrated on the
+  OpenACC ACC and human-driven events as references of H3.2 (`extension/scripts/calibrate_idm_modes.py`,
+  `idm_ref_rerate.py`).
+* **S7 closed-loop fine-tuning** (`results/extension/ext_cl_highd`, `ext_cl_pool`, `ext_cl_lodo`, `ext_e2_cl`,
+  `ext_e3_cl`, `ext_cl_summary`): the LSTM and HeteroMDN checkpoints fine-tuned with a 5 s rollout loss
+  (`cf_unc/models/closed_loop.py`, `extension/scripts/closed_loop_compare.py`).
+* **S8 plan sharing** (cells `*_share` of `results/extension/ext_e3_replan`): followers handed their predecessor's sampled
+  plan instead of its realised future (`record_plans` / `v_plan` of the rollout engine, `simulate_platoon(share_plans=True)`,
+  the E3 variant key `share_plans`).
+* **S9 string stability** (`results/extension/ext_string`): amplitude ratios by vehicle index of the simulated and the
+  recorded platoons (`extension/scripts/string_stability.py`).
+
+```bash
+# the GPU queues in the order they were run (about 15 GPU hours on a shared RTX 6000 Ada); every step can be run alone
+bash extension/scripts/queue2.sh && bash extension/scripts/queue3.sh
+# the offline items and collectors
+for s in state_reweight conditional_coverage string_stability calibrate_idm_modes idm_ref_rerate replan_tradeoff closed_loop_compare preview_sweep; do
+  PYTHONUTF8=1 python extension/scripts/$s.py; done
+```
+
+The checkpoints of the fine-tuned laws and of the mode-calibrated references (111 files, 2.6 MB) are attached to release v1.5.0 as
+`checkpoints_s7.tar.gz` with a SHA-256 manifest (unpack into `extension/artifacts/`); the per-profile platoon tables of
+`ext_e3_replan`, `ext_e3_idmref` and `ext_e3_cl` as `s_platoon_tables.tar.gz`. The assets of v1.3.1 and v1.4.0 are unchanged.
 
 ## Extension (release v1.4.0)
 

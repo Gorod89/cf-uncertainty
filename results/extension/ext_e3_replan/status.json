@@ -1,0 +1,40 @@
+{
+  "current": null,
+  "device": "cuda",
+  "done": 3600,
+  "elapsed_s": 6074.0,
+  "failures": [],
+  "finished": true,
+  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_e3_replan",
+  "skipped": {},
+  "started": "2026-10-12 20:13:14",
+  "total": 3600,
+  "updated": "2026-10-12 21:54:28",
+  "variants": {
+    "lodo_openacc_r10_share": {
+      "done": 600,
+      "total": 600
+    },
+    "lodo_openacc_r20_share": {
+      "done": 600,
+      "total": 600
+    },
+    "lodo_openacc_r50_share": {
+      "done": 600,
+      "total": 600
+    },
+    "pool_r10_share": {
+      "done": 600,
+      "total": 600
+    },
+    "pool_r20_share": {
+      "done": 600,
+      "total": 600
+    },
+    "pool_r50_share": {
+      "done": 600,
+      "total": 600
+    }
+  },
+  "written_now": 3600
+}

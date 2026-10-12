@@ -27,7 +27,11 @@ ROOT = Path(__file__).resolve().parents[2]
 BASES = ("lodo_openacc", "pool", "raw")  # longest first: the variant name is matched by prefix
 CELLS = {"h0": ("horizon", 0.0), "h05": ("horizon", 0.5), "h1": ("horizon", 1.0), "h2": ("horizon", 2.0),
          "h3": ("horizon", 3.0), "h5": ("horizon", 5.0), "n025": ("noise", 0.25), "n05": ("noise", 0.5),
-         "n1": ("noise", 1.0), "d05": ("delay", 0.5), "d1": ("delay", 1.0), "t1": ("trained", 1.0), "t2": ("trained", 2.0)}
+         "n1": ("noise", 1.0), "d05": ("delay", 0.5), "d1": ("delay", 1.0), "t1": ("trained", 1.0), "t2": ("trained", 2.0),
+         # extension S4: the factorial combinations (value = number of factors) and the 2 s budget-trained law under
+         # noise 0.5 m/s or delay 0.5 s
+         "h2n05": ("combo_h2_n05", 2.0), "h2d05": ("combo_h2_d05", 2.0), "n05d05": ("combo_n05_d05", 2.0),
+         "h2n05d05": ("combo_h2_n05_d05", 3.0), "t2_n05": ("trained_noise", 2.0), "t2_d05": ("trained_delay", 2.0)}
 MODEL, REFERENCE = "diffusion_cf", "idm_white_noise"
 
 
@@ -35,7 +39,7 @@ def parse_variant(name: str) -> tuple[str, str, float] | None:
     if name == "raw":
         return "raw", "horizon", 5.0
     for base in BASES:
-        m = re.fullmatch(re.escape(base) + r"_([a-z]+\d+)", name)
+        m = re.fullmatch(re.escape(base) + r"_([a-z0-9_]+)", name)
         if m and m.group(1) in CELLS:
             return (base, *CELLS[m.group(1)])
     return None

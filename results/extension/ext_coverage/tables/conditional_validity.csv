@@ -1,0 +1,281 @@
+model,dataset,variant,horizon_s,n_regimes,n_failing,valid,failing_regimes,picp_min,picp_max
+deep_ensemble,highd,aci_online,10.0,5,1,False,braking 0.79 (n=32),0.79375,0.9457627118644067
+deep_ensemble,highd,cqr,10.0,5,2,False,braking 0.74 (n=32); steady 0.96 (n=118),0.74375,0.9627118644067797
+deep_ensemble,highd,raw,10.0,5,5,False,braking 0.28 (n=32); approaching 0.46 (n=133); free 0.51 (n=89); steady 0.52 (n=118); other 0.46 (n=115),0.28125,0.5220338983050847
+deep_ensemble,highd,static,10.0,5,1,False,braking 0.81 (n=32),0.80625,0.9491525423728814
+deep_ensemble,ngsim,aci_online,10.0,4,1,False,braking 0.70 (n=72),0.7,0.9389473684210526
+deep_ensemble,ngsim,cqr,10.0,4,4,False,congested 0.69 (n=249); braking 0.39 (n=72); approaching 0.61 (n=95); other 0.67 (n=55),0.39444444444444443,0.691566265060241
+deep_ensemble,ngsim,raw,10.0,4,4,False,congested 0.32 (n=249); braking 0.23 (n=72); approaching 0.35 (n=95); other 0.44 (n=55),0.23055555555555557,0.44
+deep_ensemble,ngsim,static,10.0,4,3,False,congested 0.82 (n=249); braking 0.60 (n=72); other 0.84 (n=55),0.6027777777777777,0.8568421052631578
+deep_ensemble,ngsim_us101,aci_online,10.0,5,1,False,braking 0.78 (n=89),0.7775280898876404,0.9231884057971015
+deep_ensemble,ngsim_us101,cqr,10.0,5,5,False,congested 0.72 (n=138); braking 0.43 (n=89); approaching 0.62 (n=74); steady 0.58 (n=78); other 0.62 (n=120),0.42696629213483145,0.7159420289855073
+deep_ensemble,ngsim_us101,raw,10.0,5,5,False,congested 0.37 (n=138); braking 0.19 (n=89); approaching 0.35 (n=74); steady 0.32 (n=78); other 0.38 (n=120),0.18876404494382024,0.37833333333333335
+deep_ensemble,ngsim_us101,static,10.0,5,5,False,congested 0.82 (n=138); braking 0.68 (n=89); approaching 0.82 (n=74); steady 0.78 (n=78); other 0.82 (n=120),0.6786516853932584,0.825
+deep_ensemble,openacc,aci_online,10.0,6,4,False,braking 0.77 (n=31); free 0.76 (n=49); steady 0.97 (n=205); other 0.81 (n=97),0.7551020408163265,0.9697560975609756
+deep_ensemble,openacc,cqr,10.0,6,5,False,congested 0.73 (n=52); braking 0.46 (n=31); approaching 0.70 (n=66); free 0.32 (n=49); other 0.60 (n=97),0.3224489795918367,0.9121951219512195
+deep_ensemble,openacc,raw,10.0,6,6,False,congested 0.45 (n=52); braking 0.17 (n=31); approaching 0.38 (n=66); free 0.15 (n=49); steady 0.54 (n=205); other 0.30 (n=97),0.1510204081632653,0.5434146341463415
+deep_ensemble,openacc,static,10.0,6,5,False,congested 0.84 (n=52); braking 0.67 (n=31); approaching 0.78 (n=66); free 0.56 (n=49); other 0.72 (n=97),0.5551020408163265,0.9190243902439025
+deep_ensemble,waymo,aci_online,10.0,5,1,False,braking 0.80 (n=50),0.8,0.92
+deep_ensemble,waymo,cqr,10.0,5,5,False,congested 0.77 (n=232); braking 0.56 (n=50); approaching 0.71 (n=65); steady 0.74 (n=58); other 0.70 (n=87),0.564,0.7672413793103449
+deep_ensemble,waymo,raw,10.0,5,5,False,congested 0.36 (n=232); braking 0.24 (n=50); approaching 0.34 (n=65); steady 0.33 (n=58); other 0.28 (n=87),0.236,0.3577586206896552
+deep_ensemble,waymo,static,10.0,5,5,False,congested 0.82 (n=232); braking 0.66 (n=50); approaching 0.81 (n=65); steady 0.77 (n=58); other 0.76 (n=87),0.664,0.8224137931034483
+deep_ensemble__traj,highd,aci_online,10.0,5,1,False,braking 0.84 (n=32),0.8375,0.9474576271186441
+deep_ensemble__traj,highd,cqr,10.0,5,2,False,braking 0.79 (n=32); other 0.84 (n=115),0.7875,0.9491525423728814
+deep_ensemble__traj,highd,raw,10.0,5,5,False,braking 0.64 (n=32); approaching 0.84 (n=133); free 0.77 (n=89); steady 0.82 (n=118); other 0.73 (n=115),0.6375,0.8360902255639098
+deep_ensemble__traj,highd,static,10.0,5,2,False,braking 0.82 (n=32); other 0.85 (n=115),0.825,0.9389830508474576
+deep_ensemble__traj,ngsim,aci_online,10.0,4,1,False,braking 0.75 (n=72),0.75,0.9136842105263158
+deep_ensemble__traj,ngsim,cqr,10.0,4,4,False,congested 0.74 (n=249); braking 0.45 (n=72); approaching 0.67 (n=95); other 0.71 (n=55),0.4527777777777778,0.7421686746987952
+deep_ensemble__traj,ngsim,raw,10.0,4,4,False,congested 0.63 (n=249); braking 0.36 (n=72); approaching 0.60 (n=95); other 0.61 (n=55),0.35833333333333334,0.6313253012048192
+deep_ensemble__traj,ngsim,static,10.0,4,4,False,congested 0.80 (n=249); braking 0.59 (n=72); approaching 0.78 (n=95); other 0.80 (n=55),0.5861111111111111,0.8036363636363636
+deep_ensemble__traj,ngsim_us101,aci_online,10.0,5,1,False,braking 0.81 (n=89),0.8067415730337079,0.9318840579710145
+deep_ensemble__traj,ngsim_us101,cqr,10.0,5,5,False,congested 0.78 (n=138); braking 0.44 (n=89); approaching 0.67 (n=74); steady 0.59 (n=78); other 0.64 (n=120),0.43595505617977526,0.7840579710144927
+deep_ensemble__traj,ngsim_us101,raw,10.0,5,5,False,congested 0.68 (n=138); braking 0.35 (n=89); approaching 0.57 (n=74); steady 0.49 (n=78); other 0.54 (n=120),0.34606741573033706,0.6753623188405797
+deep_ensemble__traj,ngsim_us101,static,10.0,5,5,False,congested 0.81 (n=138); braking 0.58 (n=89); approaching 0.76 (n=74); steady 0.68 (n=78); other 0.75 (n=120),0.5752808988764045,0.808695652173913
+deep_ensemble__traj,openacc,aci_online,10.0,6,4,False,braking 0.78 (n=31); free 0.77 (n=49); steady 0.96 (n=205); other 0.84 (n=97),0.7714285714285715,0.96
+deep_ensemble__traj,openacc,cqr,10.0,6,5,False,congested 0.79 (n=52); braking 0.53 (n=31); approaching 0.78 (n=66); free 0.55 (n=49); other 0.70 (n=97),0.5290322580645161,0.9209756097560976
+deep_ensemble__traj,openacc,raw,10.0,6,6,False,congested 0.73 (n=52); braking 0.43 (n=31); approaching 0.70 (n=66); free 0.48 (n=49); steady 0.85 (n=205); other 0.61 (n=97),0.4258064516129032,0.8468292682926829
+deep_ensemble__traj,openacc,static,10.0,6,3,False,braking 0.67 (n=31); free 0.66 (n=49); other 0.77 (n=97),0.6612244897959184,0.9297560975609757
+deep_ensemble__traj,waymo,aci_online,10.0,5,1,False,braking 0.80 (n=50),0.804,0.9318965517241379
+deep_ensemble__traj,waymo,cqr,10.0,5,3,False,braking 0.67 (n=50); steady 0.79 (n=58); other 0.77 (n=87),0.668,0.881896551724138
+deep_ensemble__traj,waymo,raw,10.0,5,5,False,congested 0.79 (n=232); braking 0.54 (n=50); approaching 0.75 (n=65); steady 0.65 (n=58); other 0.66 (n=87),0.54,0.7922413793103448
+deep_ensemble__traj,waymo,static,10.0,5,3,False,braking 0.74 (n=50); steady 0.81 (n=58); other 0.80 (n=87),0.736,0.8922413793103449
+diffusion_cf,highd,aci_online,10.0,5,1,False,braking 0.83 (n=32),0.83125,0.9135593220338983
+diffusion_cf,highd,cqr,10.0,5,1,False,braking 0.84 (n=32),0.84375,0.9220338983050848
+diffusion_cf,highd,raw,10.0,5,1,False,braking 0.85 (n=32),0.85,0.923728813559322
+diffusion_cf,highd,static,10.0,5,1,False,braking 0.84 (n=32),0.84375,0.923728813559322
+diffusion_cf,ngsim,aci_online,10.0,4,2,False,braking 0.81 (n=72); other 0.81 (n=55),0.8111111111111111,0.921285140562249
+diffusion_cf,ngsim,cqr,10.0,4,3,False,congested 0.84 (n=249); braking 0.68 (n=72); other 0.73 (n=55),0.675,0.8631578947368421
+diffusion_cf,ngsim,raw,10.0,4,3,False,congested 0.84 (n=249); braking 0.68 (n=72); other 0.73 (n=55),0.675,0.8631578947368421
+diffusion_cf,ngsim,static,10.0,4,3,False,congested 0.84 (n=249); braking 0.68 (n=72); other 0.74 (n=55),0.6805555555555556,0.8610526315789474
+diffusion_cf,ngsim_us101,aci_online,10.0,5,1,False,braking 0.84 (n=89),0.8359550561797753,0.9347826086956522
+diffusion_cf,ngsim_us101,cqr,10.0,5,4,False,braking 0.70 (n=89); approaching 0.85 (n=74); steady 0.83 (n=78); other 0.79 (n=120),0.7033707865168539,0.8681159420289855
+diffusion_cf,ngsim_us101,raw,10.0,5,3,False,braking 0.70 (n=89); steady 0.83 (n=78); other 0.79 (n=120),0.7033707865168539,0.8666666666666667
+diffusion_cf,ngsim_us101,static,10.0,5,4,False,braking 0.71 (n=89); approaching 0.85 (n=74); steady 0.82 (n=78); other 0.79 (n=120),0.7078651685393258,0.8681159420289855
+diffusion_cf,openacc,aci_online,10.0,6,3,False,braking 0.83 (n=31); steady 0.95 (n=205); other 0.82 (n=97),0.822680412371134,0.9541463414634146
+diffusion_cf,openacc,cqr,10.0,6,1,False,steady 0.97 (n=205),0.8709677419354839,0.9736585365853658
+diffusion_cf,openacc,raw,10.0,6,1,False,steady 0.97 (n=205),0.8709677419354839,0.9707317073170731
+diffusion_cf,openacc,static,10.0,6,1,False,steady 0.97 (n=205),0.8709677419354839,0.9736585365853658
+diffusion_cf,waymo,aci_online,10.0,5,2,False,braking 0.80 (n=50); other 0.84 (n=87),0.796,0.9301724137931034
+diffusion_cf,waymo,cqr,10.0,5,2,False,braking 0.70 (n=50); other 0.78 (n=87),0.704,0.8836206896551724
+diffusion_cf,waymo,raw,10.0,5,2,False,braking 0.71 (n=50); other 0.78 (n=87),0.712,0.8836206896551724
+diffusion_cf,waymo,static,10.0,5,2,False,braking 0.70 (n=50); other 0.78 (n=87),0.704,0.8853448275862069
+gp_residual_idm,highd,aci_online,10.0,5,2,False,braking 0.61 (n=32); steady 0.96 (n=118),0.6125,0.9627118644067797
+gp_residual_idm,highd,cqr,10.0,5,3,False,braking 0.72 (n=32); steady 0.97 (n=118); other 0.84 (n=115),0.71875,0.9745762711864406
+gp_residual_idm,highd,raw,10.0,5,5,False,braking 0.09 (n=32); approaching 0.23 (n=133); free 0.29 (n=89); steady 0.36 (n=118); other 0.25 (n=115),0.0875,0.3576271186440678
+gp_residual_idm,highd,static,10.0,5,2,False,braking 0.61 (n=32); steady 0.97 (n=118),0.60625,0.9661016949152542
+gp_residual_idm,ngsim,aci_online,10.0,4,1,False,braking 0.79 (n=72),0.7944444444444444,0.9236947791164659
+gp_residual_idm,ngsim,cqr,10.0,4,0,True,,0.8666666666666667,0.9221052631578948
+gp_residual_idm,ngsim,raw,10.0,4,4,False,congested 0.17 (n=249); braking 0.12 (n=72); approaching 0.17 (n=95); other 0.23 (n=55),0.12222222222222222,0.2290909090909091
+gp_residual_idm,ngsim,static,10.0,4,4,False,congested 0.84 (n=249); braking 0.73 (n=72); approaching 0.80 (n=95); other 0.82 (n=55),0.7305555555555555,0.8401606425702811
+gp_residual_idm,ngsim_us101,aci_online,10.0,5,0,True,,0.8753623188405797,0.9378378378378378
+gp_residual_idm,ngsim_us101,cqr,10.0,5,1,False,approaching 0.95 (n=74),0.8616666666666667,0.9513513513513514
+gp_residual_idm,ngsim_us101,raw,10.0,5,5,False,congested 0.14 (n=138); braking 0.21 (n=89); approaching 0.14 (n=74); steady 0.16 (n=78); other 0.15 (n=120),0.13783783783783785,0.20674157303370785
+gp_residual_idm,ngsim_us101,static,10.0,5,4,False,congested 0.83 (n=138); braking 0.82 (n=89); steady 0.84 (n=78); other 0.83 (n=120),0.8157303370786517,0.8783783783783784
+gp_residual_idm,openacc,aci_online,10.0,6,3,False,braking 0.63 (n=31); steady 0.98 (n=205); other 0.83 (n=97),0.632258064516129,0.9824390243902439
+gp_residual_idm,openacc,cqr,10.0,6,4,False,congested 0.79 (n=52); braking 0.55 (n=31); steady 0.98 (n=205); other 0.67 (n=97),0.5548387096774193,0.9824390243902439
+gp_residual_idm,openacc,raw,10.0,6,6,False,congested 0.18 (n=52); braking 0.06 (n=31); approaching 0.24 (n=66); free 0.33 (n=49); steady 0.43 (n=205); other 0.16 (n=97),0.06451612903225806,0.43121951219512195
+gp_residual_idm,openacc,static,10.0,6,4,False,congested 0.79 (n=52); braking 0.50 (n=31); steady 0.96 (n=205); other 0.74 (n=97),0.5032258064516129,0.9580487804878048
+gp_residual_idm,waymo,aci_online,10.0,5,2,False,braking 0.85 (n=50); approaching 0.99 (n=65),0.848,0.9876923076923076
+gp_residual_idm,waymo,cqr,10.0,5,2,False,congested 0.67 (n=232); other 0.72 (n=87),0.6655172413793103,0.9206896551724137
+gp_residual_idm,waymo,raw,10.0,5,5,False,congested 0.12 (n=232); braking 0.20 (n=50); approaching 0.30 (n=65); steady 0.22 (n=58); other 0.14 (n=87),0.12327586206896551,0.29846153846153844
+gp_residual_idm,waymo,static,10.0,5,3,False,congested 0.68 (n=232); braking 0.70 (n=50); other 0.74 (n=87),0.6801724137931034,0.8953846153846153
+gp_residual_idm__step,highd,aci_online,10.0,5,2,False,braking 0.62 (n=32); steady 0.96 (n=118),0.625,0.964406779661017
+gp_residual_idm__step,highd,cqr,10.0,5,3,False,braking 0.72 (n=32); steady 0.97 (n=118); other 0.85 (n=115),0.71875,0.9711864406779661
+gp_residual_idm__step,highd,raw,10.0,5,5,False,braking 0.07 (n=32); approaching 0.24 (n=133); free 0.28 (n=89); steady 0.36 (n=118); other 0.25 (n=115),0.06875,0.3576271186440678
+gp_residual_idm__step,highd,static,10.0,5,2,False,braking 0.62 (n=32); steady 0.96 (n=118),0.61875,0.964406779661017
+gp_residual_idm__step,ngsim,aci_online,10.0,4,1,False,braking 0.81 (n=72),0.8111111111111111,0.9127272727272727
+gp_residual_idm__step,ngsim,cqr,10.0,4,0,True,,0.8638888888888889,0.92
+gp_residual_idm__step,ngsim,raw,10.0,4,4,False,congested 0.16 (n=249); braking 0.12 (n=72); approaching 0.16 (n=95); other 0.22 (n=55),0.125,0.22181818181818183
+gp_residual_idm__step,ngsim,static,10.0,4,4,False,congested 0.81 (n=249); braking 0.72 (n=72); approaching 0.77 (n=95); other 0.81 (n=55),0.7194444444444444,0.8128514056224899
+gp_residual_idm__step,ngsim_us101,aci_online,10.0,5,0,True,,0.8674157303370786,0.9378378378378378
+gp_residual_idm__step,ngsim_us101,cqr,10.0,5,0,True,,0.8516666666666667,0.9486486486486486
+gp_residual_idm__step,ngsim_us101,raw,10.0,5,5,False,congested 0.14 (n=138); braking 0.21 (n=89); approaching 0.14 (n=74); steady 0.16 (n=78); other 0.14 (n=120),0.13513513513513514,0.21348314606741572
+gp_residual_idm__step,ngsim_us101,static,10.0,5,4,False,congested 0.81 (n=138); braking 0.81 (n=89); steady 0.83 (n=78); other 0.81 (n=120),0.8072463768115942,0.8648648648648649
+gp_residual_idm__step,openacc,aci_online,10.0,6,3,False,braking 0.65 (n=31); steady 0.99 (n=205); other 0.84 (n=97),0.6451612903225806,0.9902439024390244
+gp_residual_idm__step,openacc,cqr,10.0,6,5,False,congested 0.79 (n=52); braking 0.52 (n=31); free 0.84 (n=49); steady 0.98 (n=205); other 0.67 (n=97),0.5161290322580645,0.9814634146341463
+gp_residual_idm__step,openacc,raw,10.0,6,6,False,congested 0.17 (n=52); braking 0.06 (n=31); approaching 0.21 (n=66); free 0.16 (n=49); steady 0.42 (n=205); other 0.13 (n=97),0.06451612903225806,0.424390243902439
+gp_residual_idm__step,openacc,static,10.0,6,6,False,congested 0.78 (n=52); braking 0.48 (n=31); approaching 0.78 (n=66); free 0.70 (n=49); steady 0.96 (n=205); other 0.66 (n=97),0.4774193548387097,0.9570731707317073
+gp_residual_idm__step,waymo,aci_online,10.0,5,2,False,approaching 0.98 (n=65); other 0.95 (n=87),0.853448275862069,0.9846153846153847
+gp_residual_idm__step,waymo,cqr,10.0,5,2,False,congested 0.66 (n=232); other 0.71 (n=87),0.6560344827586206,0.9275862068965517
+gp_residual_idm__step,waymo,raw,10.0,5,5,False,congested 0.11 (n=232); braking 0.18 (n=50); approaching 0.29 (n=65); steady 0.21 (n=58); other 0.14 (n=87),0.11293103448275862,0.28615384615384615
+gp_residual_idm__step,waymo,static,10.0,5,3,False,congested 0.63 (n=232); braking 0.68 (n=50); other 0.72 (n=87),0.6344827586206897,0.8769230769230769
+hetero_mdn,highd,aci_online,10.0,5,0,True,,0.86875,0.9254237288135593
+hetero_mdn,highd,cqr,10.0,5,1,False,braking 0.81 (n=32),0.80625,0.9491525423728814
+hetero_mdn,highd,raw,10.0,5,5,False,braking 0.28 (n=32); approaching 0.30 (n=133); free 0.33 (n=89); steady 0.36 (n=118); other 0.33 (n=115),0.28125,0.3593220338983051
+hetero_mdn,highd,static,10.0,5,0,True,,0.86875,0.940677966101695
+hetero_mdn,ngsim,aci_online,10.0,4,1,False,braking 0.79 (n=72),0.7888888888888889,0.8995983935742972
+hetero_mdn,ngsim,cqr,10.0,4,4,False,congested 0.60 (n=249); braking 0.31 (n=72); approaching 0.44 (n=95); other 0.51 (n=55),0.3138888888888889,0.6016064257028112
+hetero_mdn,ngsim,raw,10.0,4,4,False,congested 0.18 (n=249); braking 0.07 (n=72); approaching 0.13 (n=95); other 0.16 (n=55),0.075,0.17751004016064256
+hetero_mdn,ngsim,static,10.0,4,4,False,congested 0.61 (n=249); braking 0.40 (n=72); approaching 0.50 (n=95); other 0.56 (n=55),0.4027777777777778,0.606425702811245
+hetero_mdn,ngsim_us101,aci_online,10.0,5,1,False,braking 0.79 (n=89),0.7932584269662921,0.9202898550724637
+hetero_mdn,ngsim_us101,cqr,10.0,5,5,False,congested 0.62 (n=138); braking 0.33 (n=89); approaching 0.55 (n=74); steady 0.53 (n=78); other 0.52 (n=120),0.3303370786516854,0.6173913043478261
+hetero_mdn,ngsim_us101,raw,10.0,5,5,False,congested 0.17 (n=138); braking 0.10 (n=89); approaching 0.15 (n=74); steady 0.15 (n=78); other 0.16 (n=120),0.10337078651685393,0.17391304347826086
+hetero_mdn,ngsim_us101,static,10.0,5,5,False,congested 0.65 (n=138); braking 0.42 (n=89); approaching 0.59 (n=74); steady 0.55 (n=78); other 0.57 (n=120),0.4157303370786517,0.6507246376811594
+hetero_mdn,openacc,aci_online,10.0,6,2,False,congested 0.81 (n=52); braking 0.80 (n=31),0.8,0.935609756097561
+hetero_mdn,openacc,cqr,10.0,6,6,False,congested 0.61 (n=52); braking 0.44 (n=31); approaching 0.66 (n=66); free 0.37 (n=49); steady 0.83 (n=205); other 0.58 (n=97),0.37142857142857144,0.8273170731707317
+hetero_mdn,openacc,raw,10.0,6,6,False,congested 0.25 (n=52); braking 0.14 (n=31); approaching 0.26 (n=66); free 0.13 (n=49); steady 0.37 (n=205); other 0.23 (n=97),0.1346938775510204,0.3668292682926829
+hetero_mdn,openacc,static,10.0,6,6,False,congested 0.69 (n=52); braking 0.66 (n=31); approaching 0.81 (n=66); free 0.80 (n=49); steady 0.85 (n=205); other 0.75 (n=97),0.6580645161290323,0.8468292682926829
+hetero_mdn,waymo,aci_online,10.0,5,1,False,braking 0.77 (n=50),0.772,0.9275862068965517
+hetero_mdn,waymo,cqr,10.0,5,5,False,congested 0.77 (n=232); braking 0.52 (n=50); approaching 0.70 (n=65); steady 0.75 (n=58); other 0.71 (n=87),0.524,0.7706896551724138
+hetero_mdn,waymo,raw,10.0,5,5,False,congested 0.24 (n=232); braking 0.13 (n=50); approaching 0.29 (n=65); steady 0.21 (n=58); other 0.23 (n=87),0.128,0.28923076923076924
+hetero_mdn,waymo,static,10.0,5,5,False,congested 0.77 (n=232); braking 0.57 (n=50); approaching 0.76 (n=65); steady 0.78 (n=58); other 0.76 (n=87),0.568,0.7827586206896552
+hetero_mdn_mix3,highd,aci_online,10.0,5,0,True,,0.85625,0.9338983050847458
+hetero_mdn_mix3,highd,cqr,10.0,5,2,False,braking 0.85 (n=32); steady 0.96 (n=118),0.85,0.9576271186440678
+hetero_mdn_mix3,highd,raw,10.0,5,5,False,braking 0.24 (n=32); approaching 0.35 (n=133); free 0.27 (n=89); steady 0.30 (n=118); other 0.28 (n=115),0.2375,0.3548872180451128
+hetero_mdn_mix3,highd,static,10.0,5,0,True,,0.8834782608695653,0.940677966101695
+hetero_mdn_mix3,ngsim,aci_online,10.0,4,1,False,braking 0.78 (n=72),0.775,0.9263157894736842
+hetero_mdn_mix3,ngsim,cqr,10.0,4,4,False,congested 0.54 (n=249); braking 0.31 (n=72); approaching 0.39 (n=95); other 0.43 (n=55),0.3111111111111111,0.5437751004016064
+hetero_mdn_mix3,ngsim,raw,10.0,4,4,False,congested 0.18 (n=249); braking 0.10 (n=72); approaching 0.12 (n=95); other 0.16 (n=55),0.1,0.17751004016064256
+hetero_mdn_mix3,ngsim,static,10.0,4,4,False,congested 0.62 (n=249); braking 0.43 (n=72); approaching 0.50 (n=95); other 0.55 (n=55),0.4305555555555556,0.6200803212851406
+hetero_mdn_mix3,ngsim_us101,aci_online,10.0,5,1,False,braking 0.80 (n=89),0.802247191011236,0.9297297297297298
+hetero_mdn_mix3,ngsim_us101,cqr,10.0,5,5,False,congested 0.54 (n=138); braking 0.35 (n=89); approaching 0.58 (n=74); steady 0.47 (n=78); other 0.46 (n=120),0.34831460674157305,0.5756756756756757
+hetero_mdn_mix3,ngsim_us101,raw,10.0,5,5,False,congested 0.19 (n=138); braking 0.11 (n=89); approaching 0.18 (n=74); steady 0.14 (n=78); other 0.14 (n=120),0.1146067415730337,0.18695652173913044
+hetero_mdn_mix3,ngsim_us101,static,10.0,5,5,False,congested 0.62 (n=138); braking 0.51 (n=89); approaching 0.68 (n=74); steady 0.56 (n=78); other 0.58 (n=120),0.5146067415730337,0.6837837837837838
+hetero_mdn_mix3,openacc,aci_online,10.0,6,3,False,congested 0.77 (n=52); free 0.84 (n=49); steady 0.95 (n=205),0.7692307692307693,0.9512195121951219
+hetero_mdn_mix3,openacc,cqr,10.0,6,6,False,congested 0.55 (n=52); braking 0.55 (n=31); approaching 0.65 (n=66); free 0.37 (n=49); steady 0.81 (n=205); other 0.61 (n=97),0.37142857142857144,0.8146341463414634
+hetero_mdn_mix3,openacc,raw,10.0,6,6,False,congested 0.12 (n=52); braking 0.20 (n=31); approaching 0.27 (n=66); free 0.15 (n=49); steady 0.25 (n=205); other 0.24 (n=97),0.11538461538461539,0.2727272727272727
+hetero_mdn_mix3,openacc,static,10.0,6,6,False,congested 0.62 (n=52); braking 0.75 (n=31); approaching 0.78 (n=66); free 0.67 (n=49); steady 0.84 (n=205); other 0.77 (n=97),0.6153846153846154,0.8370731707317073
+hetero_mdn_mix3,waymo,aci_online,10.0,5,4,False,congested 0.85 (n=232); braking 0.84 (n=50); steady 0.97 (n=58); other 0.96 (n=87),0.836,0.9689655172413794
+hetero_mdn_mix3,waymo,cqr,10.0,5,5,False,congested 0.65 (n=232); braking 0.54 (n=50); approaching 0.75 (n=65); steady 0.80 (n=58); other 0.71 (n=87),0.54,0.7965517241379311
+hetero_mdn_mix3,waymo,raw,10.0,5,5,False,congested 0.24 (n=232); braking 0.16 (n=50); approaching 0.26 (n=65); steady 0.24 (n=58); other 0.24 (n=87),0.164,0.26461538461538464
+hetero_mdn_mix3,waymo,static,10.0,5,5,False,congested 0.68 (n=232); braking 0.62 (n=50); approaching 0.79 (n=65); steady 0.81 (n=58); other 0.81 (n=87),0.62,0.8103448275862069
+idm_ar_noise,highd,aci_online,10.0,5,5,False,braking 0.50 (n=32); approaching 0.83 (n=133); free 0.97 (n=89); steady 0.99 (n=118); other 0.99 (n=115),0.5,0.9898305084745763
+idm_ar_noise,highd,cqr,10.0,5,4,False,braking 0.49 (n=32); free 0.98 (n=89); steady 0.99 (n=118); other 0.96 (n=115),0.49375,0.988135593220339
+idm_ar_noise,highd,raw,10.0,5,3,False,braking 0.29 (n=32); approaching 0.64 (n=133); steady 0.85 (n=118),0.29375,0.8808988764044944
+idm_ar_noise,highd,static,10.0,5,4,False,braking 0.59 (n=32); free 0.97 (n=89); steady 1.00 (n=118); other 0.99 (n=115),0.59375,0.9966101694915255
+idm_ar_noise,ngsim,aci_online,10.0,4,3,False,braking 0.84 (n=72); approaching 0.80 (n=95); other 0.98 (n=55),0.8021052631578948,0.9781818181818182
+idm_ar_noise,ngsim,cqr,10.0,4,4,False,congested 0.66 (n=249); braking 0.32 (n=72); approaching 0.49 (n=95); other 0.84 (n=55),0.31666666666666665,0.8363636363636363
+idm_ar_noise,ngsim,raw,10.0,4,4,False,congested 0.38 (n=249); braking 0.11 (n=72); approaching 0.21 (n=95); other 0.51 (n=55),0.1111111111111111,0.509090909090909
+idm_ar_noise,ngsim,static,10.0,4,4,False,congested 0.68 (n=249); braking 0.45 (n=72); approaching 0.41 (n=95); other 0.81 (n=55),0.4063157894736842,0.8072727272727273
+idm_ar_noise,ngsim_us101,aci_online,10.0,5,2,False,approaching 0.79 (n=74); steady 0.99 (n=78),0.7891891891891892,0.9897435897435898
+idm_ar_noise,ngsim_us101,cqr,10.0,5,5,False,congested 0.67 (n=138); braking 0.51 (n=89); approaching 0.66 (n=74); steady 0.84 (n=78); other 0.76 (n=120),0.5056179775280899,0.841025641025641
+idm_ar_noise,ngsim_us101,raw,10.0,5,5,False,congested 0.43 (n=138); braking 0.31 (n=89); approaching 0.37 (n=74); steady 0.69 (n=78); other 0.50 (n=120),0.30786516853932583,0.6871794871794872
+idm_ar_noise,ngsim_us101,static,10.0,5,4,False,congested 0.76 (n=138); braking 0.75 (n=89); approaching 0.50 (n=74); other 0.83 (n=120),0.4972972972972973,0.8615384615384616
+idm_ar_noise,openacc,aci_online,10.0,6,4,False,braking 0.45 (n=31); approaching 0.77 (n=66); free 0.98 (n=49); steady 0.99 (n=205),0.45161290322580644,0.9882926829268293
+idm_ar_noise,openacc,cqr,10.0,6,6,False,congested 0.75 (n=52); braking 0.45 (n=31); approaching 0.81 (n=66); free 0.96 (n=49); steady 0.98 (n=205); other 0.85 (n=97),0.44516129032258067,0.9834146341463414
+idm_ar_noise,openacc,raw,10.0,6,5,False,congested 0.65 (n=52); braking 0.35 (n=31); approaching 0.58 (n=66); steady 0.96 (n=205); other 0.68 (n=97),0.34838709677419355,0.9551219512195122
+idm_ar_noise,openacc,static,10.0,6,4,False,braking 0.46 (n=31); approaching 0.79 (n=66); free 1.00 (n=49); steady 0.99 (n=205),0.4645161290322581,0.9959183673469387
+idm_ar_noise,waymo,aci_online,10.0,5,3,False,braking 0.82 (n=50); approaching 0.84 (n=65); steady 1.00 (n=58),0.824,0.996551724137931
+idm_ar_noise,waymo,cqr,10.0,5,2,False,congested 0.83 (n=232); braking 0.76 (n=50),0.764,0.9379310344827586
+idm_ar_noise,waymo,raw,10.0,5,5,False,congested 0.54 (n=232); braking 0.48 (n=50); approaching 0.58 (n=65); steady 0.67 (n=58); other 0.60 (n=87),0.484,0.6724137931034483
+idm_ar_noise,waymo,static,10.0,5,3,False,braking 0.81 (n=50); approaching 0.78 (n=65); steady 0.98 (n=58),0.7784615384615384,0.9793103448275862
+idm_white_noise,highd,aci_online,10.0,5,3,False,braking 0.72 (n=32); approaching 0.76 (n=133); other 0.98 (n=115),0.725,0.9826086956521739
+idm_white_noise,highd,cqr,10.0,5,2,False,braking 0.70 (n=32); approaching 0.81 (n=133),0.7,0.9393258426966292
+idm_white_noise,highd,raw,10.0,5,5,False,braking 0.18 (n=32); approaching 0.41 (n=133); free 0.41 (n=89); steady 0.52 (n=118); other 0.57 (n=115),0.18125,0.5721739130434783
+idm_white_noise,highd,static,10.0,5,4,False,braking 0.72 (n=32); approaching 0.77 (n=133); free 0.96 (n=89); other 0.98 (n=115),0.725,0.9826086956521739
+idm_white_noise,ngsim,aci_online,10.0,4,1,False,braking 0.83 (n=72),0.8277777777777777,0.9285140562248996
+idm_white_noise,ngsim,cqr,10.0,4,2,False,braking 0.78 (n=72); other 0.83 (n=55),0.7833333333333333,0.9228915662650602
+idm_white_noise,ngsim,raw,10.0,4,4,False,congested 0.44 (n=249); braking 0.31 (n=72); approaching 0.30 (n=95); other 0.36 (n=55),0.2968421052631579,0.4353413654618474
+idm_white_noise,ngsim,static,10.0,4,1,False,braking 0.84 (n=72),0.8388888888888889,0.9357429718875502
+idm_white_noise,ngsim_us101,aci_online,10.0,5,1,False,braking 0.78 (n=89),0.7752808988764045,0.9483333333333334
+idm_white_noise,ngsim_us101,cqr,10.0,5,0,True,,0.8696629213483146,0.9420289855072463
+idm_white_noise,ngsim_us101,raw,10.0,5,5,False,congested 0.53 (n=138); braking 0.38 (n=89); approaching 0.53 (n=74); steady 0.49 (n=78); other 0.54 (n=120),0.3842696629213483,0.5366666666666666
+idm_white_noise,ngsim_us101,static,10.0,5,3,False,braking 0.83 (n=89); approaching 0.96 (n=74); other 0.98 (n=120),0.8292134831460675,0.9766666666666667
+idm_white_noise,openacc,aci_online,10.0,6,3,False,braking 0.74 (n=31); approaching 0.78 (n=66); steady 0.97 (n=205),0.7419354838709677,0.9746341463414634
+idm_white_noise,openacc,cqr,10.0,6,5,False,congested 0.75 (n=52); braking 0.77 (n=31); approaching 0.65 (n=66); free 0.62 (n=49); other 0.60 (n=97),0.6020618556701031,0.9463414634146341
+idm_white_noise,openacc,raw,10.0,6,6,False,congested 0.42 (n=52); braking 0.41 (n=31); approaching 0.27 (n=66); free 0.22 (n=49); steady 0.27 (n=205); other 0.35 (n=97),0.2163265306122449,0.4230769230769231
+idm_white_noise,openacc,static,10.0,6,3,False,braking 0.76 (n=31); approaching 0.80 (n=66); steady 0.99 (n=205),0.7612903225806451,0.9863414634146341
+idm_white_noise,waymo,aci_online,10.0,5,2,False,braking 0.77 (n=50); steady 0.96 (n=58),0.768,0.9551724137931035
+idm_white_noise,waymo,cqr,10.0,5,4,False,congested 0.77 (n=232); braking 0.82 (n=50); approaching 0.80 (n=65); other 0.77 (n=87),0.7655172413793103,0.8586206896551725
+idm_white_noise,waymo,raw,10.0,5,5,False,congested 0.40 (n=232); braking 0.33 (n=50); approaching 0.36 (n=65); steady 0.41 (n=58); other 0.37 (n=87),0.328,0.41379310344827586
+idm_white_noise,waymo,static,10.0,5,2,False,braking 0.72 (n=50); approaching 0.83 (n=65),0.72,0.9287356321839081
+idm_white_noise_mle,highd,aci_online,10.0,5,3,False,braking 0.44 (n=32); free 0.99 (n=89); other 0.97 (n=115),0.44375,0.9887640449438202
+idm_white_noise_mle,highd,cqr,10.0,5,2,False,braking 0.58 (n=32); free 0.97 (n=89),0.58125,0.9662921348314607
+idm_white_noise_mle,highd,raw,10.0,5,5,False,braking 0.11 (n=32); approaching 0.17 (n=133); free 0.21 (n=89); steady 0.30 (n=118); other 0.37 (n=115),0.10625,0.3652173913043478
+idm_white_noise_mle,highd,static,10.0,5,3,False,braking 0.51 (n=32); free 0.99 (n=89); other 0.98 (n=115),0.5125,0.9887640449438202
+idm_white_noise_mle,ngsim,aci_online,10.0,4,3,False,congested 0.96 (n=249); braking 0.76 (n=72); approaching 0.79 (n=95),0.7638888888888888,0.9630522088353414
+idm_white_noise_mle,ngsim,cqr,10.0,4,3,False,braking 0.69 (n=72); approaching 0.72 (n=95); other 0.78 (n=55),0.6888888888888889,0.9092369477911647
+idm_white_noise_mle,ngsim,raw,10.0,4,4,False,congested 0.22 (n=249); braking 0.08 (n=72); approaching 0.06 (n=95); other 0.19 (n=55),0.056842105263157895,0.21526104417670683
+idm_white_noise_mle,ngsim,static,10.0,4,2,False,braking 0.61 (n=72); approaching 0.61 (n=95),0.6063157894736843,0.9108433734939759
+idm_white_noise_mle,ngsim_us101,aci_online,10.0,5,3,False,congested 0.97 (n=138); braking 0.73 (n=89); approaching 0.84 (n=74),0.7325842696629213,0.9666666666666667
+idm_white_noise_mle,ngsim_us101,cqr,10.0,5,4,False,braking 0.71 (n=89); approaching 0.78 (n=74); steady 0.82 (n=78); other 0.83 (n=120),0.7101123595505618,0.8855072463768116
+idm_white_noise_mle,ngsim_us101,raw,10.0,5,5,False,congested 0.15 (n=138); braking 0.13 (n=89); approaching 0.06 (n=74); steady 0.21 (n=78); other 0.23 (n=120),0.05945945945945946,0.225
+idm_white_noise_mle,ngsim_us101,static,10.0,5,4,False,congested 0.85 (n=138); braking 0.63 (n=89); approaching 0.70 (n=74); steady 0.75 (n=78),0.6292134831460674,0.8966666666666666
+idm_white_noise_mle,openacc,aci_online,10.0,6,3,False,braking 0.66 (n=31); steady 0.96 (n=205); other 0.85 (n=97),0.6580645161290323,0.96
+idm_white_noise_mle,openacc,cqr,10.0,6,5,False,congested 0.70 (n=52); braking 0.56 (n=31); approaching 0.61 (n=66); free 0.39 (n=49); other 0.56 (n=97),0.39183673469387753,0.8507317073170731
+idm_white_noise_mle,openacc,raw,10.0,6,6,False,congested 0.10 (n=52); braking 0.15 (n=31); approaching 0.05 (n=66); free 0.08 (n=49); steady 0.06 (n=205); other 0.14 (n=97),0.048484848484848485,0.14838709677419354
+idm_white_noise_mle,openacc,static,10.0,6,5,False,congested 0.82 (n=52); braking 0.54 (n=31); approaching 0.70 (n=66); free 0.78 (n=49); other 0.76 (n=97),0.535483870967742,0.9258536585365854
+idm_white_noise_mle,waymo,aci_online,10.0,5,3,False,congested 0.95 (n=232); braking 0.66 (n=50); approaching 0.83 (n=65),0.664,0.9534482758620689
+idm_white_noise_mle,waymo,cqr,10.0,5,5,False,congested 0.72 (n=232); braking 0.68 (n=50); approaching 0.82 (n=65); steady 0.79 (n=58); other 0.66 (n=87),0.6597701149425287,0.8246153846153846
+idm_white_noise_mle,waymo,raw,10.0,5,5,False,congested 0.16 (n=232); braking 0.07 (n=50); approaching 0.07 (n=65); steady 0.21 (n=58); other 0.16 (n=87),0.068,0.21379310344827587
+idm_white_noise_mle,waymo,static,10.0,5,5,False,congested 0.75 (n=232); braking 0.41 (n=50); approaching 0.69 (n=65); steady 0.80 (n=58); other 0.80 (n=87),0.408,0.803448275862069
+lstm_const_sigma,highd,aci_online,10.0,5,2,False,braking 0.73 (n=32); steady 0.96 (n=118),0.73125,0.9610169491525423
+lstm_const_sigma,highd,cqr,10.0,5,3,False,braking 0.76 (n=32); steady 0.96 (n=118); other 0.85 (n=115),0.7625,0.9559322033898305
+lstm_const_sigma,highd,raw,10.0,5,5,False,braking 0.26 (n=32); approaching 0.43 (n=133); free 0.42 (n=89); steady 0.49 (n=118); other 0.38 (n=115),0.2625,0.49491525423728816
+lstm_const_sigma,highd,static,10.0,5,2,False,braking 0.74 (n=32); steady 0.97 (n=118),0.7375,0.9661016949152542
+lstm_const_sigma,ngsim,aci_online,10.0,4,1,False,braking 0.72 (n=72),0.7222222222222222,0.921285140562249
+lstm_const_sigma,ngsim,cqr,10.0,4,4,False,congested 0.49 (n=249); braking 0.25 (n=72); approaching 0.36 (n=95); other 0.39 (n=55),0.24722222222222223,0.4875502008032129
+lstm_const_sigma,ngsim,raw,10.0,4,4,False,congested 0.10 (n=249); braking 0.06 (n=72); approaching 0.06 (n=95); other 0.07 (n=55),0.05555555555555555,0.10040160642570281
+lstm_const_sigma,ngsim,static,10.0,4,4,False,congested 0.38 (n=249); braking 0.18 (n=72); approaching 0.25 (n=95); other 0.29 (n=55),0.18055555555555555,0.3783132530120482
+lstm_const_sigma,ngsim_us101,aci_online,10.0,5,1,False,braking 0.76 (n=89),0.7573033707865169,0.9466666666666667
+lstm_const_sigma,ngsim_us101,cqr,10.0,5,5,False,congested 0.52 (n=138); braking 0.24 (n=89); approaching 0.42 (n=74); steady 0.49 (n=78); other 0.48 (n=120),0.24269662921348314,0.5159420289855072
+lstm_const_sigma,ngsim_us101,raw,10.0,5,5,False,congested 0.12 (n=138); braking 0.03 (n=89); approaching 0.09 (n=74); steady 0.11 (n=78); other 0.11 (n=120),0.033707865168539325,0.12028985507246377
+lstm_const_sigma,ngsim_us101,static,10.0,5,5,False,congested 0.43 (n=138); braking 0.17 (n=89); approaching 0.32 (n=74); steady 0.43 (n=78); other 0.42 (n=120),0.17303370786516853,0.427536231884058
+lstm_const_sigma,openacc,aci_online,10.0,6,5,False,congested 0.82 (n=52); braking 0.83 (n=31); approaching 0.85 (n=66); free 0.63 (n=49); steady 1.00 (n=205),0.6326530612244898,0.9960975609756098
+lstm_const_sigma,openacc,cqr,10.0,6,5,False,congested 0.64 (n=52); braking 0.47 (n=31); approaching 0.74 (n=66); free 0.51 (n=49); other 0.62 (n=97),0.47096774193548385,0.911219512195122
+lstm_const_sigma,openacc,raw,10.0,6,6,False,congested 0.22 (n=52); braking 0.06 (n=31); approaching 0.28 (n=66); free 0.11 (n=49); steady 0.43 (n=205); other 0.21 (n=97),0.06451612903225806,0.4273170731707317
+lstm_const_sigma,openacc,static,10.0,6,5,False,congested 0.61 (n=52); braking 0.47 (n=31); approaching 0.63 (n=66); free 0.33 (n=49); other 0.58 (n=97),0.32653061224489793,0.9063414634146342
+lstm_const_sigma,waymo,aci_online,10.0,5,2,False,braking 0.79 (n=50); steady 0.99 (n=58),0.788,0.993103448275862
+lstm_const_sigma,waymo,cqr,10.0,5,5,False,congested 0.61 (n=232); braking 0.42 (n=50); approaching 0.65 (n=65); steady 0.74 (n=58); other 0.64 (n=87),0.416,0.7379310344827587
+lstm_const_sigma,waymo,raw,10.0,5,5,False,congested 0.13 (n=232); braking 0.08 (n=50); approaching 0.18 (n=65); steady 0.26 (n=58); other 0.18 (n=87),0.076,0.25517241379310346
+lstm_const_sigma,waymo,static,10.0,5,5,False,congested 0.48 (n=232); braking 0.30 (n=50); approaching 0.59 (n=65); steady 0.69 (n=58); other 0.56 (n=87),0.304,0.6862068965517242
+mc_dropout,highd,aci_online,10.0,5,1,False,braking 0.99 (n=32),0.8643478260869565,0.9875
+mc_dropout,highd,cqr,10.0,5,1,False,other 0.84 (n=115),0.8365217391304348,0.94375
+mc_dropout,highd,raw,10.0,5,5,False,braking 0.82 (n=32); approaching 0.58 (n=133); free 0.56 (n=89); steady 0.47 (n=118); other 0.56 (n=115),0.4745762711864407,0.825
+mc_dropout,highd,static,10.0,5,2,False,braking 0.99 (n=32); other 0.85 (n=115),0.8469565217391304,0.9875
+mc_dropout,ngsim,aci_online,10.0,4,1,False,approaching 0.98 (n=95),0.8634538152610441,0.9789473684210527
+mc_dropout,ngsim,cqr,10.0,4,3,False,congested 0.77 (n=249); braking 0.70 (n=72); other 0.81 (n=55),0.6972222222222222,0.92
+mc_dropout,ngsim,raw,10.0,4,4,False,congested 0.59 (n=249); braking 0.59 (n=72); approaching 0.82 (n=95); other 0.67 (n=55),0.5916666666666667,0.8231578947368421
+mc_dropout,ngsim,static,10.0,4,1,False,approaching 0.98 (n=95),0.8522088353413655,0.9789473684210527
+mc_dropout,ngsim_us101,aci_online,10.0,5,1,False,approaching 0.95 (n=74),0.8623188405797102,0.9513513513513514
+mc_dropout,ngsim_us101,cqr,10.0,5,4,False,congested 0.77 (n=138); braking 0.71 (n=89); steady 0.77 (n=78); other 0.75 (n=120),0.7056179775280899,0.8891891891891892
+mc_dropout,ngsim_us101,raw,10.0,5,5,False,congested 0.59 (n=138); braking 0.54 (n=89); approaching 0.73 (n=74); steady 0.59 (n=78); other 0.61 (n=120),0.5370786516853933,0.7297297297297297
+mc_dropout,ngsim_us101,static,10.0,5,1,False,approaching 0.96 (n=74),0.8724637681159421,0.9567567567567568
+mc_dropout,openacc,aci_online,10.0,6,3,False,congested 0.83 (n=52); braking 0.81 (n=31); free 0.81 (n=49),0.8122448979591836,0.9473170731707317
+mc_dropout,openacc,cqr,10.0,6,6,False,congested 0.63 (n=52); braking 0.70 (n=31); approaching 0.81 (n=66); free 0.73 (n=49); steady 0.79 (n=205); other 0.66 (n=97),0.6269230769230769,0.806060606060606
+mc_dropout,openacc,raw,10.0,6,6,False,congested 0.27 (n=52); braking 0.55 (n=31); approaching 0.59 (n=66); free 0.65 (n=49); steady 0.32 (n=205); other 0.49 (n=97),0.2692307692307692,0.6489795918367347
+mc_dropout,openacc,static,10.0,6,6,False,congested 0.68 (n=52); braking 0.78 (n=31); approaching 0.82 (n=66); free 0.75 (n=49); steady 0.75 (n=205); other 0.78 (n=97),0.676923076923077,0.8212121212121212
+mc_dropout,waymo,aci_online,10.0,5,0,True,,0.8827586206896552,0.9261538461538461
+mc_dropout,waymo,cqr,10.0,5,5,False,congested 0.73 (n=232); braking 0.75 (n=50); approaching 0.82 (n=65); steady 0.76 (n=58); other 0.74 (n=87),0.728448275862069,0.8246153846153846
+mc_dropout,waymo,raw,10.0,5,5,False,congested 0.52 (n=232); braking 0.55 (n=50); approaching 0.59 (n=65); steady 0.51 (n=58); other 0.55 (n=87),0.506896551724138,0.5938461538461538
+mc_dropout,waymo,static,10.0,5,2,False,congested 0.83 (n=232); steady 0.82 (n=58),0.8206896551724138,0.876
+mc_dropout__traj,highd,aci_online,10.0,5,1,False,other 0.84 (n=115),0.84,0.9383458646616541
+mc_dropout__traj,highd,cqr,10.0,5,1,False,braking 0.96 (n=32),0.8591304347826086,0.95625
+mc_dropout__traj,highd,raw,10.0,5,3,False,braking 0.99 (n=32); approaching 0.97 (n=133); free 0.97 (n=89),0.9130434782608695,0.99375
+mc_dropout__traj,highd,static,10.0,5,1,False,other 0.83 (n=115),0.8295652173913044,0.9348314606741573
+mc_dropout__traj,ngsim,aci_online,10.0,4,2,False,braking 0.79 (n=72); approaching 0.98 (n=95),0.7888888888888889,0.9768421052631578
+mc_dropout__traj,ngsim,cqr,10.0,4,3,False,congested 0.70 (n=249); braking 0.67 (n=72); other 0.77 (n=55),0.6666666666666666,0.9368421052631579
+mc_dropout__traj,ngsim,raw,10.0,4,3,False,congested 0.82 (n=249); braking 0.73 (n=72); approaching 0.98 (n=95),0.7305555555555555,0.9768421052631578
+mc_dropout__traj,ngsim,static,10.0,4,4,False,congested 0.60 (n=249); braking 0.47 (n=72); approaching 0.80 (n=95); other 0.58 (n=55),0.475,0.8042105263157895
+mc_dropout__traj,ngsim_us101,aci_online,10.0,5,0,True,,0.8651685393258427,0.9405405405405406
+mc_dropout__traj,ngsim_us101,cqr,10.0,5,5,False,congested 0.70 (n=138); braking 0.62 (n=89); approaching 0.84 (n=74); steady 0.70 (n=78); other 0.68 (n=120),0.6202247191011236,0.8351351351351352
+mc_dropout__traj,ngsim_us101,raw,10.0,5,4,False,congested 0.83 (n=138); braking 0.77 (n=89); steady 0.79 (n=78); other 0.77 (n=120),0.7707865168539326,0.9054054054054054
+mc_dropout__traj,ngsim_us101,static,10.0,5,5,False,congested 0.63 (n=138); braking 0.43 (n=89); approaching 0.73 (n=74); steady 0.63 (n=78); other 0.54 (n=120),0.4337078651685393,0.7297297297297297
+mc_dropout__traj,openacc,aci_online,10.0,6,5,False,congested 0.77 (n=52); braking 0.82 (n=31); free 0.78 (n=49); steady 0.97 (n=205); other 0.85 (n=97),0.7730769230769231,0.9707317073170731
+mc_dropout__traj,openacc,cqr,10.0,6,6,False,congested 0.52 (n=52); braking 0.64 (n=31); approaching 0.81 (n=66); free 0.75 (n=49); steady 0.71 (n=205); other 0.68 (n=97),0.5230769230769231,0.8121212121212121
+mc_dropout__traj,openacc,raw,10.0,6,4,False,congested 0.68 (n=52); braking 0.74 (n=31); free 0.78 (n=49); other 0.78 (n=97),0.6807692307692308,0.8787878787878788
+mc_dropout__traj,openacc,static,10.0,6,6,False,congested 0.51 (n=52); braking 0.56 (n=31); approaching 0.77 (n=66); free 0.71 (n=49); steady 0.69 (n=205); other 0.58 (n=97),0.5115384615384615,0.7666666666666667
+mc_dropout__traj,waymo,aci_online,10.0,5,1,False,braking 0.85 (n=50),0.848,0.9446153846153846
+mc_dropout__traj,waymo,cqr,10.0,5,4,False,congested 0.70 (n=232); braking 0.76 (n=50); steady 0.77 (n=58); other 0.79 (n=87),0.7017241379310345,0.8738461538461538
+mc_dropout__traj,waymo,raw,10.0,5,0,True,,0.8517241379310345,0.9323076923076923
+mc_dropout__traj,waymo,static,10.0,5,5,False,congested 0.64 (n=232); braking 0.65 (n=50); approaching 0.82 (n=65); steady 0.72 (n=58); other 0.67 (n=87),0.6370689655172413,0.8153846153846154
+quantile_pidl,highd,aci_online,10.0,5,1,False,braking 0.84 (n=32),0.84375,0.9389830508474576
+quantile_pidl,highd,cqr,10.0,5,2,False,braking 0.84 (n=32); steady 0.97 (n=118),0.8375,0.9711864406779661
+quantile_pidl,highd,raw,10.0,5,5,False,braking 0.27 (n=32); approaching 0.41 (n=133); free 0.41 (n=89); steady 0.44 (n=118); other 0.39 (n=115),0.26875,0.43559322033898307
+quantile_pidl,highd,static,10.0,5,2,False,braking 0.85 (n=32); steady 0.96 (n=118),0.85,0.9576271186440678
+quantile_pidl,ngsim,aci_online,10.0,4,2,False,braking 0.83 (n=72); other 0.84 (n=55),0.8333333333333334,0.9031578947368422
+quantile_pidl,ngsim,cqr,10.0,4,4,False,congested 0.61 (n=249); braking 0.30 (n=72); approaching 0.45 (n=95); other 0.32 (n=55),0.30277777777777776,0.606425702811245
+quantile_pidl,ngsim,raw,10.0,4,4,False,congested 0.21 (n=249); braking 0.09 (n=72); approaching 0.12 (n=95); other 0.08 (n=55),0.08,0.20722891566265061
+quantile_pidl,ngsim,static,10.0,4,4,False,congested 0.62 (n=249); braking 0.39 (n=72); approaching 0.47 (n=95); other 0.39 (n=55),0.38545454545454544,0.6240963855421687
+quantile_pidl,ngsim_us101,aci_online,10.0,5,0,True,,0.8741573033707866,0.9057971014492754
+quantile_pidl,ngsim_us101,cqr,10.0,5,5,False,congested 0.59 (n=138); braking 0.36 (n=89); approaching 0.49 (n=74); steady 0.46 (n=78); other 0.46 (n=120),0.3595505617977528,0.5869565217391305
+quantile_pidl,ngsim_us101,raw,10.0,5,5,False,congested 0.16 (n=138); braking 0.09 (n=89); approaching 0.11 (n=74); steady 0.11 (n=78); other 0.12 (n=120),0.0898876404494382,0.1608695652173913
+quantile_pidl,ngsim_us101,static,10.0,5,5,False,congested 0.63 (n=138); braking 0.44 (n=89); approaching 0.54 (n=74); steady 0.50 (n=78); other 0.51 (n=120),0.4449438202247191,0.6289855072463768
+quantile_pidl,openacc,aci_online,10.0,6,3,False,congested 0.84 (n=52); braking 0.82 (n=31); other 0.84 (n=97),0.8193548387096774,0.9424390243902439
+quantile_pidl,openacc,cqr,10.0,6,5,False,congested 0.67 (n=52); braking 0.48 (n=31); approaching 0.74 (n=66); free 0.73 (n=49); other 0.67 (n=97),0.4838709677419355,0.8829268292682927
+quantile_pidl,openacc,raw,10.0,6,6,False,congested 0.30 (n=52); braking 0.19 (n=31); approaching 0.28 (n=66); free 0.31 (n=49); steady 0.37 (n=205); other 0.26 (n=97),0.1935483870967742,0.3746341463414634
+quantile_pidl,openacc,static,10.0,6,5,False,congested 0.73 (n=52); braking 0.65 (n=31); approaching 0.79 (n=66); free 0.80 (n=49); other 0.72 (n=97),0.6516129032258065,0.8585365853658536
+quantile_pidl,waymo,aci_online,10.0,5,1,False,braking 0.84 (n=50),0.836,0.9206896551724137
+quantile_pidl,waymo,cqr,10.0,5,5,False,congested 0.77 (n=232); braking 0.58 (n=50); approaching 0.75 (n=65); steady 0.76 (n=58); other 0.64 (n=87),0.58,0.7663793103448275
+quantile_pidl,waymo,raw,10.0,5,5,False,congested 0.32 (n=232); braking 0.15 (n=50); approaching 0.27 (n=65); steady 0.21 (n=58); other 0.23 (n=87),0.148,0.31982758620689655
+quantile_pidl,waymo,static,10.0,5,5,False,congested 0.78 (n=232); braking 0.62 (n=50); approaching 0.74 (n=65); steady 0.74 (n=58); other 0.65 (n=87),0.62,0.7767241379310345

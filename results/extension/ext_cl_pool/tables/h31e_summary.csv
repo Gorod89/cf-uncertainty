@@ -1,0 +1,3 @@
+model,kind,main,rule,conc,conc_lo,conc_hi,verdict_conc_ci,verdict_conc_point,n_pairs,n_supported,n_refuted,n_inconclusive,overall,n_supported_point,n_refuted_point,n_inconclusive_point,overall_point,n_placebo,placebo_verdicts,n_cross_check,cross_check_verdicts
+hetero_mdn_cl,seed_ensemble,False,rare_mass,1.6230920107715652,1.2127418733125532,2.0886980637465467,supported,supported,0,0,0,0,inconclusive,0,0,0,inconclusive,2,highd_val:inconclusive;pool_test:inconclusive,0,
+lstm_const_sigma_cl,seed_ensemble,False,rare_mass,1.5078455655486138,1.4133936787412127,1.6206193428231168,supported,supported,0,0,0,0,inconclusive,0,0,0,inconclusive,2,highd_val:refuted;pool_test:refuted,0,

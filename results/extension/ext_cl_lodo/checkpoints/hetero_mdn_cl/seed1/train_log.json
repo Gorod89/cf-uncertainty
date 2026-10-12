@@ -1,0 +1,195 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-12 19:02:28",
+  "idm": null,
+  "kwargs": {
+    "beta_nll": 0.0,
+    "dropout": 0.0,
+    "head_hidden": 64,
+    "hidden": 64,
+    "horizon_steps": 50,
+    "init_from": "artifacts/e6_lodo_openacc/checkpoints/hetero_mdn",
+    "log_sigma_max": 3.0,
+    "log_sigma_min": -7.0,
+    "n_components": 1,
+    "train": {
+      "batch_size": 256,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.0003,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 3,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 2,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    },
+    "weight": 1.0
+  },
+  "log": {
+    "fit": {
+      "best_epoch": 0,
+      "best_val": -1.4456822835109238,
+      "config": {
+        "batch_size": 256,
+        "ema_decay": 0.0,
+        "grad_clip": 1.0,
+        "lr": 0.0003,
+        "lr_factor": 0.5,
+        "lr_patience": 2,
+        "max_epochs": 3,
+        "max_seconds": null,
+        "min_delta": 0.0001,
+        "min_lr": 1e-05,
+        "patience": 2,
+        "val_batch_size": 8192,
+        "weight_decay": 1e-05
+      },
+      "epochs": 3,
+      "history": [
+        {
+          "epoch": 0,
+          "lr": 0.0003,
+          "train": -1.060751218716462,
+          "val": -1.4456822835109238
+        },
+        {
+          "epoch": 1,
+          "lr": 0.0003,
+          "train": -1.4971581061899435,
+          "val": -1.439292526666992
+        },
+        {
+          "epoch": 2,
+          "lr": 0.0003,
+          "train": -1.396586403001379,
+          "val": 0.18158152866815158
+        }
+      ],
+      "n_train": 132865,
+      "seconds": 124.11394369998015
+    },
+    "horizon_steps": 50,
+    "init_from": "artifacts/e6_lodo_openacc/checkpoints/hetero_mdn",
+    "n_train": 132865,
+    "seconds": 124.19436449999921,
+    "twin": "hetero_mdn",
+    "val_nll": -2.243809085035947,
+    "weight": 1.0
+  },
+  "model": "hetero_mdn_cl",
+  "n_train": 132865,
+  "n_val": 122579,
+  "pool": {
+    "data": [
+      "highd",
+      "ngsim",
+      "ngsim_us101",
+      "waymo"
+    ],
+    "max_sequences_per_dataset": 40000,
+    "max_windows_per_dataset": 150000,
+    "seq_stride": 5,
+    "stride": 2,
+    "subsample_seed": 0
+  },
+  "pool_windows": {
+    "highd": {
+      "train": {
+        "events": 7505,
+        "kept": 40000,
+        "windows": 112575
+      },
+      "val": {
+        "events": 2502,
+        "kept": 37530,
+        "windows": 37530
+      }
+    },
+    "ngsim": {
+      "train": {
+        "events": 4477,
+        "kept": 40000,
+        "windows": 364461
+      },
+      "val": {
+        "events": 1531,
+        "kept": 40000,
+        "windows": 121001
+      }
+    },
+    "ngsim_us101": {
+      "train": {
+        "events": 4396,
+        "kept": 40000,
+        "windows": 360119
+      },
+      "val": {
+        "events": 1450,
+        "kept": 40000,
+        "windows": 120494
+      }
+    },
+    "waymo": {
+      "train": {
+        "events": 560,
+        "kept": 12865,
+        "windows": 12865
+      },
+      "val": {
+        "events": 219,
+        "kept": 5049,
+        "windows": 5049
+      }
+    }
+  },
+  "registry_name": "hetero_mdn_cl",
+  "seconds": 124.19438520004041,
+  "seed": 1,
+  "signal": [
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 11
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    }
+  ],
+  "target": null
+}

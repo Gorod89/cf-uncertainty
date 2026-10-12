@@ -1,0 +1,26 @@
+% tab:c28_string: String stability (extension S9)
+% Sources: extension/artifacts/ext_string/tables/string_summary.csv
+% Written by scripts/compact_tables/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c28_string} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{String stability of the simulated ACC platoons (extension S9, 47 ACC profiles, extended set): geometric mean over the 20 followers of the consecutive amplitude ratios $A_{i+1} / A_i$ of the median sampled amplitude, with its 95\% file-cluster interval and verdict (stable: interval below 1; ampl.: above 1; inc.: otherwise), followed by the head-to-tail ratio $A_{20} / A_{\mathrm{leader}}$; and the same geometric ratio on the recorded indices (rec.), to be read against the recorded platoons, whose ratio on those indices is 1.11. By training regime.\label{tab:c28_string}}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{lCcCcCcCc}
+\toprule
+ & \multicolumn{2}{c}{\textbf{highD}} & \multicolumn{2}{c}{\textbf{harmonised}} & \multicolumn{2}{c}{\textbf{pooled}} & \multicolumn{2}{c}{\textbf{OpenACC held out}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
+\textbf{Law} & \textbf{ratio [interval]; head-to-tail} & \textbf{rec.} & \textbf{ratio [interval]; head-to-tail} & \textbf{rec.} & \textbf{ratio [interval]; head-to-tail} & \textbf{rec.} & \textbf{ratio [interval]; head-to-tail} & \textbf{rec.} \\
+\midrule
+IDM + white noise & 1.006 [0.998, 1.015] inc.; 1.3 & 1.01 & 1.005 [0.998, 1.014] inc.; 1.3 & 1.01 & 1.003 [0.997, 1.012] inc.; 1.2 & 1.00 & 1.003 [0.996, 1.012] inc.; 1.2 & 1.00 \\
+IDM + AR(1) noise & 0.946 [0.934, 0.958] stable; 0.6 & 0.98 & -- & -- & 0.962 [0.951, 0.974] stable; 0.8 & 1.00 & 0.961 [0.949, 0.972] stable; 0.8 & 1.00 \\
+LSTM, constant $\sigma$ & 0.968 [0.932, 1.003] inc.; 2.9 & 0.86 & 1.001 [0.990, 1.015] inc.; 1.9 & 0.99 & 0.996 [0.969, 1.026] inc.; 2.0 & 1.00 & 1.009 [0.998, 1.022] inc.; 5.6 & 0.92 \\
+Deep ensemble & 0.989 [0.980, 1.000] inc.; 2.1 & 0.97 & 0.974 [0.943, 1.004] inc.; 3.3 & 0.90 & 0.991 [0.979, 1.003] inc.; 1.6 & 1.01 & 0.987 [0.979, 0.996] stable; 1.9 & 0.97 \\
+GP residual on IDM & 1.011 [1.005, 1.018] ampl.; 1.2 & 1.00 & 1.015 [1.010, 1.021] ampl.; 1.3 & 1.01 & 1.008 [1.004, 1.015] ampl.; 1.2 & 1.03 & 0.995 [0.984, 1.009] inc.; 0.9 & 1.04 \\
+Quantile PIDL & 1.007 [1.001, 1.014] ampl.; 2.0 & 1.09 & 0.991 [0.986, 0.997] stable; 1.6 & 1.03 & 1.020 [1.011, 1.032] ampl.; 2.4 & 1.10 & 1.019 [1.010, 1.031] ampl.; 2.4 & 1.08 \\
+Diffusion & 1.042 [1.035, 1.051] ampl.; 2.8 & 1.12 & 1.035 [1.027, 1.045] ampl.; 2.4 & 1.11 & 1.041 [1.034, 1.050] ampl.; 2.5 & 1.10 & 1.033 [1.026, 1.041] ampl.; 2.1 & 1.07 \\
+Diffusion, history only & 0.969 [0.958, 0.983] stable; 2.2 & 0.86 & -- & -- & 1.016 [1.006, 1.029] ampl.; 2.6 & 1.08 & 1.019 [1.009, 1.033] ampl.; 2.9 & 1.12 \\
+\bottomrule
+\end{tabularx}
+\end{table*}

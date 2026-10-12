@@ -1,0 +1,8 @@
+# Extension S7: the closed-loop fine-tuning of the pooled checkpoints of artifacts/e6_lodo_openacc (OpenACC held out).
+#   bash scripts/run_e1_retry.sh extension/artifacts/ext_cl_lodo/logs/run.out 8 --config extension/configs/experiment/ext_cl_lodo.yaml
+base: ../../../configs/experiment/e6_lodo_openacc.yaml
+root: extension/artifacts/ext_cl_lodo
+models: [hetero_mdn_cl, lstm_const_sigma_cl]
+model_overrides:
+  hetero_mdn_cl: {init_from: artifacts/e6_lodo_openacc/checkpoints/hetero_mdn}
+  lstm_const_sigma_cl: {init_from: artifacts/e6_lodo_openacc/checkpoints/lstm_const_sigma}

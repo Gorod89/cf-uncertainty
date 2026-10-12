@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this code or its derived tables, please cite the article below and this repository."
 title: "cf-uncertainty: epistemic and aleatoric uncertainty in learned car-following"
 type: software
-version: 1.4.0
+version: 1.5.0
 date-released: 2026-10-12
 license: MIT
 repository-code: "https://github.com/Gorod89/cf-uncertainty"

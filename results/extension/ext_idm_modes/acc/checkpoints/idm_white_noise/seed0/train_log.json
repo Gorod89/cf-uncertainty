@@ -1,0 +1,48 @@
+{
+ "model": "idm_white_noise",
+ "registry_name": "idm_white_noise",
+ "seed": 0,
+ "seed_independent": true,
+ "kwargs": {
+  "idm": {
+   "v0": 45.0,
+   "T": 1.0201155653498402,
+   "s0": 8.0,
+   "a_max": 1.5208625418023993,
+   "b": 0.3,
+   "delta": 4.0
+  },
+  "sigma": null
+ },
+ "idm": {
+  "name": "openacc_acc",
+  "objective": "spacing"
+ },
+ "target": "a",
+ "n_train": 282523,
+ "n_val": 0,
+ "seconds": 12.246150899969507,
+ "log": {
+  "sigma": 2.1443636633267777,
+  "sigma_fitted": true,
+  "val_nll": null,
+  "n_train": 282523,
+  "seconds": 0.01647259999299422
+ },
+ "calibration": {
+  "mode": "ACC",
+  "n_events_mode": 4020,
+  "n_events_calibration_pool": 2786,
+  "n_windows_sigma": 282523,
+  "params": {
+   "v0": 45.0,
+   "T": 1.0201155653498402,
+   "s0": 8.0,
+   "a_max": 1.5208625418023993,
+   "b": 0.3,
+   "delta": 4.0
+  },
+  "sigma": 2.1443636633267777,
+  "seconds": 12.246150899969507
+ }
+}

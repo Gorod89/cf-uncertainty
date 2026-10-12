@@ -154,3 +154,118 @@ every statement whose sign changes is rewritten as domain-dependent. No new thre
 
 The runs of steps 2-4 go through the retry runners of the repository (shared GPU); every step ends with its
 tables, a dated entry in `decisions.md` and a report paragraph before the next one starts.
+
+## S. Strengthening items after release v1.4.0 (decision of 2026-10-12)
+
+Nine additions to the extended manuscript, run in the order S1-S6 and then S7-S9; every item has its reading rule
+fixed here before the run. Roots under `extension/artifacts/`, scripts under `extension/scripts/`.
+
+### S1. Admissibility scorecard
+
+One compact table (law x check) assembled from the stored tables: one-step calibration in domain (highD PICP90),
+calibration under shift (H3.1 / H3.1e verdicts), closed-loop correction (H3.4 verdict of the ACI-corrected
+intervals), collision-free share of the pooled platoon cell, the H3.2 verdict of the pooled cell (ACC profiles,
+file-cluster interval), the information budget (smallest supported preview horizon, diffusion only), and the cost
+(microseconds per vehicle-rollout-second). Generator `scripts/compact_tables/make_ext_tables.py` (table c25). No
+new number is computed: every cell is a verdict or a value of an existing table. Reading rule: the table is a
+summary; no verdict is changed by it.
+
+### S2. State-distribution part of the shift
+
+Question: how much of the NLL and variance growth under shift is explained by the different occupancy of the
+state space (s, dv, v) alone. Design: the windows of every shifted set are reweighted by importance weights
+p_in(b) / p_shift(b) over 6 x 6 x 6 quantile bins of (s, dv, v) built on the in-domain highD test fold (the
+training windows are not stored as a table; the test fold is driver-disjoint from the training folds and has the same
+occupancy); bins empty in the in-domain set are dropped (their mass is reported); the effective sample size is
+reported. Quantities: NLL, CRPS, PICP90, aleatoric and epistemic variance, raw and reweighted, per model (seed
+mean, seeds pooled) and shifted set; the decomposition NLL_shift - NLL_in = (NLL_shift - NLL_rw) + (NLL_rw -
+NLL_in), the first bracket the state-distribution part, the second the conditional part. Script
+`state_reweight.py`, root `ext_reweight`. Reading rule: a shifted set whose conditional part is below 25 % of the
+total NLL gap is "explained by the state distribution"; the H3.1 verdicts are not recomputed (the matched estimates
+of E1 already restrict to common support).
+
+### S3. Re-planning interval and sampling steps of the diffusion law
+
+Cells of the pooled regimes (pool, lodo_openacc, leader window 61, 60 profiles, 5 seeds, reference
+idm_white_noise) with the sampler of the stored checkpoints re-configured at inference: re-planning every 1, 2 or
+5 s (replan_every 10, 20, 50 steps, 50 sampling steps) and 10, 25, 50 or 100 DDIM sampling steps (re-planning
+every 5 s). The 5 s / 50 steps cell repeats the stored pool / lodo_openacc units. Implementation: the model spec
+key `sampler` of an E3 variant (`DiffusionCF.configure_sampler`), recorded in the unit spec. Root `ext_e3_replan`,
+config `ext_e3_replan.yaml`. Cost from the timing log (seconds per unit). Reading rule: the H3.2 verdict
+(amplitude, file-cluster interval) and the collision share of every cell next to its cost; a setting is
+"admissible" when its verdict is the stored one; the cheapest admissible setting is reported.
+
+### S4. Factorial preview cells and the budget-trained laws under noise and delay
+
+Cells added to `ext_e3_preview`: the pairwise and triple combinations of horizon 2 s, noise 0.5 m/s and delay
+0.5 s (h2n05, h2d05, n05d05, h2n05d05) for pool and lodo_openacc, and the 2 s budget-trained laws (ext_pool_prev2,
+ext_lodo_prev2) under noise 0.5 m/s and under delay 0.5 s. Config `ext_e3_preview_c.yaml` (same root, same run
+spec). Reading rule: as X1 (verdict and collision share per cell); an interaction is reported when the combined
+cell loses the verdict that each factor alone keeps.
+
+### S5. Conditional coverage of the corrected rollout intervals
+
+Offline on the stored E2 rollout tables (target a, 500 events per set, 5 seeds): coverage of the 90 % gap
+intervals by regime at the issue instant (the E1 regimes congested / braking / approaching / free / steady /
+other, with the free speed of the highD IDM calibration) and by horizon, for the raw, static (multiplicative score
+of E2), additive CQR (conformity score max(lo - y, y - hi), split-conformal on highd_val per horizon) and ACI
+online (gamma 0.01) intervals; the interval (Winkler) score of the finite intervals per variant. Script
+`conditional_coverage.py`, root `ext_coverage`. Reading rule: a variant is "conditionally valid" on a set when
+every regime with at least 30 events has PICP within 0.05 of the nominal 0.90 at the 10 s horizon; otherwise the
+regimes that fail are named.
+
+### S6. Reference IDM calibrated per driver mode
+
+The reference of H3.2 is the highD-calibrated IDM with white noise. Two further references: the IDM calibrated
+(closed-loop spacing objective of E1, 300 events, seed 0) on the OpenACC events driven under ACC and on those
+driven by humans, each with the white-noise sigma fitted on the windows of its own mode (`idm_white_noise_acc`,
+`idm_white_noise_human`; script `calibrate_idm_modes.py`, root `ext_idm_modes/checkpoints`). Their platoon units
+in the four cells raw, harmonised, pool, lodo_openacc (root `ext_e3_idmref`, config `ext_e3_idmref.yaml`), then
+the H3.2 reductions of every stored law of `artifacts/e3` against the mode-matched reference recomputed with the
+analysis of E3 (`idm_ref_rerate.py`: the ACC profiles against the ACC reference, the human-driven profiles against
+the human reference). Reading rule: a verdict that holds against the highD reference and against the mode-matched
+reference is "reference-robust"; a verdict that changes is reported as reference-dependent.
+
+### S7. One-step networks trained in closed loop
+
+`lstm_const_sigma_cl` and `hetero_mdn_cl` (`cf_unc/models/closed_loop.py`): the stored one-step networks
+fine-tuned with the one-step loss plus a closed-loop term, the squared gap and speed errors (in units of their
+standard deviations) of a 5 s deterministic rollout with the predicted mean acceleration behind the recorded
+leader, integrated exactly as the rollout engine (semi-implicit Euler, 0.1 s, clip, standstill floor). Budget: 3
+epochs on the sequence windows, weight 1, from the checkpoints of the highD, pool and lodo_openacc roots (5 seeds
+each). Then the one-step evaluation (E1 tables), E2 (highD root: H3.4) and the platoon cells raw, pool,
+lodo_openacc. Roots `ext_cl_highd`, `ext_cl_pool`, `ext_cl_lodo`, `ext_e2_cl`, `ext_e3_cl`. Reading rule: the
+closed-loop law is compared with its one-step twin on the same cells: one-step NLL in domain and under shift, H3.4
+verdict, collision share, H3.2 verdict; an improvement is claimed only when the sign holds in every regime.
+
+### S8. Plan sharing between followers
+
+In the platoon cascade a follower's diffusion sampler is handed, at every re-plan, the plan its predecessor sampled
+at the same instant (its planned speeds, held beyond the plan) instead of the predecessor's realised future; the
+first follower keeps the recorded leader's future. With re-planning every 5 s the shared plan and the realised
+future differ only at the standstill floor; with re-planning every 1 or 2 s the predecessor abandons its plan at
+the next re-plan and the shared plan is a genuine intention. Implementation: `v_lead_plan` of the rollout engine
+and `simulate_platoon(share_plans=True)`, the E3 variant key `share_plans`. Cells pool_r10_share, pool_r20_share,
+pool_r50_share and the lodo_openacc twins in `ext_e3_replan`. Reading rule: the shared-plan cell is read against
+the oracle cell of the same re-planning interval (S3) and against the 1 s / 2 s horizon cells of X1; the verdict
+and the collision share are reported; no new threshold.
+
+### S9. String stability
+
+From the stored per-profile tables (`profile_index.csv` of `artifacts/e3`, `ext_e3_preview`, `ext_e3_ngsim`): the
+amplitude ratio A(i+1) / A(i) of the mean sampled amplitudes by vehicle index, the head-to-tail ratio A(20) /
+A(leader), and for the recorded followers the same ratios of the recorded amplitudes. Per law and cell: the
+geometric mean ratio over the indices 1-19 with a file-cluster bootstrap interval, the share of indices with a ratio
+above 1, and the recorded ratio on the recorded indices. Script `string_stability.py`, root `ext_string`. Reading
+rule: a law is "string-stable in the mean" on a cell when the interval of its geometric mean ratio lies below 1;
+"amplifying" when it lies above 1; the recorded platoons give the empirical reference (no threshold).
+
+### Order and cost
+
+S3 (about 2.5 GPU h) -> S4 (1.5 h) -> S6 units (0.5 h) on the GPU queue (`queue2.sh`); S2, S5, S6 calibration, S9
+and S1 offline meanwhile; then S7 (fine-tunings about 2 h, E2 and E3 about 2 h) and S8 (1.5 h) on the queue.
+Every step ends with its tables and a dated entry in `decisions.md`.
+
+Actual times (2026-10-12, GPU shared with another workload until about 20:00, which made a diffusion platoon unit
+2.7 s instead of 1.05 s): S3 5.0 h, S4 2.0 h, S6 units 0.2 h (queue2 10:53-18:11); S7 fine-tunings 1.1 h, E2 0.3 h,
+platoon cells 0.6 h, S8 1.7 h (queue3 18:12-21:56); the offline items minutes each (the S6 calibrations 25 s).

@@ -3,35 +3,109 @@ device: auto
 tf32: false
 checkpoints: {}
 variants:
-  pool_t1:
+  pool_h2n05:
     a: artifacts/e6_pool/checkpoints
     profile_window:
       matching: artifacts/e1m/matching.json
       data: openacc
-    models:
-      diffusion_cf:
-        checkpoints: extension/artifacts/ext_pool_prev1/checkpoints
-  pool_t2:
+    preview:
+      horizon_s: 2.0
+      noise_sigma: 0.5
+  pool_h2d05:
     a: artifacts/e6_pool/checkpoints
     profile_window:
       matching: artifacts/e1m/matching.json
       data: openacc
+    preview:
+      horizon_s: 2.0
+      delay_s: 0.5
+  pool_n05d05:
+    a: artifacts/e6_pool/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      noise_sigma: 0.5
+      delay_s: 0.5
+  pool_h2n05d05:
+    a: artifacts/e6_pool/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      horizon_s: 2.0
+      noise_sigma: 0.5
+      delay_s: 0.5
+  pool_t2_n05:
+    a: artifacts/e6_pool/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      noise_sigma: 0.5
     models:
       diffusion_cf:
         checkpoints: extension/artifacts/ext_pool_prev2/checkpoints
-  lodo_openacc_t1:
-    a: artifacts/e6_lodo_openacc/checkpoints
+  pool_t2_d05:
+    a: artifacts/e6_pool/checkpoints
     profile_window:
       matching: artifacts/e1m/matching.json
       data: openacc
+    preview:
+      delay_s: 0.5
     models:
       diffusion_cf:
-        checkpoints: extension/artifacts/ext_lodo_prev1/checkpoints
-  lodo_openacc_t2:
+        checkpoints: extension/artifacts/ext_pool_prev2/checkpoints
+  lodo_openacc_h2n05:
     a: artifacts/e6_lodo_openacc/checkpoints
     profile_window:
       matching: artifacts/e1m/matching.json
       data: openacc
+    preview:
+      horizon_s: 2.0
+      noise_sigma: 0.5
+  lodo_openacc_h2d05:
+    a: artifacts/e6_lodo_openacc/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      horizon_s: 2.0
+      delay_s: 0.5
+  lodo_openacc_n05d05:
+    a: artifacts/e6_lodo_openacc/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      noise_sigma: 0.5
+      delay_s: 0.5
+  lodo_openacc_h2n05d05:
+    a: artifacts/e6_lodo_openacc/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      horizon_s: 2.0
+      noise_sigma: 0.5
+      delay_s: 0.5
+  lodo_openacc_t2_n05:
+    a: artifacts/e6_lodo_openacc/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      noise_sigma: 0.5
+    models:
+      diffusion_cf:
+        checkpoints: extension/artifacts/ext_lodo_prev2/checkpoints
+  lodo_openacc_t2_d05:
+    a: artifacts/e6_lodo_openacc/checkpoints
+    profile_window:
+      matching: artifacts/e1m/matching.json
+      data: openacc
+    preview:
+      delay_s: 0.5
     models:
       diffusion_cf:
         checkpoints: extension/artifacts/ext_lodo_prev2/checkpoints

@@ -1,0 +1,90 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-12 18:17:30",
+  "idm": null,
+  "kwargs": {
+    "beta_nll": 0.0,
+    "dropout": 0.0,
+    "head_hidden": 64,
+    "hidden": 64,
+    "horizon_steps": 50,
+    "init_from": "artifacts/e1/checkpoints/hetero_mdn",
+    "log_sigma_max": 3.0,
+    "log_sigma_min": -7.0,
+    "n_components": 1,
+    "train": {
+      "batch_size": 256,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.0003,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 3,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 2,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    },
+    "weight": 1.0
+  },
+  "log": {
+    "fit": {
+      "best_epoch": 1,
+      "best_val": -1.8831216133550506,
+      "config": {
+        "batch_size": 256,
+        "ema_decay": 0.0,
+        "grad_clip": 1.0,
+        "lr": 0.0003,
+        "lr_factor": 0.5,
+        "lr_patience": 2,
+        "max_epochs": 3,
+        "max_seconds": null,
+        "min_delta": 0.0001,
+        "min_lr": 1e-05,
+        "patience": 2,
+        "val_batch_size": 8192,
+        "weight_decay": 1e-05
+      },
+      "epochs": 3,
+      "history": [
+        {
+          "epoch": 0,
+          "lr": 0.0003,
+          "train": -1.5339565202624244,
+          "val": -1.83820345693556
+        },
+        {
+          "epoch": 1,
+          "lr": 0.0003,
+          "train": -1.7689972714745075,
+          "val": -1.8831216133550506
+        },
+        {
+          "epoch": 2,
+          "lr": 0.0003,
+          "train": -1.710030361388227,
+          "val": -1.3832485543219413
+        }
+      ],
+      "n_train": 112590,
+      "seconds": 104.61548959999345
+    },
+    "horizon_steps": 50,
+    "init_from": "artifacts/e1/checkpoints/hetero_mdn",
+    "n_train": 112590,
+    "seconds": 104.6583356000483,
+    "twin": "hetero_mdn",
+    "val_nll": -2.905980487693759,
+    "weight": 1.0
+  },
+  "model": "hetero_mdn_cl",
+  "n_train": 112590,
+  "n_val": 37545,
+  "registry_name": "hetero_mdn_cl",
+  "seconds": 104.65836780000245,
+  "seed": 2,
+  "target": null
+}

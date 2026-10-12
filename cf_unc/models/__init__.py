@@ -18,6 +18,7 @@ _MODULES = (
     "quantile_pidl",
     "diffusion_cf",
     "lstm_hetero_frozen",
+    "closed_loop",
 )
 
 for _name in _MODULES:

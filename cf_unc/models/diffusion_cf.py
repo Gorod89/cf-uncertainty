@@ -30,7 +30,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from cf_unc.constants import A_MAX, A_MIN, MEAN_TARGET_STEPS, N_FEATURES, SEQ_LEN
+from cf_unc.constants import DT, A_MAX, A_MIN, MEAN_TARGET_STEPS, N_FEATURES, SEQ_LEN
 from cf_unc.data.windows import WindowSet
 from cf_unc.dist import SampleDist
 from cf_unc.models.base import CFModel, as_history_tensor, register
@@ -79,6 +79,16 @@ def cosine_alpha_bar(t_train: int, s: float = 0.008, max_beta: float = 0.999) ->
     u = np.arange(t_train + 1, dtype=np.float64) / t_train
     f = np.cos((u + s) / (1.0 + s) * np.pi / 2.0) ** 2
     return np.cumprod(1.0 - np.minimum(1.0 - f[1:] / f[:-1], max_beta))
+
+
+def planned_speeds(v0: torch.Tensor, plan: torch.Tensor) -> torch.Tensor:
+    """(B, L) speeds the follower would reach by following the sampled accelerations ``plan`` (B, L) [m/s^2] from
+    the speed ``v0`` (B,), integrated as the rollout engine (v + a DT, floored at standstill); extension S8."""
+    out, v = [], v0
+    for h in range(plan.shape[1]):
+        v = (v + plan[:, h] * DT).clamp(min=0.0)
+        out.append(v)
+    return torch.stack(out, dim=1)
 
 
 def sampling_steps(t_train: int, n_steps: int) -> np.ndarray:
@@ -290,6 +300,21 @@ class DiffusionCF(CFModel):
         self.alpha_bar = cosine_alpha_bar(self.t_train)
         self.steps = sampling_steps(self.t_train, int(n_sampling_steps))
         self.net: Denoiser | None = None
+
+    def configure_sampler(self, *, replan_every: int | None = None, n_sampling_steps: int | None = None) -> dict[str, int]:
+        """Inference-time settings of the plan sampler (extension S3): the re-planning interval in steps (1 ..
+        seq_len) and the number of DDIM sampling steps (2 .. t_train). Not persisted: a loaded checkpoint keeps the
+        settings it was built with until this is called. Returns the settings in force."""
+        if replan_every is not None:
+            if isinstance(replan_every, bool) or not isinstance(replan_every, (int, np.integer)) or \
+                    not 1 <= int(replan_every) <= self.seq_len:  # fmt: skip
+                raise ValueError(f"replan_every must be an integer in [1, seq_len = {self.seq_len}], got {replan_every!r}")
+            self.replan_every = int(replan_every)
+        if n_sampling_steps is not None:
+            if isinstance(n_sampling_steps, bool) or not isinstance(n_sampling_steps, (int, np.integer)):
+                raise ValueError(f"n_sampling_steps must be an integer, got {n_sampling_steps!r}")
+            self.steps = sampling_steps(self.t_train, int(n_sampling_steps))  # validates the range
+        return {"replan_every": int(self.replan_every), "n_sampling_steps": int(self.steps.size)}
 
     # -------------------------------------------------------------------- helpers
     def _require_net(self) -> Denoiser:
@@ -509,9 +534,18 @@ class DiffusionCF(CFModel):
         mode: str = "per_step",
         v_lead: np.ndarray | torch.Tensor | None = None,
         preview: PreviewSpec | Mapping[str, Any] | None = None,
+        v_lead_plan: np.ndarray | torch.Tensor | None = None,
+        plan_every: int | None = None,
+        record_plans: bool = False,
     ) -> dict:
-        """Rollout state: step counter ``k``, current plan (n_traj, L), leader speeds ``v_lead`` (n_traj, T_total)
-        and the ``preview`` spec.
+        """Rollout state: step counter ``k``, current plan (n_traj, L), leader speeds ``v_lead`` (n_traj, T_total),
+        the ``preview`` spec, the shared plans of the predecessor and the record of the own plans.
+
+        ``v_lead_plan`` (n_traj, J, L) with ``plan_every`` (extension S8, plan sharing): the speeds the predecessor
+        planned at its re-plans 0, P, 2P, ... (P = ``plan_every`` steps); a re-plan at step k is then handed the
+        predecessor's latest plan issued at or before k (minus the preview delay), time-aligned and held beyond its
+        last planned step, instead of the realised ``v_lead``. ``record_plans``: the planned speeds of every own
+        re-plan are appended to ``state["plans"]`` (the engine returns them as ``RolloutResult.plans``).
 
         ``v_lead[:, k]`` is the leader speed [m/s] at rollout step k (step 0 = last history sample of the first
         call); None: constant-leader assumption at every re-plan. ``preview`` (``PreviewSpec`` or its mapping,
@@ -531,8 +565,37 @@ class DiffusionCF(CFModel):
                 raise ValueError(f"v_lead must have shape ({n_traj}, T_total), got {tuple(v_lead.shape)}")
         if spec is not None and spec.identity:
             spec = None
+        plans = None
+        if v_lead_plan is not None and self.needs_leader_future:
+            plans = torch.as_tensor(v_lead_plan if torch.is_tensor(v_lead_plan) else np.asarray(v_lead_plan))
+            plans = plans.to(device=self.device, dtype=torch.float32)
+            if plans.ndim != 3 or plans.shape[0] != n_traj or plans.shape[1] < 1 or plans.shape[2] != self.seq_len:
+                raise ValueError(f"v_lead_plan must have shape ({n_traj}, J, L = {self.seq_len}), got {tuple(plans.shape)}")
+            if isinstance(plan_every, bool) or not isinstance(plan_every, (int, np.integer)) or int(plan_every) < 1:
+                raise ValueError(f"plan_every must be a positive integer with v_lead_plan, got {plan_every!r}")
         return {"k": 0, "plan": torch.zeros((n_traj, self.seq_len), device=self.device), "v_lead": v_lead,
-                "preview": spec}  # fmt: skip
+                "preview": spec, "v_lead_plan": plans, "plan_every": None if plans is None else int(plan_every),
+                "plans": [] if record_plans else None}  # fmt: skip
+
+    def _plan_window(
+        self, plans: torch.Tensor, k: int, spec: PreviewSpec | None, generator: torch.Generator, plan_every: int
+    ) -> torch.Tensor:
+        """(B, L) leader speeds handed to the re-plan at rollout step k from the predecessor's shared plans (B, J, L)
+        (extension S8): the plan issued at the latest re-plan j P <= k - delay_steps (the first plan before that),
+        read at the steps k+1 .. k+L of its own time line (column k - j P onwards; the last planned value held
+        beyond its end), then truncated to the preview horizon and perturbed by its noise as ``_preview_window``.
+        The training budget ``preview_steps`` applies on top."""
+        n_plans, length = int(plans.shape[1]), int(plans.shape[2])
+        k_src = k - (0 if spec is None else spec.delay_steps)
+        j = min(max(k_src, 0) // int(plan_every), n_plans - 1)
+        offset = k - j * int(plan_every)
+        cols = torch.arange(offset, offset + self.seq_len, device=self.device)
+        if spec is not None and spec.horizon_steps is not None:
+            cols = cols.clamp(max=offset - 1 + spec.horizon_steps)
+        vlf = plans[:, j, cols.clamp(max=length - 1)]
+        if spec is not None and spec.noise_sigma > 0.0:
+            vlf = vlf + spec.noise_sigma * torch.randn(vlf.shape, generator=generator, device=vlf.device, dtype=vlf.dtype)
+        return hold_beyond(vlf, self.preview_steps)
 
     def _preview_window(
         self, v_lead: torch.Tensor, k: int, spec: PreviewSpec | None, generator: torch.Generator
@@ -562,11 +625,15 @@ class DiffusionCF(CFModel):
         j = k % self.replan_every
         if j == 0:
             h = as_history_tensor(hist, self.device)
-            if state["v_lead"] is None:
+            if state.get("v_lead_plan") is not None:  # plan sharing (extension S8)
+                vlf = self._plan_window(state["v_lead_plan"], k, state.get("preview"), generator, int(state["plan_every"]))
+            elif state["v_lead"] is None:
                 vlf = self._leader(h, None)  # None for a model without the leader input
             else:
                 vlf = self._preview_window(state["v_lead"], k, state.get("preview"), generator)
             state["plan"] = self._sample(h, vlf, 1, generator, MAX_SEQUENCES)[:, 0]
+            if state.get("plans") is not None:
+                state["plans"].append(planned_speeds(h[:, -1, 2], state["plan"]))
         state["k"] = k + 1
         return state["plan"][:, j]
 

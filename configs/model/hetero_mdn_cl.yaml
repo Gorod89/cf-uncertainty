@@ -1,0 +1,24 @@
+# HeteroMDN fine-tuned in closed loop (extension S7, extension/docs/PLAN.md section S; cf_unc.models.closed_loop): the
+# stored hetero_mdn checkpoint of the same seed (init_from/seed<k>/model.pt) trained further with its NLL plus the
+# squared gap and speed errors of a 5 s rollout of the mixture mean behind the recorded leader. Architecture as
+# hetero_mdn.yaml (checked against the checkpoint). init_from is replaced per training root by model_overrides.
+name: hetero_mdn_cl
+kwargs:
+  init_from: artifacts/e1/checkpoints/hetero_mdn
+  horizon_steps: 50         # 5 s rollout
+  weight: 1.0               # weight of the closed-loop term
+  n_components: 1
+  hidden: 64
+  head_hidden: 64
+  dropout: 0.0
+  log_sigma_min: -7.0
+  log_sigma_max: 3.0
+  beta_nll: 0.0
+train:                      # overrides of configs/train/default.yaml: a short fine-tuning budget
+  max_epochs: 3
+  batch_size: 256
+  lr: 3.0e-4
+  patience: 2
+  ema_decay: 0.0
+needs_idm: false
+needs_sequences: true       # windows with y_seq and v_lead_future (seq_stride of the experiment config)

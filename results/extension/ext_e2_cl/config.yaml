@@ -1,0 +1,98 @@
+root: extension/artifacts/ext_e2_cl
+device: auto
+tf32: false
+targets:
+  a:
+    checkpoints: extension/artifacts/ext_cl_highd/checkpoints
+    hold_steps: 1
+train:
+  data: highd
+models:
+- hetero_mdn_cl
+- lstm_const_sigma_cl
+seeds:
+- 0
+- 1
+- 2
+- 3
+- 4
+datasets:
+  highd_val:
+    data: highd
+    split: val
+    n_events: 500
+  highd:
+    data: highd
+    split: test
+    n_events: 500
+  ngsim:
+    data: ngsim
+    split: all
+    n_events: 500
+  ngsim_us101:
+    data: ngsim_us101
+    split: all
+    n_events: 500
+  waymo:
+    data: waymo
+    split: all
+    n_events: 500
+  openacc:
+    data: openacc
+    split: all
+    n_events: 500
+rollout:
+  n_rollouts: 200
+  n_rollouts_sampled: 32
+  horizon_s: 10.0
+  horizons_s:
+  - 1
+  - 3
+  - 5
+  - 10
+  max_batch: 100000
+  stream_events: 100
+  event_seed: 0
+  seed: 0
+sampler_mode:
+  default: per_step
+  gp_residual_idm: per_trajectory
+variants:
+  deep_ensemble__traj:
+    model: deep_ensemble
+    sampler_mode: per_trajectory
+  mc_dropout__traj:
+    model: mc_dropout
+    sampler_mode: per_trajectory
+  gp_residual_idm__step:
+    model: gp_residual_idm
+    sampler_mode: per_step
+calibration:
+  alpha: 0.1
+  gamma: 0.01
+  gammas:
+  - 0.005
+  - 0.01
+  - 0.02
+  - 0.05
+  n_min: 20
+  calibration_set: highd_val
+  in_domain: highd
+  onestep_score: normalised
+  corrected: aci_online
+bootstrap:
+  n_boot: 1000
+  ci: 0.95
+  seed: 0
+h34:
+  nominal: 0.9
+  onestep_tol: 0.03
+  raw_max: 0.8
+  corrected_min: 0.87
+  refute_min: 0.87
+e1_roots:
+  a: extension/artifacts/ext_cl_highd
+  mean_1s: artifacts/e1_mean1s
+config_paths:
+  data: configs/data
+data_configs: {}

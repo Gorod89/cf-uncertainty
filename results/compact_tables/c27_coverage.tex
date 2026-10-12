@@ -1,0 +1,25 @@
+% tab:c27_coverage: Conditional coverage (extension S5)
+% Sources: extension/artifacts/ext_coverage/tables/conditional_validity.csv, extension/artifacts/ext_coverage/tables/coverage_by_regime.csv
+% Written by scripts/compact_tables/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c27_coverage} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{Conditional coverage of the 90\% gap intervals at 10~s (extension S5): per law and set, the number of regimes at the issue instant (congested, braking, approaching, free, steady, other; those with at least 30 events) whose coverage lies outside $0.90 \pm 0.05$ for the static, the CQR and the ACI-online intervals (static/CQR/ACI of the regimes counted), followed by the ACI-online coverage of the braking regime. ACI restores the marginal coverage on every set; the braking regime stays below 0.85 on the shifted sets for most laws.\label{tab:c27_coverage}}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{lCCCCC}
+\toprule
+\textbf{Law} & \textbf{highD} & \textbf{NGSIM I-80} & \textbf{US-101} & \textbf{Waymo} & \textbf{OpenACC} \\
+\midrule
+IDM + white noise & 4/2/3 of 5; 0.72 & 1/2/1 of 4; 0.83 & 3/0/1 of 5; 0.78 & 2/4/2 of 5; 0.77 & 3/5/3 of 6; 0.74 \\
+IDM + AR(1) noise & 4/4/5 of 5; 0.50 & 4/4/3 of 4; 0.84 & 4/5/2 of 5; 0.86 & 3/2/3 of 5; 0.82 & 4/6/4 of 6; 0.45 \\
+LSTM, constant $\sigma$ & 2/3/2 of 5; 0.73 & 4/4/1 of 4; 0.72 & 5/5/1 of 5; 0.76 & 5/5/2 of 5; 0.79 & 5/5/5 of 6; 0.83 \\
+HeteroMDN & 0/1/0 of 5; 0.87 & 4/4/1 of 4; 0.79 & 5/5/1 of 5; 0.79 & 5/5/1 of 5; 0.77 & 6/6/2 of 6; 0.80 \\
+Deep ensemble & 1/2/1 of 5; 0.79 & 3/4/1 of 4; 0.70 & 5/5/1 of 5; 0.78 & 5/5/1 of 5; 0.80 & 5/5/4 of 6; 0.77 \\
+MC dropout & 2/1/1 of 5; 0.99 & 1/3/1 of 4; 0.87 & 1/4/1 of 5; 0.91 & 2/5/0 of 5; 0.90 & 6/6/3 of 6; 0.81 \\
+GP residual on IDM & 2/3/2 of 5; 0.61 & 4/0/1 of 4; 0.79 & 4/1/0 of 5; 0.88 & 3/2/2 of 5; 0.85 & 4/4/3 of 6; 0.63 \\
+Quantile PIDL & 2/2/1 of 5; 0.84 & 4/4/2 of 4; 0.83 & 5/5/0 of 5; 0.87 & 5/5/1 of 5; 0.84 & 5/5/3 of 6; 0.82 \\
+Diffusion & 1/1/1 of 5; 0.83 & 3/3/2 of 4; 0.81 & 4/4/1 of 5; 0.84 & 2/2/2 of 5; 0.80 & 1/1/3 of 6; 0.83 \\
+\bottomrule
+\end{tabularx}
+\end{table*}

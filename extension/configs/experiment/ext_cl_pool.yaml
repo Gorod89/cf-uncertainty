@@ -1,0 +1,9 @@
+# Extension S7: the closed-loop fine-tuning of the pooled checkpoints of artifacts/e6_pool (OpenACC seen), on the pooled
+# sequence windows of E6 (train.max_sequences_per_dataset per data set).
+#   bash scripts/run_e1_retry.sh extension/artifacts/ext_cl_pool/logs/run.out 8 --config extension/configs/experiment/ext_cl_pool.yaml
+base: ../../../configs/experiment/e6_pool.yaml
+root: extension/artifacts/ext_cl_pool
+models: [hetero_mdn_cl, lstm_const_sigma_cl]
+model_overrides:
+  hetero_mdn_cl: {init_from: artifacts/e6_pool/checkpoints/hetero_mdn}
+  lstm_const_sigma_cl: {init_from: artifacts/e6_pool/checkpoints/lstm_const_sigma}

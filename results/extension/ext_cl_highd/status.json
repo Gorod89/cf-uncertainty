@@ -1,0 +1,36 @@
+{
+  "checkpoints": {
+    "done": 10,
+    "total": 10,
+    "trained_now": 10
+  },
+  "current": null,
+  "device": "cuda",
+  "done": 80,
+  "elapsed_s": 1065.0,
+  "failures": [],
+  "finished": true,
+  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd",
+  "signal": "raw",
+  "started": "2026-10-12 18:11:58",
+  "tables": {
+    "done": 70,
+    "total": 70,
+    "written_now": 70
+  },
+  "target": "a",
+  "total": 80,
+  "trained": [
+    "hetero_mdn_cl/seed0",
+    "hetero_mdn_cl/seed1",
+    "hetero_mdn_cl/seed2",
+    "hetero_mdn_cl/seed3",
+    "hetero_mdn_cl/seed4",
+    "lstm_const_sigma_cl/seed0",
+    "lstm_const_sigma_cl/seed1",
+    "lstm_const_sigma_cl/seed2",
+    "lstm_const_sigma_cl/seed3",
+    "lstm_const_sigma_cl/seed4"
+  ],
+  "updated": "2026-10-12 18:29:43"
+}

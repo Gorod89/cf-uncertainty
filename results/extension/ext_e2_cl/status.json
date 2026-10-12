@@ -1,0 +1,97 @@
+{
+  "current": null,
+  "device": "cuda",
+  "done": 60,
+  "elapsed_s": 7.6,
+  "failures": [
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\deep_ensemble\\seed0\\model.pt does not exist",
+      "time": "2026-10-12 19:36:34",
+      "unit": "a/deep_ensemble__traj/seed0"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\deep_ensemble\\seed1\\model.pt does not exist",
+      "time": "2026-10-12 19:36:34",
+      "unit": "a/deep_ensemble__traj/seed1"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\deep_ensemble\\seed2\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/deep_ensemble__traj/seed2"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\deep_ensemble\\seed3\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/deep_ensemble__traj/seed3"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\deep_ensemble\\seed4\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/deep_ensemble__traj/seed4"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\mc_dropout\\seed0\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/mc_dropout__traj/seed0"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\mc_dropout\\seed1\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/mc_dropout__traj/seed1"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\mc_dropout\\seed2\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/mc_dropout__traj/seed2"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\mc_dropout\\seed3\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/mc_dropout__traj/seed3"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\mc_dropout\\seed4\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/mc_dropout__traj/seed4"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\gp_residual_idm\\seed0\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/gp_residual_idm__step/seed0"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\gp_residual_idm\\seed1\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/gp_residual_idm__step/seed1"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\gp_residual_idm\\seed2\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/gp_residual_idm__step/seed2"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\gp_residual_idm\\seed3\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/gp_residual_idm__step/seed3"
+    },
+    {
+      "error": "FileNotFoundError: checkpoint C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_highd\\checkpoints\\gp_residual_idm\\seed4\\model.pt does not exist",
+      "time": "2026-10-12 19:36:35",
+      "unit": "a/gp_residual_idm__step/seed4"
+    }
+  ],
+  "finished": true,
+  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_e2_cl",
+  "signal": "raw",
+  "skipped_targets": {},
+  "started": "2026-10-12 19:36:28",
+  "targets": {
+    "a": {
+      "done": 60,
+      "total": 150
+    }
+  },
+  "total": 150,
+  "updated": "2026-10-12 19:36:35",
+  "written_now": 0
+}

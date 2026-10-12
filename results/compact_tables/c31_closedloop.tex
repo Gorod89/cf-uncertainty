@@ -1,0 +1,22 @@
+% tab:c31_closedloop: Closed-loop fine-tuning (extension S7)
+% Sources: extension/artifacts/ext_cl_summary/tables/one_step.csv, extension/artifacts/ext_cl_summary/tables/e2.csv, extension/artifacts/ext_cl_summary/tables/platoon.csv
+% Written by scripts/compact_tables/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c31_closedloop} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{One-step networks fine-tuned in closed loop (extension S7), twin $\to$ fine-tuned, per training regime: one-step NLL (nats, seed means) on the highD test fold and on OpenACC; the H3.4 verdict of the ACI-corrected rollout intervals on highD (highD regime); the platoon H3.2 reduction against the IDM + white noise reference on the 47 ACC profiles (extended set, response window, 95\% file-cluster interval, verdict) and the mean share of collided rollouts over the 20 followers and all 60 profiles in the cell of the regime (highD, pooled, OpenACC held out).\label{tab:c31_closedloop}}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{llccCCc}
+\toprule
+\textbf{Law} & \textbf{Regime} & \textbf{NLL highD} & \textbf{NLL OpenACC} & \textbf{H3.4 highD} & \textbf{H3.2 ACC reduction [file interval]} & \textbf{Coll.} \\
+\midrule
+HeteroMDN & highD & $-$2.93 $\to$ $-$2.81 & 6.76 $\to$ 3.99 & supp. $\to$ supp. & -- $\to$ $-$2.66 [$-$3.90, $-$1.50] ref. & -- $\to$ 0.80 \\
+ & pooled & $-$2.85 $\to$ $-$2.83 & $-$2.68 $\to$ $-$2.73 & -- & -- $\to$ $-$4.45 [$-$7.22, $-$2.01] ref. & -- $\to$ 0.62 \\
+ & OpenACC held out & $-$2.79 $\to$ $-$2.29 & $-$1.51 $\to$ $-$1.72 & -- & -- $\to$ $-$18.29 [$-$28.01, $-$10.42] ref. & -- $\to$ 0.68 \\
+LSTM, constant $\sigma$ & highD & $-$2.78 $\to$ $-$2.24 & 279 $\to$ 98.9 & supp. $\to$ supp. & $-$15.76 [$-$24.77, $-$8.63] ref. $\to$ $-$7.20 [$-$12.83, $-$3.54] ref. & 0.74 $\to$ 0.34 \\
+ & pooled & $-$2.77 $\to$ $-$2.12 & $-$2.57 $\to$ $-$1.95 & -- & $-$6.28 [$-$8.17, $-$4.58] ref. $\to$ $-$0.46 [$-$0.98, 0.06] inc. & 0.67 $\to$ 0.63 \\
+ & OpenACC held out & $-$2.52 $\to$ $-$1.85 & 56.4 $\to$ 16.8 & -- & $-$20.49 [$-$31.73, $-$12.07] ref. $\to$ $-$4.71 [$-$10.25, $-$1.75] ref. & 0.69 $\to$ 0.62 \\
+\bottomrule
+\end{tabularx}
+\end{table*}

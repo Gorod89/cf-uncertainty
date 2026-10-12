@@ -1,0 +1,8 @@
+# Extension S7 (extension/docs/PLAN.md, section S): the one-step networks fine-tuned in closed loop on the highD
+# sequence windows of E1 (seq_stride 5, 5 s futures), from the stored highD checkpoints of artifacts/e1; the one-step
+# evaluation of E1 on every set (the twins' rows are in artifacts/e1/tables).
+#   bash scripts/run_e1_retry.sh extension/artifacts/ext_cl_highd/logs/run.out 8 --config extension/configs/experiment/ext_cl_highd.yaml
+#   PYTHONUTF8=1 ./.venv/Scripts/python.exe scripts/analyze_e1.py --root extension/artifacts/ext_cl_highd
+base: ../../../configs/experiment/e1.yaml
+root: extension/artifacts/ext_cl_highd
+models: [hetero_mdn_cl, lstm_const_sigma_cl]

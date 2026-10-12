@@ -1,0 +1,192 @@
+{
+  "device": "cuda",
+  "finished": "2026-10-12 19:18:47",
+  "idm": null,
+  "kwargs": {
+    "head_hidden": 64,
+    "hidden": 64,
+    "horizon_steps": 50,
+    "init_from": "artifacts/e6_lodo_openacc/checkpoints/lstm_const_sigma",
+    "train": {
+      "batch_size": 256,
+      "ema_decay": 0.0,
+      "grad_clip": 1.0,
+      "lr": 0.0003,
+      "lr_factor": 0.5,
+      "lr_patience": 2,
+      "max_epochs": 3,
+      "max_seconds": null,
+      "min_delta": 0.0001,
+      "min_lr": 1e-05,
+      "patience": 2,
+      "val_batch_size": 8192,
+      "weight_decay": 1e-05
+    },
+    "weight": 1.0
+  },
+  "log": {
+    "fit": {
+      "best_epoch": 0,
+      "best_val": 0.014521954946729212,
+      "config": {
+        "batch_size": 256,
+        "ema_decay": 0.0,
+        "grad_clip": 1.0,
+        "lr": 0.0003,
+        "lr_factor": 0.5,
+        "lr_patience": 2,
+        "max_epochs": 3,
+        "max_seconds": null,
+        "min_delta": 0.0001,
+        "min_lr": 1e-05,
+        "patience": 2,
+        "val_batch_size": 8192,
+        "weight_decay": 1e-05
+      },
+      "epochs": 3,
+      "history": [
+        {
+          "epoch": 0,
+          "lr": 0.0003,
+          "train": 0.020794037731730757,
+          "val": 0.014521954946729212
+        },
+        {
+          "epoch": 1,
+          "lr": 0.0003,
+          "train": 0.01296061516710829,
+          "val": 0.058835646384658276
+        },
+        {
+          "epoch": 2,
+          "lr": 0.0003,
+          "train": 0.014462976485643396,
+          "val": 0.015537194323429938
+        }
+      ],
+      "n_train": 132865,
+      "seconds": 117.55173790000845
+    },
+    "horizon_steps": 50,
+    "init_from": "artifacts/e6_lodo_openacc/checkpoints/lstm_const_sigma",
+    "n_train": 132865,
+    "seconds": 117.66704879997997,
+    "sigma": 0.03681810401768877,
+    "sigma_from": "val",
+    "twin": "lstm_const_sigma",
+    "val_nll": -1.8828270645713396,
+    "weight": 1.0
+  },
+  "model": "lstm_const_sigma_cl",
+  "n_train": 132865,
+  "n_val": 122579,
+  "pool": {
+    "data": [
+      "highd",
+      "ngsim",
+      "ngsim_us101",
+      "waymo"
+    ],
+    "max_sequences_per_dataset": 40000,
+    "max_windows_per_dataset": 150000,
+    "seq_stride": 5,
+    "stride": 2,
+    "subsample_seed": 0
+  },
+  "pool_windows": {
+    "highd": {
+      "train": {
+        "events": 7505,
+        "kept": 40000,
+        "windows": 112575
+      },
+      "val": {
+        "events": 2502,
+        "kept": 37530,
+        "windows": 37530
+      }
+    },
+    "ngsim": {
+      "train": {
+        "events": 4477,
+        "kept": 40000,
+        "windows": 364461
+      },
+      "val": {
+        "events": 1531,
+        "kept": 40000,
+        "windows": 121001
+      }
+    },
+    "ngsim_us101": {
+      "train": {
+        "events": 4396,
+        "kept": 40000,
+        "windows": 360119
+      },
+      "val": {
+        "events": 1450,
+        "kept": 40000,
+        "windows": 120494
+      }
+    },
+    "waymo": {
+      "train": {
+        "events": 560,
+        "kept": 12865,
+        "windows": 12865
+      },
+      "val": {
+        "events": 219,
+        "kept": 5049,
+        "windows": 5049
+      }
+    }
+  },
+  "registry_name": "lstm_const_sigma_cl",
+  "seconds": 117.66706930001965,
+  "seed": 4,
+  "signal": [
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 11
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    },
+    {
+      "harmonise": {
+        "max_abs_c": 0.3,
+        "max_gap_rms": 2.0,
+        "min_gap": 0.5,
+        "order": 2,
+        "window": 101
+      },
+      "signal": "harmonised"
+    }
+  ],
+  "target": null
+}

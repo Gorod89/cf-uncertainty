@@ -1,0 +1,91 @@
+{
+ "in_domain": "highd",
+ "source": "artifacts\\e1",
+ "bins_per_feature": 6,
+ "n_bins": 216,
+ "edges": {
+  "s": [
+   null,
+   16.100000381469727,
+   21.3700008392334,
+   26.825000762939453,
+   32.994998931884766,
+   42.130001068115234,
+   null
+  ],
+  "dv": [
+   null,
+   -0.7655056118965149,
+   -0.3069542348384857,
+   0.003694426966831088,
+   0.32072046399116516,
+   0.792336881160735,
+   null
+  ],
+  "v": [
+   null,
+   16.29193115234375,
+   21.146320343017578,
+   22.47210121154785,
+   23.356168746948242,
+   24.311819076538086,
+   null
+  ]
+ },
+ "sets": {
+  "highd_val": {
+   "n_windows": 152683,
+   "mass_dropped": 0.0,
+   "ess": 145917.6172962432,
+   "ess_ratio": 0.9556900067213979,
+   "bins_occupied": 216,
+   "bins_common": 216,
+   "overlap_mass": 0.9158714460679971
+  },
+  "ngsim": {
+   "n_windows": 438867,
+   "mass_dropped": 0.0,
+   "ess": 876.6088915662876,
+   "ess_ratio": 0.001997436333937816,
+   "bins_occupied": 180,
+   "bins_common": 180,
+   "overlap_mass": 0.18135371022931382
+  },
+  "ngsim_us101": {
+   "n_windows": 425210,
+   "mass_dropped": 0.0,
+   "ess": 421.0413142189291,
+   "ess_ratio": 0.000990196171818464,
+   "bins_occupied": 112,
+   "bins_common": 112,
+   "overlap_mass": 0.19979743933570449
+  },
+  "ngsim_fn": {
+   "n_windows": 226086,
+   "mass_dropped": 0.0,
+   "ess": 1377.8650558486088,
+   "ess_ratio": 0.0060944289157604135,
+   "bins_occupied": 185,
+   "bins_common": 185,
+   "overlap_mass": 0.2097099810760239
+  },
+  "waymo": {
+   "n_windows": 158668,
+   "mass_dropped": 0.0,
+   "ess": 5885.749819662764,
+   "ess_ratio": 0.037094750168041216,
+   "bins_occupied": 212,
+   "bins_common": 212,
+   "overlap_mass": 0.3230018871611051
+  },
+  "openacc": {
+   "n_windows": 485932,
+   "mass_dropped": 0.0,
+   "ess": 28740.348934526388,
+   "ess_ratio": 0.05914479584494618,
+   "bins_occupied": 216,
+   "bins_common": 216,
+   "overlap_mass": 0.3854305032923768
+  }
+ }
+}

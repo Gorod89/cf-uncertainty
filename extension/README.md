@@ -10,7 +10,7 @@ version and are never edited here; the extended manuscript is a new numbered ver
 | `docs/PLAN.md` | the plan: questions, designs, pre-registered reading rules, cost estimates, order of work |
 | `docs/decisions.md` | decisions and deviations recorded while running (appended, dated) |
 | `configs/experiment/` | configurations of the new roots and E3 cells (`base:` points at `configs/experiment/` of the repository) |
-| `scripts/` | new scripts (preview sweep, cost benchmark, FollowNet-protocol check); the runners of `scripts/` of the repository are reused |
+| `scripts/` | new scripts (preview sweep, cost benchmark, FollowNet-protocol check; the strengthening items of `docs/PLAN.md` section S: `calibrate_idm_modes.py`, `idm_ref_rerate.py`, `state_reweight.py`, `conditional_coverage.py`, `string_stability.py`, `replan_tradeoff.py`, `closed_loop_compare.py`, the queues `queue2.sh` and `queue3.sh`); the runners of `scripts/` of the repository are reused |
 | `artifacts/` | roots of the new runs (`ext_*`); the roots of `artifacts/` of the repository are read, never rewritten |
 | `paper/` | `v14/`: the extended manuscript (created from `paper/v13` at the start of the text work) |
 

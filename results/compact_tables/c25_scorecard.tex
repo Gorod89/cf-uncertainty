@@ -1,0 +1,27 @@
+% tab:c25_scorecard: Admissibility scorecard (extension S1)
+% Sources: artifacts/e1/tables/one_step_metrics.csv, artifacts/e1/tables/h31_verdicts.csv, artifacts/e1/tables/h31e_verdicts.csv, artifacts/e2/tables/h34_verdicts.csv, artifacts/e3/tables/collisions.csv, artifacts/e3/tables/h32.csv, extension/artifacts/ext_e3_preview/tables/preview_sweep.csv, extension/artifacts/ext_cost/tables/cost.csv
+% Written by scripts/compact_tables/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c25_scorecard} at paragraph level (this file holds the complete float).
+\begin{table*}[t]
+\caption{Admissibility scorecard (extension S1): every cell is a verdict or a value of a stored table. In domain: PICP of the 90\% one-step interval and NLL (nats) on the highD test fold (seed mean). H3.1 and H3.1e: the number of shifted sets (NGSIM I-80, US-101, Waymo, OpenACC) on which the shift rule is supported / refuted / inconclusive (interval verdict). H3.4: the verdict of the ACI-corrected rollout intervals on highD, then supported / refuted / inconclusive over the four shifted sets. Platoon (pooled training, OpenACC seen, leader window 61): the mean share of collision-free rollouts over the 20 followers and all 60 profiles, and the H3.2 reduction of the amplitude CRPS against the IDM + white noise reference on the 47 ACC platoons (response window, 95\% file-cluster interval, verdict). Preview: the leader information the law needs at every re-plan (history only, or the smallest preview horizon at which the H3.2 verdict is supported, extension X1). Cost: platoon simulation time per vehicle-rollout-second on the GPU (extension X2). The scorecard summarises; it changes no verdict.\label{tab:c25_scorecard}}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{lccccccCcc}
+\toprule
+\textbf{Law} & \textbf{PICP / NLL} & \textbf{H3.1} & \textbf{H3.1e} & \textbf{H3.4} & \textbf{Coll.-free} & \textbf{H3.2 pooled, ACC} & \textbf{Preview} & \textbf{Cost} \\
+ & \textbf{in domain} & \textbf{s / r / i} & \textbf{s / r / i} & \textbf{highD / s / r / i} & \textbf{share} & \textbf{reduction [file interval]} & \textbf{need} & \textbf{[$\mu$s]} \\
+\midrule
+IDM + white noise & 0.945 / 1.41 & -- & -- & inc. / 3 / 0 / 1 & 1.00 & -- & 0 (history) & 0.8 \\
+IDM + AR(1) noise & 0.952 / $-$1.64 & -- & -- & supp. / 1 / 0 / 3 & 1.00 & 0.16 [$-$0.39, 0.39] inc. & 0 (history) & 0.8 \\
+LSTM, constant $\sigma$ & 0.925 / $-$2.78 & -- & -- & supp. / 0 / 0 / 4 & 0.33 & $-$6.28 [$-$8.17, $-$4.58] ref. & 0 (history) & 1.9 \\
+HeteroMDN & 0.908 / $-$2.93 & -- & -- & supp. / 1 / 0 / 3 & -- & -- & 0 (history) & -- \\
+Deep ensemble & 0.945 / $-$2.97 & 0 / 4 / 0 & 4 / 0 / 0 & supp. / 0 / 0 / 4 & 0.24 & $-$3.34 [$-$5.57, $-$1.63] ref. & 0 (history) & 6.1 \\
+MC dropout & 0.996 / $-$2.40 & 0 / 4 / 0 & 4 / 0 / 0 & supp. / 2 / 0 / 2 & -- & -- & 0 (history) & -- \\
+GP residual on IDM & 0.928 / 0.22 & 2 / 0 / 2 & 2 / 0 / 2 & supp. / 3 / 0 / 1 & 0.85 & 0.21 [$-$0.16, 0.40] inc. & 0 (history) & 3.3 \\
+Quantile PIDL & 0.907 / $-$2.94 & -- & -- & supp. / 1 / 0 / 3 & 0.27 & $-$0.22 [$-$1.06, 0.14] inc. & 0 (history) & 4.3 \\
+Diffusion & 0.988 / $-$2.43 & -- & -- & inc. / 2 / 0 / 2 & 0.84 & 0.56 [0.29, 0.67] supp. & 2~s & 8.7 \\
+Diffusion, history only & -- & -- & -- & -- / -- & 0.16 & $-$0.32 [$-$1.35, 0.11] inc. & 0 (history) & -- \\
+\bottomrule
+\end{tabularx}
+\end{table*}

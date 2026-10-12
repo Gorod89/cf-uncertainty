@@ -28,7 +28,9 @@ A *unit* is (signal variant, model, seed, profile). Signal variants: ``raw`` (``
 * ``only_models``: the labels of ``cfg.models`` that run in this variant (absent: all of them), e.g. the review control
   ``raw_a`` (design.md 18.2), whose other models would repeat the ``raw`` units bit for bit.
 
-Model specs (``cfg.models``, design.md 13.2 and 18): ``model``, ``target``, ``sampler_mode``, ``hold_steps`` and two
+Model specs (``cfg.models``, design.md 13.2 and 18): ``model``, ``target``, ``sampler_mode``, ``hold_steps``, the
+optional ``sampler`` (extension S3: inference-time settings of a configurable plan sampler, ``replan_every`` and
+``n_sampling_steps`` of DiffusionCF, applied to the loaded checkpoint and recorded in the unit spec) and two
 optional keys (review controls, design.md 18):
 
 * ``checkpoints``: a checkpoints directory of this label that replaces the variant's directory of its target (e.g.
@@ -110,9 +112,10 @@ __all__ = [
 DEFAULT_CONFIG = ROOT / "configs" / "experiment" / "e3.yaml"
 PILOT: dict[str, Any] = {"root": "artifacts/e3_pilot", "seeds": [0], "run_profiles": "headline", "n_rollouts": 20}
 RAW = "raw"
-MODEL_KEYS = ("model", "target", "sampler_mode", "hold_steps", "checkpoints")  # keys of a model spec and of a variant's override
+MODEL_KEYS = ("model", "target", "sampler_mode", "hold_steps", "checkpoints", "sampler")  # keys of a model spec and of a variant's override
+SAMPLER_KEYS = ("replan_every", "n_sampling_steps")  # keys of the ``sampler`` settings (DiffusionCF.configure_sampler)
 SELECT_KEYS = ("variants",)  # keys of a model spec that select where it runs (not part of the unit spec)
-VARIANT_KEYS = ("models", "profile_window", "only_models", "preview")  # keys of a variant that are not targets
+VARIANT_KEYS = ("models", "profile_window", "only_models", "preview", "share_plans")  # keys of a variant that are not targets
 UNIT_COLUMNS = (
     "profile", "seed", "vehicle", "rollout", "amplitude", "sd", "amplitude_profile", "sd_profile", "min_gap",
     "first_collision", "leader_amplitude", "leader_sd", "leader_sd_profile", "emp_amplitude", "emp_sd", "s_init",
@@ -181,6 +184,7 @@ class Variant:
     window_source: dict[str, str] | None = None  # {"matching", "data"} when the window was read from a matching file
     only_models: list[str] | None = None  # labels that run in this variant (None: every label)
     preview: dict[str, Any] | None = None  # PreviewSpec of the leader's future handed to plan samplers (extension X1)
+    share_plans: bool = False  # plan sharing between followers (extension S8, ``simulate_platoon(share_plans=True)``)
 
 
 def profile_window(value: Any) -> tuple[int, dict[str, str] | None]:
@@ -199,6 +203,21 @@ def profile_window(value: Any) -> tuple[int, dict[str, str] | None]:
     if isinstance(value, bool) or not isinstance(value, (int, np.integer)) or int(value) < 3 or int(value) % 2 == 0:
         raise ValueError(f"profile_window must be an odd number of samples >= 3, got {value!r}")
     return int(value), source
+
+
+def sampler_settings(value: Any) -> dict[str, int]:
+    """The ``sampler`` settings of a model spec (extension S3): a mapping of SAMPLER_KEYS to positive integers,
+    applied to the loaded model by ``configure_sampler`` and recorded in the unit spec (ValueError otherwise)."""
+    if not isinstance(value, Mapping) or not value:
+        raise ValueError(f"sampler must be a non-empty mapping of {list(SAMPLER_KEYS)}, got {value!r}")
+    out: dict[str, int] = {}
+    for key, v in value.items():
+        if str(key) not in SAMPLER_KEYS:
+            raise ValueError(f"sampler: unknown key {key!r}; known: {list(SAMPLER_KEYS)}")
+        if isinstance(v, bool) or not isinstance(v, (int, np.integer)) or int(v) < 1:
+            raise ValueError(f"sampler.{key} must be a positive integer, got {v!r}")
+        out[str(key)] = int(v)
+    return out
 
 
 def check_models(cfg: DictConfig | Mapping[str, Any]) -> dict[str, dict[str, Any]]:
@@ -242,8 +261,11 @@ def parse_variants(cfg: DictConfig | Mapping[str, Any]) -> dict[str, Variant]:
                 raise ValueError(f"variant {name}: only_models lists {unknown}, which are not keys of models {sorted(labels)}")
         preview = spec.pop("preview", None)
         preview = None if preview is None else PreviewSpec.from_any(dict(preview)).to_dict()
+        share = spec.pop("share_plans", False)
+        if not isinstance(share, bool):
+            raise ValueError(f"variant {name}: share_plans must be true or false, got {share!r}")
         dirs = {str(k): str(v) for k, v in spec.items() if v is not None}
-        out[str(name)] = Variant(str(name), dirs, overrides, w, source, only, preview)
+        out[str(name)] = Variant(str(name), dirs, overrides, w, source, only, preview, share)
     return out
 
 
@@ -443,6 +465,8 @@ class E3Runner:
             "checkpoints": self.checkpoint_dir(variant, label),
             "sampler_mode": str(spec.get("sampler_mode", "per_step")), "hold_steps": int(spec.get("hold_steps", 1)),
         }  # fmt: skip
+        if spec.get("sampler") is not None:  # inference-time sampler settings (extension S3), part of the unit spec
+            out["sampler"] = sampler_settings(spec["sampler"])
         if self.variants[variant].profile_window is not None:
             self.prepare_profiles(variant)
             out.update({"profile_window": self.variants[variant].profile_window, "profile_order": self.sg_order,
@@ -450,6 +474,8 @@ class E3Runner:
         preview = self.variants[variant].preview
         if preview is not None and MODEL_REGISTRY[out["model"]].needs_leader_future:  # the other samplers ignore it
             out["preview"] = dict(preview)
+        if self.variants[variant].share_plans and MODEL_REGISTRY[out["model"]].needs_leader_future:  # a no-op otherwise
+            out["share_plans"] = True
         return _jsonable(out)
 
     def check_spec(self, path: Path, spec: Mapping[str, Any]) -> bool:
@@ -556,6 +582,11 @@ class E3Runner:
             raise FileNotFoundError(f"checkpoint {path} does not exist")
         self.current = group
         model = load_model(path, device=self.device)
+        if spec.get("sampler"):
+            configure = getattr(model, "configure_sampler", None)
+            if configure is None:
+                raise ValueError(f"{group}: {type(model).__name__} has no configurable sampler (model spec key 'sampler')")
+            configure(**spec["sampler"])
         sampled = bool(getattr(model, "plan_sampler", False))  # plan samplers: n_rollouts_sampled, hold 1
         n_r = int(self.pcfg.n_rollouts_sampled if sampled else self.pcfg.n_rollouts)
         hold = 1 if sampled else int(spec["hold_steps"])
@@ -566,12 +597,14 @@ class E3Runner:
             if all(unit_path(self.root, variant, label, seed, p.id).exists() for p in batch):
                 continue
             self.current = f"{group} ({batch[0].id}..{batch[-1].id})"
-            self.simulate_batch(variant, label, seed, model, batch, n_r, hold, spec["sampler_mode"], spec.get("preview"))
+            self.simulate_batch(variant, label, seed, model, batch, n_r, hold, spec["sampler_mode"], spec.get("preview"),
+                                spec.get("sampler"), bool(spec.get("share_plans", False)))  # fmt: skip
             self.write_status()
         del model
 
     def simulate_batch(self, variant: str, label: str, seed: int, model: CFModel, batch: list[Profile], n_r: int,
-                       hold: int, mode: str, preview: Mapping[str, Any] | None = None) -> None:  # fmt: skip
+                       hold: int, mode: str, preview: Mapping[str, Any] | None = None,
+                       sampler: Mapping[str, Any] | None = None, share_plans: bool = False) -> None:  # fmt: skip
         n_v = self.pcfg.n_followers
         seeds = stream_seeds(self.pcfg.seed, seed, [p.id for p in batch], n_v)
         seed_everything(seed)
@@ -583,6 +616,7 @@ class E3Runner:
             model, [p.leader_speed for p in batch], [s_init[p.id] for p in batch], seeds, self.pcfg,
             n_rollouts=n_r, hold_steps=hold, sampler_mode=mode, n_steps=self.n_steps, device=self.device,
             ids=[p.id for p in batch], preview=PreviewSpec.from_any(None if preview is None else dict(preview)),
+            share_plans=share_plans,
         )  # fmt: skip
         seconds = time.perf_counter() - started
         burn = result.burn_in
@@ -602,7 +636,8 @@ class E3Runner:
         self.timing({
             "time": _now(), "variant": variant, "model": label, "seed": seed, "profiles": [p.id for p in batch],
             "n_profiles": len(batch), "seconds": seconds, "seconds_per_unit": seconds / len(batch), "n_rollouts": n_r,
-            "hold_steps": hold, "sampler_mode": mode, "preview": preview, "n_steps": result.n_steps, "n_vehicles": n_v,
+            "hold_steps": hold, "sampler_mode": mode, "preview": preview, "sampler": None if sampler is None else dict(sampler),
+            "share_plans": bool(share_plans), "n_steps": result.n_steps, "n_vehicles": n_v,
             "seconds_per_vehicle": result.info["seconds_per_vehicle"], "peak_memory_mb": mem, "device": str(self.device),
         })  # fmt: skip
         amp1 = float(np.mean(result.amplitude[:, 0]))
