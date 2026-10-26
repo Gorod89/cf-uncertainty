@@ -1,4 +1,4 @@
-# Fixes and controls of the second pre-submission review (manuscript v8)
+# Fixes and controls of the second internal pre-submission review (manuscript v8; not published)
 
 Companion of `docs/review_fixes_v3.md` and `docs/review_fixes_v4.md`. The second pre-submission review (2026-10-10, items
 V7-R01 to V7-R14) asked for restricted causal statements, two further control cells, a version-matched supplement
@@ -87,7 +87,7 @@ Three cells with the same fold-exclusion rule (the centred pair shares every win
 | R13 | Results 3.10 "Training domain and leader smoothing separated", "Correlated acceleration noise"; Discussion | training regime, not domain diversity; absolute CRPS; AR(1) scope |
 | R14 | Methods (H3.4 part (i); 0.5 s); Results (under-coverage condition); Discussion (duplicate removed); main.tex (abstract and keywords pasted) | |
 
-### 1.3 Third pre-submission review: the three cells on their common windows
+### 1.3 Third internal pre-submission review: the three cells on their common windows
 
 The causal cell (`e1m_causal`) applies the same fold-exclusion rule as the two centred cells but keeps 1-7 % more
 events after its processing, 0.4-7 % (no gap-reconstruction constraint in the causal variant: NGSIM I-80 6085 against 5941

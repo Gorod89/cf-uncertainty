@@ -26,7 +26,7 @@ over leader profiles (platoon experiment).
 | E3-pooled (follow-up): do the pooled-domain models change the platoon verdicts? | design.md 17.2 | **H3.2 supported for DiffusionCF on ACC platoons**; the one-step networks' instability is a property of the models | DiffusionCF reduction 0.47 [0.39, 0.53] with OpenACC never seen, 0.56 [0.45, 0.64] pooled; human-driven platoons still refuted; LSTM and ensemble collide at the first follower in 45-59 % whatever the training domain |
 | E6 (follow-up): is the remainder the narrowness of the training domain? | design.md 16.2 | **largely yes**: a third to two thirds of it; about 1 nat is site-specific | trained on four data sets (matched signals), the transfer to the held-out fifth costs 0.2-1.0 nats with PICP 0.83-0.98 (NGSIM I-80 with US-101 in training, and OpenACC); with both NGSIM sets unseen 0.5-1.9 nats at PICP 0.70-0.90, and the ensembles' epistemic ratios on the unseen site are 0.5-1.6; the constant-sigma LSTM stays at 59 nats on held-out OpenACC; pooled training over-disperses (0.93-1.00 on its own folds) and does not fix the 5-25 % rollout collisions |
 
-The verdict thresholds are those pre-registered in `docs/design.md` (H3.1: factor 2 / factor 3 on
+The verdict thresholds are those fixed in `docs/design.md` before the experiments (H3.1: factor 2 / factor 3 on
 bootstrap bounds; H3.4: 0.90 +- 0.03, raw < 0.80, corrected >= 0.87; H3.2: lower bound >= 0.20
 supports, upper bound < 0.05 refutes, >= 5 profiles per subset). The per-mode statement of H3.2
 is the decision of the M4 review (design.md 14.1).
@@ -420,7 +420,7 @@ pooled-domain training), `artifacts/e3` variants `lodo_openacc` and `pool` (E3-p
 
 ## 9. Addendum after the pre-submission review (2026-10-10)
 
-A pre-submission review of the manuscript (`paper/submission/review_systems/`) led to two further sets of work,
+An internal pre-submission review of the manuscript (not published) (`paper/submission/review_systems/`) led to two further sets of work,
 recorded in `docs/review_fixes_v3.md` (analysis) and `docs/review_fixes_v4.md` (control experiments; design
 document section 18), and to the manuscript versions v3 and v4. The findings that change the reading of
 sections 4-5 above:

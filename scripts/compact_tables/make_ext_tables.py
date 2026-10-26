@@ -388,13 +388,16 @@ def c25_scorecard() -> None:
         rows.append(" & ".join(cells) + r" \\")
     cap = ("Admissibility scorecard (extension S1): every cell is a verdict or a value of a stored table. In domain: PICP of the 90\\% "
            "one-step interval and NLL (nats) on the highD test fold (seed mean). H3.1 and H3.1e: the number of shifted sets (NGSIM I-80, "
-           "US-101, Waymo, OpenACC) on which the shift rule is supported / refuted / inconclusive (interval verdict). H3.4: the verdict of "
-           "the ACI-corrected rollout intervals on highD, then supported / refuted / inconclusive over the four shifted sets. Platoon "
-           "(pooled training, OpenACC seen, leader window 61): the mean share of collision-free rollouts over the 20 followers and all "
-           "60 profiles, and the H3.2 reduction of the amplitude CRPS against the IDM + white noise reference on the 47 ACC platoons "
+           "US-101, Waymo, OpenACC) on which the shift rule is supported / refuted / inconclusive (interval verdict). H3.4: the interval verdict "
+           "with the ACI-online correction on highD, then supported / refuted / inconclusive over the four shifted sets; its part (iii) holds by "
+           "construction (Section~\\ref{sec:res_rollouts}), and every inconclusive cell comes from the event-bootstrap lower bound of the "
+           "corrected coverage straddling 0.87, so the column does not rank the laws. Platoon (pooled training, OpenACC seen, leader window 61; "
+           "the exploratory follow-up, not a test of H3.2 as prespecified): the share of rollouts in which a given follower does not collide, "
+           "averaged over the 20 followers and all 60 profiles (not the share of collision-free platoons; Supplementary Table~S2.3: 19.8\\% for the "
+           "diffusion law, 44.3\\% for the GP residual), and the H3.2 reduction of the amplitude CRPS against the IDM + white noise reference on the 47 ACC platoons "
            "(response window, 95\\% file-cluster interval, verdict). Preview: the leader information the law needs at every re-plan "
            "(history only, or the smallest preview horizon at which the H3.2 verdict is supported, extension X1). Cost: platoon "
-           "simulation time per vehicle-rollout-second on the GPU (extension X2). The scorecard summarises; it changes no verdict.")
+           "simulation time per vehicle-rollout-second on the GPU (Section~\\ref{sec:res_cost}). The scorecard summarises; it changes no verdict.")
     lines = [r"\begin{table*}[t]", rf"\caption{{{cap}\label{{tab:c25_scorecard}}}}", r"\centering", r"\scriptsize",
              r"\setlength{\tabcolsep}{3pt}", r"\begin{tabularx}{\textwidth}{lccccccCcc}", r"\toprule",
              r"\textbf{Law} & \textbf{PICP / NLL} & \textbf{H3.1} & \textbf{H3.1e} & \textbf{H3.4} & \textbf{Coll.-free} & "

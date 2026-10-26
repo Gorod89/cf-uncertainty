@@ -1,4 +1,4 @@
-# Pre-submission review fixes of version v3: analysis side (R1, R4, R7, R8, R9, R11, consistency items)
+# Internal pre-submission review (not published): fixes of version v3, analysis side (R1, R4, R7, R8, R9, R11, consistency items)
 
 Date: 2026-10-09. Base: commit `86f9d70` of the development repository plus the working-tree changes listed at the
 end. Scope: the analysis items of `paper/submission/review_systems/RESPONSE_PLAN_RU.md` marked v3 (R1, R4, R7, R8, R9,
@@ -30,7 +30,7 @@ The tables of the first version stay reproducible: `scripts/analyze_e2.py --root
 **What was wrong.** `aci_quantile` clipped the quantile level `1 - alpha_t` to [0, 1], so a level >= 1 gave the
 largest score seen and a level <= 0 the smallest: every correction was finite and an interval issued at `alpha_t <= 0`
 could still miss. The bound of Gibbs and Candès (2021, section 4.1) needs exactly the opposite: at `alpha_t <= 0`
-the interval is the whole line (it always covers), at `alpha_t >= 1` it is empty (it never covers). The reviewer's
+the interval is the whole line (it always covers), at `alpha_t >= 1` it is empty (it never covers). The internal reviewer's
 counterexample (scores 1, ..., 1000 after a history [0], alpha 0.1, gamma 0.01, n_min 1) gave coverage 0 and
 `alpha_t` -> -8.9.
 
@@ -61,7 +61,7 @@ trajectory guarantee; with labels delayed by d events the state can overshoot by
 measured coverage (0.88-0.94 in every row; 0.85-0.99 on the 185-event Waymo test fold of `e2_pool`), not the bound,
 that the tables report.
 
-**Tests** (`tests/test_calibration.py`): the reviewer's counterexample (finite variant: coverage 0, `alpha_t` = -8.9;
+**Tests** (`tests/test_calibration.py`): the internal reviewer's counterexample (finite variant: coverage 0, `alpha_t` = -8.9;
 corrected: coverage 0.89, `alpha_t` in [-0.009, 0.1], the 89 % covered events are the whole line - the honest answer
 for a monotone stream); the long-run bound and the `alpha_t` range on i.i.d., drifting (scale x5), shifted,
 monotone and adversarial (rare huge scores) streams for alpha 0.1 / 0.3, gamma 0.005 / 0.02 / 0.1, with and without
@@ -224,7 +224,7 @@ Reading:
 `scripts/analyze_e3.py` now gives every interval of a mean over profiles (`amplitude_crps.csv`), of an H3.2 reduction
 (`h32.csv`) and of a growth exponent (`growth.csv`) a second, paired cluster-bootstrap interval over the recording file
 of the profiles (`<campaign>/<file>` of `configs/platoon/profiles.yaml`; 60 profiles from 26 files, ACC 47 from 23,
-human-driven 12 from 3; all profiles of a drawn file are kept, 10 000 replicates, the seed of the reviewer's check
+human-driven 12 from 3; all profiles of a drawn file are kept, 10 000 replicates, the seed of the internal reviewer's check
 20261009 for every row; `*_cluster` columns). The estimand stays profile-weighted, so every point estimate is
 unchanged (checked: `h32.csv`, `amplitude_crps.csv`, `amplitude_coverage.csv`, `collisions.csv`, `profile_index.csv`
 identical to the first-version tables in every old column). `h32.csv` adds `verdict_cluster` (the same thresholds,
@@ -233,17 +233,17 @@ between-seed variability: `reduction_seed_min` / `reduction_seed_max`, the reduc
 each of the five training seeds alone (model seed k against reference seed k; per-seed CRPS in
 `profile_index_seed.csv`).
 
-Reproduction of the reviewer's numbers (Diffusion on ACC, extended set, window profile + tail): all four agree to the
+Reproduction of the internal reviewer's numbers (Diffusion on ACC, extended set, window profile + tail): all four agree to the
 fourth decimal (same draws: `rng.integers(0, 23, (10000, 23))` with seed 20261009, linear percentiles):
 
-| Training and signals | reduction | profile interval (first version) | file interval (here) | reviewer | verdict profiles / files |
+| Training and signals | reduction | profile interval (first version) | file interval (here) | internal reviewer | verdict profiles / files |
 |---|---:|---:|---:|---:|---|
 | highD, recorded | 33.6 % | [8.5, 50.1] | [-26.1, 57.3] | [-26.1, 57.3] | inconclusive / inconclusive |
 | highD, harmonised | 39.7 % | [19.3, 53.3] | [-9.3, 59.2] | [-9.3, 59.2] | inconclusive / inconclusive |
 | pooled, OpenACC held out | 46.9 % | [38.6, 52.9] | [26.5, 55.4] | [26.5, 55.4] | supported / supported |
 | pooled, all five sets | 56.3 % | [45.2, 64.2] | [29.4, 67.4] | [29.4, 67.4] | supported / supported |
 
-The human-driven intervals of the reviewer agree as well (recorded [-100.4, -1.8] %, harmonised [-135.1, 2.0] %,
+The human-driven intervals of the internal reviewer agree as well (recorded [-100.4, -1.8] %, harmonised [-135.1, 2.0] %,
 held out [-58.4, 14.0] %, pooled [-108.4, 14.5] %).
 
 All models and variants (reduction against IDM + white noise; profile interval; file interval; verdict by profiles /
@@ -406,7 +406,7 @@ line, i.e. 30 s before the profile); the GP residual has the most collision-free
 (44-81 %). The deep ensemble, QuantilePIDL and the LSTM often collide already during the 30 s burn-in at constant
 leader speed (share of the first collisions in the burn-in: 98-100 %, 58-76 % and 35-85 %): failures of the closed
 loop at equilibrium, not of the leader profile. Their survivor CRPS (2.7-6.1 m/s)
-looks competitive only because 14-50 % of the rollouts survive: the survivor bias is exactly what the reviewer warns
+looks competitive only because 14-50 % of the rollouts survive: the survivor bias is exactly what the internal reviewer warns
 about and the column name says so. The H3.2 CRPS of the design is not changed.
 
 ## R11. Growth exponent on a common support
@@ -419,7 +419,7 @@ a bootstrap interval over profiles (1000) and one over files (10 000, `beta_comm
 `beta_common_hi_cluster`); every exponent also has a file-cluster interval (`beta_lo_cluster` / `beta_hi_cluster`).
 The figure legend of `growth__<variant>.png` now reads "beta_extrapolated (1-20) ..., common support (1-4) ...".
 
-The reviewer's descriptive values are reproduced exactly (54 profiles, indices 1-4): measured 0.0853, Diffusion
+The internal reviewer's descriptive values are reproduced exactly (54 profiles, indices 1-4): measured 0.0853, Diffusion
 recorded 0.1174, held out 0.0473, pooled 0.0962 (and every other model of the evidence file).
 
 | Variant | Model | beta 1-20 (extrapolated) [profiles] | beta common support [profiles] | [files] |

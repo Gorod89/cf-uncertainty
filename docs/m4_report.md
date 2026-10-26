@@ -280,7 +280,7 @@ Hypotheses, recorded -> harmonised (target `a` / target `mean_1s`):
 * Harmonisation (design.md 12.5): speeds floored at 0, drop reason `non_finite`, H3.1e also refuted
   when the upper bound of the concentration ratio is < 1; the OpenACC drop share (6.7 %) exceeds the
   5 % mark and is reported, not fixed.
-* The physics weight of QuantilePIDL on the harmonised signals is 0.001 by the pre-registered rule
+* The physics weight of QuantilePIDL on the harmonised signals is 0.001 by the prespecified rule
   (0.0001 on the recorded signals), see 3.1.
 
 ## 6. Open points for the review
@@ -293,7 +293,7 @@ Hypotheses, recorded -> harmonised (target `a` / target `mean_1s`):
    (M5): the platoon evaluation is only meaningful for models that stay on the road.
 3. The IDM reference's amplitude intervals are too narrow by 6x; the paper should present the
    conformal-corrected intervals as the headline and the raw ones as the diagnostic.
-4. The pre-registered rule for the physics weight of QuantilePIDL picked 0.001 on the harmonised
+4. The prespecified rule for the physics weight of QuantilePIDL picked 0.001 on the harmonised
    signals at the price of a 10x worse median (3.1); the rule optimises the pinball loss, which the
    interval quantiles dominate. Keep the rule or add a median-RMSE guard for M5?
 5. Harmonisation as specified does not equalise the roughness of the data sets (3.1, finding 5). A

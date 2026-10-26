@@ -10,7 +10,7 @@ Code, configurations, derived tables and figures of the article
 The pipeline evaluates eight uncertainty-aware car-following models (heteroscedastic mixture
 density networks, deep ensembles, Monte Carlo dropout, a Gaussian-process residual on a calibrated
 IDM, a physics-informed quantile network, a conditional diffusion model, and IDM / LSTM baselines
-with constant noise) against four pre-registered hypotheses: uncertainty maps over the state space
+with constant noise) against four hypotheses fixed, with their thresholds, in a design document before the experiments (no external registration): uncertainty maps over the state space
 and variance ratios under dataset shift (H3.1 and its epistemic restatement H3.1e), regime-aware
 variance (H3.3), coverage of closed-loop rollouts with split-conformal and adaptive conformal
 corrections (H3.4), and the distributional evaluation of 20-vehicle platoons driven by measured
@@ -277,7 +277,18 @@ with the fold files (`data/splits`) and the IDM calibrations (`data/calibration`
 | `waymo` | `waymo` (pairs of Hu et al. 2022) | shift |
 | `openacc` | `openacc`; the raw OpenACC files also provide the platoon leader profiles of E3 | shift |
 
+## Checks added in release v1.5.2
+
+* `extension/scripts/aci_floor.py`: the starting level and the guaranteed coverage floor of every online-ACI test stream of an
+  E2 root (the test stream continues the state reached on the calibration events, so its starting level is the final level
+  of the calibration run, 0.04-0.14 on the main root; floor 1 - alpha - (alpha_1 + gamma (1 - alpha)) / (gamma T), at least
+  0.870 on the 500-event streams); tables in `results/extension/ext_aci_floor/tables/`.
+* `extension/scripts/platoon_figure.py`: the platoon amplitude-CRPS figure of the article from `amplitude_crps.csv`, two
+  columns wide, vector PDF.
+* `NOTICE.md`: the terms of the data sources that apply to the derived files and the trained checkpoints.
+
 ## Citation and licence
 
 See `CITATION.cff`. The code is released under the MIT licence (`LICENSE`); the data sets keep the
-licences of their providers.
+licences of their providers, and `NOTICE.md` states the terms that apply to the derived files and the trained
+checkpoints (non-commercial use for those derived from highD and from the Waymo Open Dataset).

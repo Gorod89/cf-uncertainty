@@ -9,7 +9,7 @@ with that layout (for example after copying results/report to <dir>/report and r
     CF_UNC_ARTIFACTS=<dir> PYTHONUTF8=1 python scripts/compact_tables/make_compact.py --out <build dir> [--layout ieee]
 
 The tables are written to <build dir>/tables/ and the figures copied to <build dir>/figures/ (scripts/compact_tables/README.md).
---layout ieee writes IEEEtran floats (table* / table) instead of the MDPI floats of the submitted article.
+--layout ieee writes IEEEtran floats (table* / table) instead of the MDPI floats of the first version of the manuscript (v13, never submitted; article.
 
 The original module docstring follows.
 
@@ -66,7 +66,7 @@ import os
 
 REPO = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())  # the repository root
 SUB = REPO / "results" / "compact_tables"  # default output directory of the public copy; --out changes it
-SUBMITTED = REPO / "paper" / "submission"  # the submitted version: never written
+SUBMITTED = REPO / "paper" / "submission"  # the first version of the manuscript (v13, never submitted): never written
 FROZEN = (SUBMITTED, REPO / "paper" / "v3")  # earlier versions: never written by this tool
 ART = Path(os.environ.get("CF_UNC_ARTIFACTS", str(REPO / "artifacts")))  # the experiment artefacts (see README)
 REPORT = ART / "report"

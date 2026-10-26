@@ -21,7 +21,7 @@ evaluated events in their ``order``.
 
 ACI follows Gibbs and Candes (``cf_unc.rollout.calibration``: infinite interval at a level >= 1, empty interval at a
 level <= 0; columns ``share_infinite``, ``share_empty``, ``width_finite_*``); ``--finite-quantile`` (setting
-``calibration.finite_quantile``) runs the heuristic finite variant of the submitted manuscript instead and reproduces
+``calibration.finite_quantile``) runs the heuristic finite variant of the first version of the manuscript (v13, never submitted) instead and reproduces
 its tables (write them elsewhere with ``--tables-dir``). Information budget (review item R8, setting
 ``calibration.streams``): the variants ``aci_online_chrono`` (evaluated events in chronological order),
 ``aci_online_delayed`` (chronological, a label used only a horizon after its interval was issued),
@@ -479,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-figures", action="store_true")
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--finite-quantile", action="store_true",
-                        help="heuristic finite ACI of the submitted manuscript (reproduces its tables; use --tables-dir)")
+                        help="heuristic finite ACI of the first version of the manuscript (v13, never submitted) (reproduces its tables; use --tables-dir)")
     parser.add_argument("--no-streams", action="store_true", help="skip the information-budget variants (R8)")
     parser.add_argument("--tables-dir", default="tables", help="directory below the root for the tables (figures: "
                         "only with the default)")  # fmt: skip

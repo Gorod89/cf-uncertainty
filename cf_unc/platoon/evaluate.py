@@ -179,7 +179,7 @@ def coverage_by_method(
 
     y (P,) empirical values (NaN: not measured, the row gets NaN), lo / mid / hi (P,) q05 / q50 / q95 of the model
     law, order: positions of the profiles in ACI order (a permutation of the rows); finite_quantile: the heuristic
-    finite ACI of the submitted tables (``cf_unc.rollout.calibration``). Returns ``{method: {"covered", "width",
+    finite ACI of the tables of the first version of the manuscript (v13, never submitted) (``cf_unc.rollout.calibration``). Returns ``{method: {"covered", "width",
     "q"}}`` for ``raw``, ``static_loo`` and ``aci_online``; ``q = +inf`` is an infinite interval (width +inf), ``q =
     -inf`` an empty one (width 0).
     """

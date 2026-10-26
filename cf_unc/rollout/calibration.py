@@ -23,7 +23,7 @@ numpy / pandas only (no torch). Conventions:
   ``alpha_e`` stays in ``[-gamma, 1 + gamma]`` and over T events ``|mean(err) - alpha| <= (max(alpha_1, 1 - alpha_1)
   + gamma) / (T gamma)`` for ANY sequence of scores (the warm-up does not break this: the bound only uses the
   behaviour at the two ends). ``frozen``: level and history of a state are kept fixed.
-* Heuristic finite variant (``finite_quantile=True``; the tables of the submitted manuscript): the level is clipped
+* Heuristic finite variant (``finite_quantile=True``; the tables of the first version of the manuscript (v13, never submitted)): the level is clipped
   to [0, 1] after the warm-up, so level 0 = the smallest and level 1 = the largest score seen and every correction
   is finite. The long-run guarantee does not hold for it (scores 1, 2, ..., 1000 after a history [0], alpha 0.1,
   gamma 0.01: coverage 0, ``alpha_t`` -> -8.9); it is kept to reproduce the old tables.
@@ -261,7 +261,7 @@ def aci_quantile(sorted_scores: ArrayLike, level: float, n_min: int = 20, finite
 
     Default (Gibbs and Candes): ``+inf`` for a level >= 1, ``-inf`` for a level <= 0; inside (0, 1): 0 while fewer
     than ``n_min`` scores (or none) are available, else the order statistic of rank ``ceil(level n)``.
-    ``finite_quantile`` (heuristic variant of the submitted tables): 0 while fewer than ``n_min`` scores (or none),
+    ``finite_quantile`` (heuristic variant of the tables of the first version of the manuscript (v13, never submitted)): 0 while fewer than ``n_min`` scores (or none),
     else the level clipped to [0, 1] and the rank to [1, n]: always finite.
     """
     s = np.asarray(sorted_scores, dtype=np.float64)
@@ -585,7 +585,7 @@ def coverage_table(
     :func:`delayed_availability`), ``static_prequential`` (the static correction recalibrated on the calibration
     scores and every evaluated score seen so far, in the stream of ``aci_online``) and ``static_prequential_delayed``
     (the same in the stream of ``aci_online_delayed``). Seeds present in both inputs are used; finite_quantile: the
-    heuristic finite ACI of the submitted tables (module docstring).
+    heuristic finite ACI of the tables of the first version of the manuscript (v13, never submitted) (module docstring).
 
     Returns COVERAGE_COLUMNS: ``crps`` (raw rows only) and ``collided`` (every row) are event means of the seed means
     of ``crps_s`` and ``collided``; ``q_mean`` is the seed mean of the static / frozen correction and of the mean
@@ -696,7 +696,7 @@ def h34_verdict(
     onestep_tol: float = 0.03,
     raw_max: float = 0.80,
     corrected_min: float = 0.87,
-    refute_min: float | None = None,  # noqa: ARG001 - the refutation rule of the submitted version, ignored
+    refute_min: float | None = None,  # noqa: ARG001 - the refutation rule of the first version of the manuscript (v13, never submitted), ignored
 ) -> dict[str, Any]:
     """Verdict of H3.4 for one model, target and data set: the decision table of docs/review_fixes_v3.md (R7).
 
@@ -714,7 +714,7 @@ def h34_verdict(
     it lies outside; (ii) holds when the upper bound is below ``raw_max`` at some horizon and fails when the lower
     bound is >= ``raw_max`` at every horizon; (iii) holds when the lower bound is >= ``corrected_min`` at every
     horizon and fails when the upper bound is below it at some horizon. ``refute_min`` (the rule "raw coverage >=
-    0.87 at every horizon" of the submitted version) is accepted for old configs and ignored.
+    0.87 at every horizon" of the first version of the manuscript, v13, never submitted) is accepted for old configs and ignored.
     """
     raw, corr = _f64(raw_picp).ravel(), _f64(corrected_picp).ravel()
     one = float(onestep_picp)
