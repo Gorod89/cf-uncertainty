@@ -1,4 +1,4 @@
-# Review controls of version v4: analysis (R2, R3, R6, R10, R13, R14)
+# Pre-submission review controls of version v4: analysis (R2, R3, R6, R10, R13, R14)
 
 Date: 2026-10-10. Scope: the control experiments of the v4 revision (`docs/design.md` section 18;
 `paper/submission/review_systems/RESPONSE_PLAN_RU.md` items R2, R3, R6 control, R10, R13, R14). The runs (training,

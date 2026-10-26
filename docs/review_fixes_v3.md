@@ -1,4 +1,4 @@
-# Review fixes of version v3: analysis side (R1, R4, R7, R8, R9, R11, consistency items)
+# Pre-submission review fixes of version v3: analysis side (R1, R4, R7, R8, R9, R11, consistency items)
 
 Date: 2026-10-09. Base: commit `86f9d70` of the development repository plus the working-tree changes listed at the
 end. Scope: the analysis items of `paper/submission/review_systems/RESPONSE_PLAN_RU.md` marked v3 (R1, R4, R7, R8, R9,
@@ -21,9 +21,9 @@ What was rerun (all on the current code):
   `e6_lodo_openacc`, `e6_lodo_ngsim_all`);
 * `scripts/make_report.py` (`artifacts/report`) and `paper/v3/tools/make_compact.py` (`paper/v3/tables`).
 
-The tables of the submitted version stay reproducible: `scripts/analyze_e2.py --root <root> --finite-quantile
+The tables of the first version stay reproducible: `scripts/analyze_e2.py --root <root> --finite-quantile
 --no-streams --tables-dir tables_finite` gives the old coverage, sensitivity, one-step and collision tables
-(checked on `e2_lodo_ngsim`: identical to 1e-15), and the H3.4 rule of the submitted version is documented in R7.
+(checked on `e2_lodo_ngsim`: identical to 1e-15), and the H3.4 rule of the first version is documented in R7.
 
 ## R1. ACI with the behaviour of Gibbs and Candès at the ends of the level range
 
@@ -45,7 +45,7 @@ counterexample (scores 1, ..., 1000 after a history [0], alpha 0.1, gamma 0.01, 
   empty (width 0, never covered; the interval score is never below -1).
 * The heuristic finite variant stays available as the explicit option `finite_quantile=True` (`aci_quantile`,
   `aci_run`, `coverage_table`, `coverage_by_method`; settings `calibration.finite_quantile` of E2 and E3;
-  `scripts/analyze_e2.py --finite-quantile`), documented as the heuristic of the submitted tables, for which the
+  `scripts/analyze_e2.py --finite-quantile`), documented as the heuristic of the first-version tables, for which the
   guarantee does not hold.
 * Coverage tables (`coverage_by_horizon.csv`, `aci_gamma_sensitivity.csv`) have new columns: `share_infinite` and
   `share_empty` (share of the (seed, event) intervals), `width_finite_mean` / `width_finite_median` (widths of the
@@ -119,13 +119,13 @@ coverage table). H3.4 is a statement per model, target and evaluated data set; i
 | refuted | any part fails: (iii) fails = the correction does not restore coverage; (ii) fails = the premise does not hold, the raw intervals already cover (>= 0.80 at every horizon); (i) fails = no in-domain one-step calibration | any part fails |
 | inconclusive | only when a needed number is missing (never in the tables) | no part fails and at least one bound straddles its threshold |
 
-Change against the submitted version: "refuted" was "raw coverage >= 0.87 at every horizon" and a failing (i) or
+Change against the first version: "refuted" was "raw coverage >= 0.87 at every horizon" and a failing (i) or
 (iii) gave "inconclusive"; now a failing correction refutes, as the Methods say, and the premise threshold of the
 refutation is the threshold of (ii) itself (0.80). `h34_verdict` still accepts the key `refute_min` of the stored
 configs and ignores it. The point and the interval verdicts are published side by side
 (`artifacts/report/tables/t4_h34_verdict_counts.csv`, one row per root, target and correction).
 
-Verdict counts per root (supported / refuted / inconclusive over the (model, data set) cases; "old" = the submitted
+Verdict counts per root (supported / refuted / inconclusive over the (model, data set) cases; "old" = the first
 tables, i.e. the old rule with the finite ACI; the old rule applied to the corrected ACI gives exactly the old
 counts in every row, so all changes come from the decision table):
 
@@ -227,7 +227,7 @@ of the profiles (`<campaign>/<file>` of `configs/platoon/profiles.yaml`; 60 prof
 human-driven 12 from 3; all profiles of a drawn file are kept, 10 000 replicates, the seed of the reviewer's check
 20261009 for every row; `*_cluster` columns). The estimand stays profile-weighted, so every point estimate is
 unchanged (checked: `h32.csv`, `amplitude_crps.csv`, `amplitude_coverage.csv`, `collisions.csv`, `profile_index.csv`
-identical to the submitted tables in every old column). `h32.csv` adds `verdict_cluster` (the same thresholds,
+identical to the first-version tables in every old column). `h32.csv` adds `verdict_cluster` (the same thresholds,
 supported when the lower bound >= 0.20, refuted when the upper bound < 0.05, on the file interval), `n_files` and the
 between-seed variability: `reduction_seed_min` / `reduction_seed_max`, the reduction computed from the rollouts of
 each of the five training seeds alone (model seed k against reference seed k; per-seed CRPS in
@@ -236,7 +236,7 @@ each of the five training seeds alone (model seed k against reference seed k; pe
 Reproduction of the reviewer's numbers (Diffusion on ACC, extended set, window profile + tail): all four agree to the
 fourth decimal (same draws: `rng.integers(0, 23, (10000, 23))` with seed 20261009, linear percentiles):
 
-| Training and signals | reduction | profile interval (submitted) | file interval (here) | reviewer | verdict profiles / files |
+| Training and signals | reduction | profile interval (first version) | file interval (here) | reviewer | verdict profiles / files |
 |---|---:|---:|---:|---:|---|
 | highD, recorded | 33.6 % | [8.5, 50.1] | [-26.1, 57.3] | [-26.1, 57.3] | inconclusive / inconclusive |
 | highD, harmonised | 39.7 % | [19.3, 53.3] | [-9.3, 59.2] | [-9.3, 59.2] | inconclusive / inconclusive |

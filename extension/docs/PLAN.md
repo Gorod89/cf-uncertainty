@@ -1,8 +1,8 @@
 # Plan of the extension (items X1-X6), 2026-10-11
 
-Purpose: the additions that raise the acceptance chances of the study in the Q1 journals outside Elsevier (IEEE
+Purpose: the additions that strengthen the study for the journal article (candidate journals IEEE
 OJ-ITS / T-ITS / T-IV / TVT / T-SMC:S, Transportmetrica A/B, CACAIE, IEEE Access as the fallback), without touching
-the submission version `paper/v13`. Every item has a question, a design, a reading rule fixed before the run, a
+the first version `paper/v13`. Every item has a question, a design, a reading rule fixed before the run, a
 cost estimate from the timings of the existing roots and a deliverable. Nothing of the existing artefacts is
 changed or re-run; every new option defaults to the stored behaviour.
 
@@ -81,7 +81,7 @@ No new run. The extended manuscript names as contribution 1 the evaluation proto
 decision rules; one-step, closed-loop and platoon levels; common-window comparisons; per-horizon ACI with the
 feedback budget; the admissibility table of Section 4), with one schematic figure of the protocol (levels, inputs,
 decision rules) and a numbered contribution list in the Introduction. The negative findings are then applications
-of the protocol. Written in v14 together with X4; the reviewer-facing claims audit of v13 is rerun on v14.
+of the protocol. Written in v14 together with X4; the claims audit of v13 is rerun on v14.
 
 ## X4. Shortening
 

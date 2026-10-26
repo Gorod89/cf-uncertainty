@@ -1,8 +1,8 @@
-# Extension of the cf-uncertainty study (journal resubmission work)
+# Extension of the cf-uncertainty study (work towards the journal article)
 
 Everything of the six extension items (preview sweep, cost table, protocol framing, shortening, reimplementation
-check, second training domain) lives in this directory. `paper/v13` and its supplement are the frozen submission
-version and are never edited here; the extended manuscript is a new numbered version under `extension/paper/`
+check, second training domain) lives in this directory. `paper/v13` and its supplement are the frozen first
+version of the article and are never edited here; the extended manuscript is a new numbered version under `extension/paper/`
 (`v14` and up), copied from `paper/v13` when the text work starts.
 
 | Path | Content |

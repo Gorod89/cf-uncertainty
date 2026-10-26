@@ -4,9 +4,8 @@
 
 Code, configurations, derived tables and figures of the article
 
-> M. Gorodnichev, M. Moseva. *Epistemic and Aleatoric Uncertainty in Learned Car-Following:
-> State-Space Maps, Dataset Shift, and Calibration under Closed-Loop Rollouts.* Submitted to
-> *Systems* (MDPI), 2026.
+> M. Gorodnichev, M. Moseva. *A Three-Level Protocol for Uncertainty in Learned Car-Following: One-Step
+> Calibration, Closed-Loop Correction and Platoon Admissibility under Dataset Shift.* Manuscript, 2026.
 
 The pipeline evaluates eight uncertainty-aware car-following models (heteroscedastic mixture
 density networks, deep ensembles, Monte Carlo dropout, a Gaussian-process residual on a calibrated
@@ -18,7 +17,7 @@ corrections (H3.4), and the distributional evaluation of 20-vehicle platoons dri
 OpenACC leaders (H3.2). Three follow-up experiments decompose the dataset shift: one harmonised
 signal processing, roughness-matched signals (E5), training on a pooled domain with
 leave-one-domain-out roots (E6), and the platoon evaluation with the pooled-domain models. Eight control
-experiments added after two reviews (the diffusion model conditioned on the history only, trained on highD and on
+experiments added after two pre-submission reviews (the diffusion model conditioned on the history only, trained on highD and on
 the pooled domains; the training domain crossed with the leader smoothing; past-only processing and the cell with
 centred inputs and the target from the recorded speed on the same events; an IDM with AR(1) acceleration noise; a
 variance head at a fixed mean; the density sensitivity of the sample-based law) are described in
@@ -27,8 +26,8 @@ adaptive conformal recursion, the cluster bootstraps over recording files and fo
 diagnostics and the common-support growth exponents are in the same notes.
 
 * `docs/design.md`: the binding design (conventions, interfaces, hypotheses, verdict thresholds,
-  the decisions taken at each review and every deviation).
-* `docs/report.md`: the final report with every verdict and number, with an addendum after the review;
+  the decisions taken at each milestone or pre-submission review and every deviation).
+* `docs/report.md`: the final report with every verdict and number, with an addendum after the pre-submission review;
   `docs/m1_report.md` ... `docs/m8_report.md`: the milestone reports (commands, key numbers, deviations);
   `docs/review_fixes_v3.md`, `docs/review_fixes_v4.md`, `docs/review_fixes_v8.md`: the analysis fixes and the control experiments.
 * `results/controls/`: the analysis tables of the experiment roots the article tables read, as they are
@@ -144,7 +143,7 @@ bash scripts/run_e1_retry.sh artifacts/e1m/logs/run.out 8 --config configs/exper
 bash scripts/run_e1_retry.sh artifacts/e6_pool/logs/r1.out 8 --config configs/experiment/e6_pool.yaml
 # E3-pooled (docs/m8_report.md): the platoon variants of the pooled-domain checkpoints
 bash scripts/run_e3_retry.sh artifacts/e3/logs/run_pooled.out 8 --variants lodo_openacc pool --quiet
-# controls of the second review (docs/review_fixes_v8.md): history-only Diffusion on the pooled roots and its
+# controls of the second pre-submission review (docs/review_fixes_v8.md): history-only Diffusion on the pooled roots and its
 # platoon units; the cell with centred inputs and the recorded target on the events of the past-only control
 bash scripts/run_e1_retry.sh artifacts/e6_pool_ctrl/logs/run.out 8 --config configs/experiment/e6_pool_ctrl.yaml
 bash scripts/run_e1_retry.sh artifacts/e6_lodo_openacc_ctrl/logs/run.out 8 --config configs/experiment/e6_lodo_openacc_ctrl.yaml
@@ -199,7 +198,7 @@ The checkpoints of the fine-tuned laws and of the mode-calibrated references (11
 
 ## Extension (release v1.4.0)
 
-Four additions to the study, run after the submitted article (plan and reading rules in `extension/docs/PLAN.md`,
+Four additions to the study, run after the first version of the article, release v1.3.1 (plan and reading rules in `extension/docs/PLAN.md`,
 design document section 19); their analysis tables are published under `results/extension/<root>/tables/`, the
 compact tables of the extended manuscript as `results/compact_tables/c20_cost.tex` to `c24_ngsim_platoon.tex`.
 

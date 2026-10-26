@@ -418,7 +418,7 @@ roughness-matched signals), `artifacts/e6_pool`, `e6_lodo_ngsim`, `e6_lodo_opena
 pooled-domain training), `artifacts/e3` variants `lodo_openacc` and `pool` (E3-pooled), `artifacts/report`
 (this report's tables and figures). Raw data and event sets are not committed.
 
-## 9. Addendum after the review (2026-10-10)
+## 9. Addendum after the pre-submission review (2026-10-10)
 
 A pre-submission review of the manuscript (`paper/submission/review_systems/`) led to two further sets of work,
 recorded in `docs/review_fixes_v3.md` (analysis) and `docs/review_fixes_v4.md` (control experiments; design

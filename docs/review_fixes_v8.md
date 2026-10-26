@@ -1,6 +1,6 @@
-# Fixes and controls of the second review (manuscript v8)
+# Fixes and controls of the second pre-submission review (manuscript v8)
 
-Companion of `docs/review_fixes_v3.md` and `docs/review_fixes_v4.md`. The second review (2026-10-10, items
+Companion of `docs/review_fixes_v3.md` and `docs/review_fixes_v4.md`. The second pre-submission review (2026-10-10, items
 V7-R01 to V7-R14) asked for restricted causal statements, two further control cells, a version-matched supplement
 and derived-data release, bibliographic corrections and a design description of the controls. This note records
 what was computed, where it lives and what the text now states; the contract of the two new controls is

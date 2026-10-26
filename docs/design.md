@@ -1082,12 +1082,12 @@ causal statement about any factor that is not varied (the window selection rule 
 between the causal and the centred cells and are named as such). The lag of the causal filter is not measured by
 any of these cells and is not claimed.
 
-## 19. Extension for the journal resubmission (decision of 2026-10-11, `extension/docs/PLAN.md`)
+## 19. Extension of the study for the journal article (decision of 2026-10-11, `extension/docs/PLAN.md`)
 
 The six items of the extension (X1 preview sweep, X2 cost table, X3 protocol framing, X4 shortening, X5
 reimplementation check, X6 second training domain) are planned, read and recorded in `extension/docs/PLAN.md` and
 `extension/docs/decisions.md`; their roots live under `extension/artifacts/`, their configs under
-`extension/configs/experiment/`. `paper/v13` is the frozen submission version. Code of the package added for them:
+`extension/configs/experiment/`. `paper/v13` is the frozen first version of the article. Code of the package added for them:
 
 * `cf_unc/preview.py`: `PreviewSpec(horizon_s, noise_sigma, delay_s)`, the information budget of the leader's
   future handed to a plan sampler at every re-plan (X1 stage A). `RolloutConfig.preview` hands it to
