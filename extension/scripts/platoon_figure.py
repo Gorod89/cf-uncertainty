@@ -59,8 +59,6 @@ def main() -> None:
         for xi, yi, hi_i in zip(x, y, hi):
             ax.annotate(f"{yi:.3g}", (xi, hi_i), xytext=(0, 2), textcoords="offset points", ha="center", va="bottom",
                         fontsize=6.5, zorder=6)
-        ax.annotate(f"reference {float(ref['crps']):.2f} m/s", (x[-1] + 0.45, float(ref["crps"])), xytext=(0, 2),
-                    textcoords="offset points", ha="right", va="bottom", fontsize=6.5, color=BLUE, zorder=6)
         ax.set_xticks(x)
         ax.set_xticklabels([LABELS[m] for m in models], rotation=35, ha="right", rotation_mode="anchor")
         ax.set_yscale("log")
