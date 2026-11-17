@@ -11,6 +11,7 @@ c21_follownet  extension/artifacts/ext_followcheck/tables/summary.csv (X5), with
 c22_preview    extension/artifacts/ext_e3_preview/tables/preview_sweep.csv (X1; written by extension/scripts/preview_sweep.py)
 c23_ngsim      extension/artifacts/ext_e1_ngsim/tables/{one_step_metrics,shift_ratios,h31_summary,h31e_summary}.csv and
                extension/artifacts/ext_e3_ngsim/tables/{h32,collisions}.csv (X6)
+c32_headline   artifacts/e3/tables/h32.csv: H3.2 on the ten leader profiles of the plan (the headline set of the design)
 A table whose inputs are missing keeps its placeholder file. Every file holds a complete float (table* for the wide
 ones), inserted with \\input{tables/<name>} at paragraph level, with the sources in its header comment.
 """
@@ -149,7 +150,8 @@ def c21_follownet() -> None:
            "point prediction of each law (mean; median of the quantile law; mean of the 32 sampled 5~s plans of the diffusion laws, re-planned "
            "every 5~s, with the recorded leader future for Diffusion and without it for the history-only twin); MSE of the spacing per event "
            "averaged over events [m$^2$] and collision rate [per mille], mean over the five training seeds (min--max), on the highD test fold "
-           f"({n_h} FollowNet highD events, driver-disjoint from training) and on the FollowNet NGSIM I-80 events ({n_n}, a shifted set). "
+           f"({n_h} FollowNet highD events, event-disjoint from the training folds; the events carry no vehicle identifiers) and on the "
+           f"FollowNet NGSIM I-80 events ({n_n}, a shifted set). "
            "The published rows are FollowNet's Tables 2 and 3 (its own split and 15~s events): an anchor for the order of magnitude, "
            "not a matched comparison.")
     lines = [r"\begin{table*}[t]", rf"\caption{{{cap}\label{{tab:c21_follownet}}}}", r"\centering", r"\footnotesize",
@@ -303,7 +305,7 @@ def c23_ngsim() -> None:
     ref = h32[(h32.variant == "raw") & (h32.model == "diffusion_cf") & (h32.quantity == "amplitude") & (h32.set == "extended") & (h32.window == "response") & (h32["mode"] == "ACC") & (h32.reference == "idm_white_noise")]
     ref_crps = num(ref.crps_reference.iloc[0]) if not ref.empty else "--"
     cap2 = ("Second training domain (extension X6), platoon level: the platoon experiment with the NGSIM-trained checkpoints, leader window 11 as "
-            "recorded (the window-61 cells change no verdict and are in Supplementary File S3). Reduction of the amplitude CRPS against the "
+            "recorded (the window-61 cells change no verdict and are in Table~S3.5 of Supplementary File~S3). Reduction of the amplitude CRPS against the "
             f"NGSIM-calibrated IDM + white noise of the cell (ACC reference {ref_crps}~m/s) on the ACC and the human-driven platoons with the "
             "file-cluster interval and verdict; the ACC amplitude CRPS [m/s]; the share of rollouts in which the first follower, the twentieth "
             "follower and any follower collided; and the growth exponent $\\beta$ of the speed standard deviation along the platoon over the 20 "
@@ -388,13 +390,16 @@ def c25_scorecard() -> None:
         rows.append(" & ".join(cells) + r" \\")
     cap = ("Admissibility scorecard (extension S1): every cell is a verdict or a value of a stored table. In domain: PICP of the 90\\% "
            "one-step interval and NLL (nats) on the highD test fold (seed mean). H3.1 and H3.1e: the number of shifted sets (NGSIM I-80, "
-           "US-101, Waymo, OpenACC) on which the shift rule is supported / refuted / inconclusive (interval verdict). H3.4: the interval verdict "
-           "with the ACI-online correction on highD, then supported / refuted / inconclusive over the four shifted sets; its part (iii) holds by "
+           "US-101, Waymo, OpenACC) on which the shift rule is supported / refuted / inconclusive (interval verdict); the aleatoric variance of "
+           "the GP residual is a constant, so its supported H3.1 entries hold by construction and are not counted as support. "
+           "H3.4 (target $a$): the interval verdict "
+           "with the ACI-online correction on highD, then supported / refuted / inconclusive over the four shifted sets; its part (i) is the "
+           "highD one-step coverage on every set and its part (iii) holds by "
            "construction (Section~\\ref{sec:res_rollouts}), and every inconclusive cell comes from the event-bootstrap lower bound of the "
-           "corrected coverage straddling 0.87, so the column does not rank the laws. Platoon (pooled training, OpenACC seen, leader window 61; "
+           "corrected coverage straddling 0.87, so the column does not rank the laws and is no calibration result under shift. Platoon (pooled training, OpenACC seen, leader window 61; "
            "the exploratory follow-up, not a test of H3.2 as prespecified): the share of rollouts in which a given follower does not collide, "
            "averaged over the 20 followers and all 60 profiles (not the share of collision-free platoons; Supplementary Table~S2.3: 19.8\\% for the "
-           "diffusion law, 44.3\\% for the GP residual), and the H3.2 reduction of the amplitude CRPS against the IDM + white noise reference on the 47 ACC platoons "
+           "diffusion law, 44.3\\% for the GP residual), and the H3.2 reduction of the amplitude CRPS against the IDM + white noise reference on the 47 ACC platoons (23 recording files) "
            "(response window, 95\\% file-cluster interval, verdict). Preview: the leader information the law needs at every re-plan "
            "(history only, or the smallest preview horizon at which the H3.2 verdict is supported, extension X1). Cost: platoon "
            "simulation time per vehicle-rollout-second on the GPU (Section~\\ref{sec:res_cost}). The scorecard summarises; it changes no verdict.")
@@ -592,11 +597,14 @@ def c30_moderef() -> None:
             if found:
                 rows.append(" & ".join(cells) + r" \\")
     n_rob = int(df.reference_robust.sum())
+    n_acc, n_hum = ((int(df[df["mode"] == m].n_profiles.max()), int(df[df["mode"] == m].n_files.max())) for m in ("ACC", "Human"))
+    words = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}
     cap = ("H3.2 against the references calibrated per driver mode (extension S6): reduction of the amplitude CRPS of every stored law "
            "against the IDM + white noise reference calibrated on the OpenACC events of the profiles' driver mode (ACC profiles: the "
            "ACC reference; human-driven profiles: the human reference), extended set, response window, 95\\% file-cluster interval and "
            "verdict, with the stored verdict against the highD reference in parentheses; by training regime. Reference-robust (the two "
-           f"verdicts agree) in {n_rob} of {len(df)} law--mode--cell combinations.")
+           f"verdicts agree) in {n_rob} of {len(df)} law--mode--cell combinations. The ACC rows rest on {n_acc[0]} profiles from {n_acc[1]} recording files, "
+           f"the human-driven rows on {n_hum[0]} profiles from {words.get(n_hum[1], n_hum[1])}; with so few clusters the human-driven verdicts are descriptive.")
     lines = [r"\begin{table*}[t]", rf"\caption{{{cap}\label{{tab:c30_moderef}}}}", r"\centering", r"\scriptsize",
              r"\setlength{\tabcolsep}{3pt}", r"\begin{tabularx}{\textwidth}{llCCCC}", r"\toprule",
              r"\textbf{Law} & \textbf{Mode} & \textbf{highD} & \textbf{harmonised} & \textbf{pooled} & \textbf{OpenACC held out} \\",
@@ -657,6 +665,70 @@ def c31_closedloop() -> None:
     write("c31_closedloop", lines, "Closed-loop fine-tuning (extension S7)", [src(p) for p in paths.values()])
 
 
+def c32_headline() -> None:
+    """H3.2 on the ten leader profiles of the plan (the headline set of the design, docs/design.md 13.1 and 13.3), next
+    to the ACC result of the extended set that the article reads; every cell is a row of artifacts/e3/tables/h32.csv."""
+    path = ART / "e3/tables/h32.csv"
+    if not path.exists():
+        print("c32: missing", path); return
+    df = pd.read_csv(path)
+    df = df[(df.window == "response") & (df.quantity == "amplitude") & (df.reference == "idm_white_noise")]
+    short = {"supported": "supp.", "refuted": "ref.", "inconclusive": "inc."}
+
+    def one(variant: str, st: str, mode: str, model: str) -> pd.Series | None:
+        r = df[(df.variant == variant) & (df.set == st) & (df["mode"] == mode) & (df.model == model)]
+        return None if r.empty else r.iloc[0]
+
+    def bound(x: float) -> str:
+        """Two decimals; three where two would round a bound onto a threshold it does not reach (0.195 is not 0.20)."""
+        for thr in (0.20, 0.05):
+            if round(x, 2) == thr and x < thr:
+                return num(x, 3)
+        return num(x)
+
+    def cells(variant: str, model: str) -> list[str]:
+        out = []
+        for mode in ("all", "ACC"):
+            r = one(variant, "headline", mode, model)
+            if r is None:
+                out += ["--", "--"]
+                continue
+            out.append(f"{num(r.reduction)} [{bound(r.lo)}, {bound(r.hi)}] {short.get(r.verdict, '--')}")
+            out.append(f"[{bound(r.lo_cluster)}, {bound(r.hi_cluster)}] {short.get(r.verdict_cluster, '--')}")
+        r = one(variant, "extended", "ACC", model)
+        out.append("--" if r is None else f"{num(r.reduction)} [{bound(r.lo_cluster)}, {bound(r.hi_cluster)}] {short.get(r.verdict_cluster, '--')}")
+        return out
+
+    n = {}
+    for mode in ("all", "ACC", "Human", "mixed"):
+        r = one("raw", "headline", mode, "diffusion_cf")
+        n[mode] = (0, 0) if r is None else (int(r.n_profiles), int(r.n_files))
+    ext = one("raw", "extended", "ACC", "diffusion_cf")
+    rows = [" & ".join([LABEL[m]] + cells("raw", m)) + r" \\" for m in ("diffusion_cf", "gp_residual_idm", "quantile_pidl", "deep_ensemble", "lstm_const_sigma")]
+    rows += [r"\midrule", r"\multicolumn{6}{l}{\textit{Controls added after the protocol (highD training)}} \\"]
+    rows += [" & ".join([LABEL[m]] + cells("raw", m)) + r" \\" for m in ("idm_ar_noise", "diffusion_cf_hist")]
+    rows += [r"\midrule", r"\multicolumn{6}{l}{\textit{Exploratory pooled-domain follow-up (matched signals, leader window 61)}} \\"]
+    rows += [" & ".join([f"{LABEL[m]}, {name}"] + cells(variant, m)) + r" \\"
+             for variant, name in (("lodo_openacc", "OpenACC held out"), ("pool", "pooled")) for m in ("diffusion_cf", "gp_residual_idm")]
+    cap = ("H3.2 on the ten leader profiles that the plan named (the headline set of the design: the first ten windows of the selection; "
+           f"{n['ACC'][0]} ACC, {n['Human'][0]} human-driven and {n['mixed'][0]} mixed profile from {n['all'][1]} recording files), response window: "
+           "reduction of the amplitude CRPS against the IDM + white noise reference of the same training regime, with the 95\\% interval of the "
+           "bootstrap over profiles and over recording files and the verdict by each interval (supp.: lower bound $\\geq 0.20$; ref.: upper bound "
+           "$< 0.05$; inc.: inconclusive). All ten profiles: the pooled rule of the plan. ACC profiles of the ten: the per-mode reading adopted "
+           f"at milestone review 4; the human-driven and mixed profiles of the ten are fewer than the five a mode needs to be judged. Last column: "
+           f"the ACC result of the extended set ({int(ext.n_profiles)} profiles, {int(ext.n_files)} files) on which the article states its verdicts. "
+           "First block: recorded signals, highD training, the configuration of the protocol.")
+    lines = [r"\begin{table}[!h]", rf"\caption{{{cap}\label{{tab:c32_headline}}}}", r"\centering", r"\scriptsize",
+             r"\setlength{\tabcolsep}{3pt}", r"\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.6cm}CCCCC}", r"\toprule",
+             rf" & \multicolumn{{2}}{{c}}{{\textbf{{All ten profiles ({n['all'][1]} files)}}}} & \multicolumn{{2}}{{c}}{{\textbf{{ACC profiles of the ten "
+             rf"({n['ACC'][0]} profiles, {n['ACC'][1]} files)}}}} & \textbf{{Extended set, ACC}} \\",
+             r"\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-6}",
+             r"\textbf{Law} & \textbf{reduction [profiles]} & \textbf{[files]} & \textbf{reduction [profiles]} & \textbf{[files]} & "
+             r"\textbf{reduction [files]} \\",
+             r"\midrule", *rows, r"\bottomrule", r"\end{tabularx}", r"\end{table}"]
+    write("c32_headline", lines, "H3.2 on the ten leader profiles of the plan (headline set)", [src(path)])
+
+
 def main() -> None:
     global OUT
     ap = argparse.ArgumentParser()
@@ -665,7 +737,7 @@ def main() -> None:
     args = ap.parse_args()
     if args.out is not None:
         OUT = args.out
-    for name, fn in (("c20", c20_cost), ("c21", c21_follownet), ("c22", c22_preview), ("c23", c23_ngsim), ("c25", c25_scorecard), ("c26", c26_reweight), ("c27", c27_coverage), ("c28", c28_string), ("c29", c29_replan), ("c30", c30_moderef), ("c31", c31_closedloop)):
+    for name, fn in (("c20", c20_cost), ("c21", c21_follownet), ("c22", c22_preview), ("c23", c23_ngsim), ("c25", c25_scorecard), ("c26", c26_reweight), ("c27", c27_coverage), ("c28", c28_string), ("c29", c29_replan), ("c30", c30_moderef), ("c31", c31_closedloop), ("c32", c32_headline)):
         if args.only is None or name in args.only:
             fn()
 

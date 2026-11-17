@@ -37,3 +37,20 @@ CF_UNC_EXT_ARTIFACTS=results/extension PYTHONUTF8=1 python scripts/compact_table
 ```
 
 The published copies are `results/compact_tables/c20_cost.tex` to `c24_ngsim_platoon.tex`; the manifest lists their sources.
+
+## Tables c25-c32
+
+`make_ext_tables.py` also writes the tables of the strengthening items (c25-c31, release v1.5.0) and c32, the H3.2
+result on the ten leader profiles that the plan named (the headline set of the design), from the extension artefacts
+and the tables of the experiment roots:
+
+```bash
+CF_UNC_EXT_ARTIFACTS=results/extension CF_UNC_ARTIFACTS=results/controls PYTHONUTF8=1 python scripts/compact_tables/make_ext_tables.py --out /tmp/cf_build/tables
+```
+
+With these variables the header comment of a table names the published paths of its sources; the published copies were
+written from the development layout and name `artifacts/...` and `extension/artifacts/...`, which the manifest maps to
+the published paths. The table bodies are the same. Notes written by the generators since the tables of manuscript
+version v21: the H3.1 entries of the laws with a constant aleatoric variance are marked "by construction" (c2, c25),
+and the verdicts of the human-driven platoons, which come from three recording files, are marked descriptive
+(c5, c10, c30).

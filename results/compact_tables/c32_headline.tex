@@ -1,0 +1,33 @@
+% tab:c32_headline: H3.2 on the ten leader profiles of the plan (headline set)
+% Sources: artifacts/e3/tables/h32.csv
+% Written by scripts/compact_tables/make_ext_tables.py; do not edit by hand. Insert with
+% \input{tables/c32_headline} at paragraph level (this file holds the complete float).
+\begin{table}[!h]
+\caption{H3.2 on the ten leader profiles that the plan named (the headline set of the design: the first ten windows of the selection; 6 ACC, 3 human-driven and 1 mixed profile from 7 recording files), response window: reduction of the amplitude CRPS against the IDM + white noise reference of the same training regime, with the 95\% interval of the bootstrap over profiles and over recording files and the verdict by each interval (supp.: lower bound $\geq 0.20$; ref.: upper bound $< 0.05$; inc.: inconclusive). All ten profiles: the pooled rule of the plan. ACC profiles of the ten: the per-mode reading adopted at milestone review 4; the human-driven and mixed profiles of the ten are fewer than the five a mode needs to be judged. Last column: the ACC result of the extended set (47 profiles, 23 files) on which the article states its verdicts. First block: recorded signals, highD training, the configuration of the protocol.\label{tab:c32_headline}}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.6cm}CCCCC}
+\toprule
+ & \multicolumn{2}{c}{\textbf{All ten profiles (7 files)}} & \multicolumn{2}{c}{\textbf{ACC profiles of the ten (6 profiles, 5 files)}} & \textbf{Extended set, ACC} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-6}
+\textbf{Law} & \textbf{reduction [profiles]} & \textbf{[files]} & \textbf{reduction [profiles]} & \textbf{[files]} & \textbf{reduction [files]} \\
+\midrule
+Diffusion & 0.14 [$-$0.59, 0.57] inc. & [$-$0.68, 0.67] inc. & 0.18 [$-$0.70, 0.66] inc. & [$-$0.77, 0.77] inc. & 0.34 [$-$0.26, 0.57] inc. \\
+GP residual on IDM & 0.23 [$-$0.52, 0.60] inc. & [$-$0.75, 0.67] inc. & 0.57 [0.34, 0.74] supp. & [0.33, 0.74] supp. & 0.15 [$-$0.40, 0.45] inc. \\
+Quantile PIDL & $-$0.73 [$-$2.20, $-$0.08] ref. & [$-$2.33, 0.08] inc. & $-$0.10 [$-$0.78, 0.31] inc. & [$-$0.77, 0.36] inc. & $-$0.59 [$-$1.51, $-$0.19] ref. \\
+Deep ensemble & $-$3.51 [$-$7.79, $-$1.59] ref. & [$-$8.84, $-$1.17] ref. & $-$1.42 [$-$2.55, $-$0.67] ref. & [$-$2.66, $-$0.67] ref. & $-$5.90 [$-$11.20, $-$2.65] ref. \\
+LSTM, constant $\sigma$ & $-$9.68 [$-$18.11, $-$4.87] ref. & [$-$19.98, $-$4.24] ref. & $-$5.49 [$-$8.48, $-$1.65] ref. & [$-$9.32, $-$1.93] ref. & $-$15.76 [$-$24.77, $-$8.63] ref. \\
+\midrule
+\multicolumn{6}{l}{\textit{Controls added after the protocol (highD training)}} \\
+IDM + AR(1) noise & 0.13 [$-$0.39, 0.36] inc. & [$-$0.44, 0.41] inc. & 0.34 [0.03, 0.50] inc. & [0.06, 0.50] inc. & 0.06 [$-$0.52, 0.31] inc. \\
+Diffusion, history only & $-$3.09 [$-$6.49, $-$1.67] ref. & [$-$6.81, $-$1.42] ref. & $-$1.71 [$-$3.24, $-$0.97] ref. & [$-$3.19, $-$0.98] ref. & $-$2.80 [$-$4.65, $-$1.94] ref. \\
+\midrule
+\multicolumn{6}{l}{\textit{Exploratory pooled-domain follow-up (matched signals, leader window 61)}} \\
+Diffusion, OpenACC held out & 0.41 [0.16, 0.57] inc. & [0.16, 0.59] inc. & 0.45 [0.195, 0.62] inc. & [0.20, 0.66] supp. & 0.47 [0.27, 0.55] supp. \\
+GP residual on IDM, OpenACC held out & 0.23 [$-$0.21, 0.51] inc. & [$-$0.25, 0.57] inc. & 0.35 [0.00, 0.60] inc. & [0.02, 0.63] inc. & 0.19 [$-$0.22, 0.40] inc. \\
+Diffusion, pooled & 0.39 [$-$0.03, 0.64] inc. & [$-$0.05, 0.70] inc. & 0.48 [0.07, 0.73] inc. & [0.08, 0.79] inc. & 0.56 [0.29, 0.67] supp. \\
+GP residual on IDM, pooled & 0.11 [$-$0.59, 0.49] inc. & [$-$0.78, 0.56] inc. & 0.38 [0.10, 0.59] inc. & [0.11, 0.60] inc. & 0.21 [$-$0.16, 0.40] inc. \\
+\bottomrule
+\end{tabularx}
+\end{table}

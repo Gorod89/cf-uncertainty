@@ -516,6 +516,16 @@ artifacts/e2/<target>/rollouts/<model>/seed<k>/<dataset>.parquet    one row per 
   every horizon. The hypothesis is refuted when the raw coverage is >= 0.87 at
   every horizon. Reported for the in-domain test set and for every shifted set.
 
+> Amended after the E2 results (deviation 5 of `docs/m3_report.md`, 2026-09-28; `docs/review_fixes_v3.md`, R1 and R7,
+> 2026-10-09). The text of 11.4 above is kept as it was written before the runs. Three things differ in the tables and
+> in the manuscript: (1) the verdict of H3.4 takes the `online` variant for part (iii), whereas the plan words the
+> sequential correction as a level adapted on validation rollouts and applied to test rollouts, which is the `frozen`
+> variant (frozen and static results are reported next to it: 14 and 15 of 65 cases supported for target `a`);
+> (2) the level is no longer clipped to [0, 1]: at a level parameter <= 0 the interval is the whole line, at >= 1 it is
+> empty, as the bound of Gibbs and Candes needs; (3) the decision rule is "refuted when any part fails" with an
+> interval rule, instead of "refuted when the raw coverage is >= 0.87 at every horizon". The manuscript lists them as
+> amendments (Supplementary Table S2.12 since v20).
+
 ## 12. Harmonised signals (decision of the M3 review)
 
 The data sets were recorded and smoothed differently; models trained on highD learn the smoothness

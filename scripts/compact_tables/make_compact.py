@@ -477,11 +477,14 @@ def c2_shift() -> tuple[Table, list[str]]:
     log: list[str] = []
     body = []
     same_rule = True
+    by_construction = False
     for m in models:
         kind = "model" if "model" in set(r[r.model == m].kind) else "seed_ensemble"
         own = kind == "model"
         log.append(f"{m}: {'own' if own else 'across-seed'} decomposition")
         cells = [label(m) + fn(1 if own else 2)]
+        # a law whose aleatoric variance is one constant has an aleatoric ratio of exactly 1 on every shifted set
+        const_alea = all(abs(float(pick(r, model=m, kind=kind, dataset=d, pair="shift").geo_alea) - 1.0) < 1e-6 for d in SHIFTED)
         for d in SHIFTED:
             x = pick(r, model=m, kind=kind, dataset=d, pair="shift")
             if own:
@@ -495,7 +498,12 @@ def c2_shift() -> tuple[Table, list[str]]:
         if int(y.h31_n_pairs) != len(SHIFTED):
             raise SystemExit(f"{m}: {y.h31_n_pairs} counted pairs, expected {len(SHIFTED)}")
         same_rule &= (y.h31_overall == y.h31_overall_point) and (y.h31e_overall == y.h31e_overall_point)
-        cells += [str(y.h31_overall), str(y.h31e_overall)]
+        h31 = str(y.h31_overall)
+        if const_alea and h31 == "supported":  # the aleatoric condition holds trivially: marked, not counted as support
+            h31 += fn(3)
+            by_construction = True
+            log.append(f"{m}: constant aleatoric variance, H3.1 'supported' by construction (marked)")
+        cells += [h31, str(y.h31e_overall)]
         body.append(cells)
     heads = [Head([("", 1)] + [(DATASET_LABEL[d], 2) for d in SHIFTED] + [("Verdict", 2)],
                   [(2 + 2 * i, 3 + 2 * i) for i in range(len(SHIFTED) + 1)]),
@@ -507,10 +515,16 @@ def c2_shift() -> tuple[Table, list[str]]:
                      r"passes (MC dropout), GP posterior variance (GP residual).",
              fn(2) + r" Across-seed decomposition over the five training seeds (epistemic: variance of the seeds' "
                      r"predictive means; aleatoric: their predictive variance)." + across]
-    rule = r" (interval rule; the point rule gives the same verdicts)" if same_rule else r" (interval rule)"
+    if by_construction:
+        notes.append(fn(3) + r" The aleatoric variance of this law is a constant by construction, so its aleatoric ratio "
+                             r"is 1.00 and the aleatoric condition of H3.1 holds trivially: the entry is not counted as "
+                             r"support for H3.1.")
+    rule =r" (interval rule; the point rule gives the same verdicts)" if same_rule else r" (interval rule)"
     caption = (r"H3.1 under dataset shift, recorded signals, target $a$: ratio of the geometric means of the "
                r"epistemic (Epi.) and the aleatoric (Alea.) variance, shifted data set over highD test, per model, "
-               r"and the overall H3.1 and H3.1e verdicts over the four shifted data sets" + rule + ". IDM + white "
+               r"and the overall H3.1 and H3.1e verdicts over the four shifted data sets" + rule + ". The verdicts "
+               r"are decided by the ratio of means with its bootstrap interval, the statistic of the rule, and not by "
+               r"the geometric ratios shown here, which were added after the runs as a robust summary. IDM + white "
                r"noise, without an epistemic part, is not listed.")
     spec = "l" + "C" * (2 * len(SHIFTED)) + "cc"
     return Table("c2_shift", caption, [src, src_s], spec, heads, body, notes, wide=True, font="footnotesize"), log
@@ -591,6 +605,18 @@ def _e3(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def _n_files(mode: str) -> int:
+    """Number of recording files behind the profiles of a driver mode in the main platoon run (extended set)."""
+    df = pd.read_csv(CSV_DIR / "t5_h32_cluster__e3.csv")
+    return int(df[(df["mode"] == mode) & (df.variant == "raw")].n_files.max())
+
+
+def _human_files() -> str:
+    """Number of recording files behind the human-driven profiles of the main platoon run, in words (table notes)."""
+    n = _n_files("Human")
+    return {1: "one", 2: "two", 3: "three", 4: "four", 5: "five"}.get(n, str(n))
+
+
 def c5_platoon() -> Table:
     src = "t5_h32__e3__raw.csv"
     df = _e3(pd.read_csv(CSV_DIR / src))
@@ -624,7 +650,10 @@ def c5_platoon() -> Table:
              Head([("Model", 1)] + [("CRPS (m/s)", 1), (head2("Reduction", r"[95\% CI]"), 1), ("Verdict", 1)] * 2
                   + [(head2("Reduction", r"[95\% CI]"), 1)])]
     notes = [fn(1) + rf" The {n_prof['ACC']} ACC, {n_prof['Human']} human-driven and {n_prof['mixed']} mixed "
-             r"platoon profiles, pooled."]
+             r"platoon profiles, pooled.",
+             rf"The ACC profiles come from {_n_files('ACC')} recording files and the {n_prof['Human']} human-driven "
+             rf"profiles from {_human_files()} ({_n_files('all')} files in all); with so few clusters the verdicts of the "
+             r"human-driven platoons are descriptive."]
     caption = (r"H3.2 per driver mode, recorded signals, extended set of leader profiles: amplitude CRPS (m/s) and "
                r"its reduction $1 - \mathrm{CRPS}/\mathrm{CRPS}_{\mathrm{ref}}$ against IDM + white noise (the "
                r"reference), paired by profile, with its 95\% bootstrap interval over profiles and the verdict "
@@ -807,7 +836,9 @@ def c10_h32_cluster() -> Table:
     notes = [r"Verdict: supp.\ = supported (lower bound $\geq 0.20$), ref.\ = refuted (upper bound $< 0.05$), inc.\ = "
              r"inconclusive. Files: paired bootstrap over the recording files with all their profiles (10\,000 "
              r"replicates; the profile-weighted estimate is unchanged). The reductions of the five training seeds alone "
-             r"are given in Supplementary File S1."]
+             r"are given in Supplementary File S1.",
+             rf"The human-driven platoons come from {_human_files()} recording files; with so few clusters their "
+             r"verdicts are descriptive."]
     caption = (r"H3.2 with the dependence of the platoon profiles (extended set, window profile + tail): reduction "
                 r"$1 - \mathrm{CRPS}/\mathrm{CRPS}_{\mathrm{ref}}$ of the amplitude CRPS against IDM + white noise of "
                 r"the same variant, with the 95\% interval of the bootstrap over profiles and over recording files, the "
