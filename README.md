@@ -268,7 +268,16 @@ Synthetic: the built-in StochasticIDM generator (`configs/data/synthetic*.yaml`)
 extracted by the sibling repository cf-stability from the public data sets (highD through the
 FollowNet benchmark extraction, NGSIM I-80 and US-101 reconstructed from the raw trajectories, the
 Waymo car-following pairs of Hu et al. (2022), OpenACC), copied into `data/events/<name>` together
-with the fold files (`data/splits`) and the IDM calibrations (`data/calibration`):
+with the fold files (`data/splits`) and the IDM calibrations (`data/calibration`). The fold definition of the Waymo pairs
+(`data/splits/waymo_driver.json`) is not distributed since release v1.5.4, because it lists the segment and vehicle labels of
+the pairs. It is rebuilt from your own copy of the pairs of Hu et al. by the extraction of cf-stability
+(`scripts/extract_events.py` with the data configuration `waymo`), which writes the event set and the fold file, and it is
+copied here by `scripts/import_cf_stability_events.py`. The rule: the events are grouped by follower; the sorted groups are
+shuffled with `numpy.random.default_rng(0)` and dealt in that order to the currently lightest of five folds, the weight of a
+group being its number of samples; fold 0 is the test fold and fold 1 the validation fold. `data/events_manifest.json` keeps
+the SHA-256 of the file (`ec8dab39...` as written on Windows with CRLF line endings, `8bb768da...` with LF), so a rebuilt copy
+can be checked. Without the file, the runs that train or evaluate on `waymo` stop with a message that points here. The event
+sets and their roles:
 
 | Config | Event set | Role |
 |---|---|---|

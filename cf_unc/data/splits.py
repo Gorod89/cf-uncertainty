@@ -93,7 +93,14 @@ def split_by_folds(events: Iterable[Event], fold_file: str | Path, fold: int = 0
     Rule of cf-stability: fold ``k`` = test, fold ``(k + 1) % n_folds`` = validation, the rest =
     training. Every event must be listed in the file.
     """
-    spec = json.loads(Path(fold_file).read_text(encoding="utf-8"))
+    path = Path(fold_file)
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"fold file {path} not found. The fold definitions are written by the extraction of the companion repository "
+            "cf-stability and copied here by scripts/import_cf_stability_events.py; the one of the Waymo pairs is not "
+            "distributed with this repository and has to be rebuilt (README, section Data)."
+        )
+    spec = json.loads(path.read_text(encoding="utf-8"))
     n_folds, folds = int(spec["n_folds"]), spec["folds"]
     if n_folds < 3:
         raise ValueError(f"{fold_file}: {n_folds} folds cannot give train, val and test")

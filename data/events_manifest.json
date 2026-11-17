@@ -1,5 +1,5 @@
 {
- "note": "Event sets are produced by the sibling repository cf-stability (https://github.com/Gorod89/cf-stability) from the public data sets and copied with scripts/import_cf_stability_events.py; they are not redistributed. The hashes identify the exact files used by the experiments.",
+ "note": "Event sets are produced by the sibling repository cf-stability (https://github.com/Gorod89/cf-stability) from the public data sets and copied with scripts/import_cf_stability_events.py; they are not redistributed. The hashes identify the exact files used by the experiments. The fold definition data/splits/waymo_driver.json is not distributed since release v1.5.4 (it lists labels of the Waymo pairs): its hash below is that of the file as the extraction writes it on Windows (CRLF line endings); with LF line endings the SHA-256 is 8bb768da49b1bb6067ed1fbfabea67d2aa1ac768885728f0936369127b97ebcf.",
  "events": {
   "follownet_highd": {
    "describe.json": {
