@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this code or its derived tables, please cite the article below and this repository."
 title: "cf-uncertainty: epistemic and aleatoric uncertainty in learned car-following"
 type: software
-version: 1.5.4
-date-released: 2026-11-17
+version: 1.5.5
+date-released: 2026-11-25
 license: MIT
 repository-code: "https://github.com/Gorod89/cf-uncertainty"
 authors:
@@ -19,10 +19,10 @@ preferred-citation:
   type: article
   title: "A Three-Level Protocol for Uncertainty in Learned Car-Following: One-Step Calibration, Closed-Loop Correction and Platoon Admissibility under Dataset Shift"
   authors:
-    - family-names: Gorodnichev
-      given-names: Mikhail
     - family-names: Moseva
       given-names: Marina
+    - family-names: Gorodnichev
+      given-names: Mikhail
   year: 2026
   status: in-preparation
   notes: "Manuscript; the journal and the DOI will be added on publication."

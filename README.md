@@ -76,8 +76,8 @@ Set `PYTHONUTF8=1` if the repository path contains non-ASCII characters. Every l
 resumable and the `scripts/run_e*_retry.sh` wrappers restart a run after a GPU fault. `environment.lock.txt`
 holds the exact package versions of the development environment (CUDA 12.8); `data/events_manifest.json`
 the SHA-256 of every event file the experiments used and how to obtain them. The per-profile platoon tables of E3 (every variant,
-`artifacts/e3/tables/profile_index*.csv`) are attached to the GitHub release v1.3.1 (the snapshot of the first version of the article; the same assets as v1.3.0) as `e3_platoon_tables.tar.gz`, and with the other table archives to release v1.5.3, the state the article describes. The trained checkpoints are
-attached to release v1.5.3 as one archive per group of data sources (`checkpoints_highd.tar.gz`, `checkpoints_ngsim.tar.gz`,
+`artifacts/e3/tables/profile_index*.csv`) are attached to the GitHub release v1.3.1 (the snapshot of the first version of the article; the same assets as v1.3.0) as `e3_platoon_tables.tar.gz`, and with the other table archives to the releases v1.5.3, v1.5.4 and v1.5.5; v1.5.5 is the state the article describes. The trained checkpoints are
+attached to these three releases as one archive per group of data sources (`checkpoints_highd.tar.gz`, `checkpoints_ngsim.tar.gz`,
 `checkpoints_highd_waymo_openacc.tar.gz`, `checkpoints_openacc_idm.tar.gz`), each with a notice of the terms of its sources and a
 SHA-256 manifest; the paths inside an archive start at `artifacts/` or `extension/artifacts/`, so it unpacks at the repository
 root (the roots e1m, e1m_mean1s and e2* reuse the e1h / e1h_mean1s files). The checkpoints of the eleven roots trained on NGSIM
@@ -195,9 +195,9 @@ for s in state_reweight conditional_coverage string_stability calibrate_idm_mode
 ```
 
 The checkpoints of the fine-tuned highD laws (`ext_cl_highd`) and of the mode-calibrated references (`ext_idm_modes`) are in
-the archives `checkpoints_highd.tar.gz` and `checkpoints_openacc_idm.tar.gz` of release v1.5.3; those of the fine-tuned
+the archives `checkpoints_highd.tar.gz` and `checkpoints_openacc_idm.tar.gz` of the releases v1.5.3 to v1.5.5; those of the fine-tuned
 pooled-domain laws (`ext_cl_pool`, `ext_cl_lodo`) are not distributed (`NOTICE.md`). The per-profile platoon tables of
-`ext_e3_replan`, `ext_e3_idmref` and `ext_e3_cl` are attached to releases v1.5.0, v1.5.2 and v1.5.3 as `s_platoon_tables.tar.gz`.
+`ext_e3_replan`, `ext_e3_idmref` and `ext_e3_cl` are attached to releases v1.5.0, v1.5.2 and v1.5.3 to v1.5.5 as `s_platoon_tables.tar.gz`.
 
 ## Extension (release v1.4.0)
 
@@ -227,10 +227,10 @@ bash extension/scripts/queue.sh                                 # log: extension
 CF_UNC_EXT_ARTIFACTS=results/extension PYTHONUTF8=1 python scripts/compact_tables/make_ext_tables.py --out /tmp/cf_build/tables
 ```
 
-The checkpoints of the NGSIM-trained root (`ext_e1_ngsim`) are in the archive `checkpoints_ngsim.tar.gz` of release v1.5.3;
+The checkpoints of the NGSIM-trained root (`ext_e1_ngsim`) are in the archive `checkpoints_ngsim.tar.gz` of the releases v1.5.3 to v1.5.5;
 those of the four budget-trained pooled-domain roots (`ext_pool_prev1`, `ext_pool_prev2`, `ext_lodo_prev1`, `ext_lodo_prev2`)
 are not distributed (`NOTICE.md`). The per-profile platoon tables, configs, specs and re-smoothed profiles of the two new
-platoon roots are attached to releases v1.4.0, v1.5.2 and v1.5.3 as `ext_platoon_tables.tar.gz`.
+platoon roots are attached to releases v1.4.0, v1.5.2 and v1.5.3 to v1.5.5 as `ext_platoon_tables.tar.gz`.
 
 ## Models
 
@@ -270,7 +270,7 @@ FollowNet benchmark extraction, NGSIM I-80 and US-101 reconstructed from the raw
 Waymo car-following pairs of Hu et al. (2022), OpenACC), copied into `data/events/<name>` together
 with the fold files (`data/splits`) and the IDM calibrations (`data/calibration`). The fold definition of the Waymo pairs
 (`data/splits/waymo_driver.json`) is not distributed since release v1.5.4, because it lists the segment and vehicle labels of
-the pairs. It is rebuilt from your own copy of the pairs of Hu et al. by the extraction of cf-stability
+the pairs. It is rebuilt from your own copy of the pairs of Hu et al. by the extraction of cf-stability (release v2.2.4 or later, whose tree no longer holds the fold files of the Waymo pairs)
 (`scripts/extract_events.py` with the data configuration `waymo`), which writes the event set and the fold file, and it is
 copied here by `scripts/import_cf_stability_events.py`. The rule: the events are grouped by follower; the sorted groups are
 shuffled with `numpy.random.default_rng(0)` and dealt in that order to the currently lightest of five folds, the weight of a
@@ -311,7 +311,7 @@ sets and their roles:
 
 Since release v1.5.3 the trained checkpoints are attached as one archive per group of data sources. Each archive holds the
 checkpoints with their training logs and metrics, a notice with the terms of its sources as they were read on 16 November 2026
-(`NOTICE_checkpoints_<group>.txt`) and a SHA-256 manifest (`MANIFEST_checkpoints_<group>.json`).
+(`NOTICE_checkpoints_<group>.txt`) and a SHA-256 manifest (`MANIFEST_checkpoints_<group>.json`). The releases v1.5.4 and v1.5.5 carry the same archives with the same SHA-256.
 
 | Archive | Roots | Checkpoints | Training sets |
 |---|---|---|---|
@@ -337,3 +337,7 @@ the checkpoints (about 11 GPU hours for the eleven roots).
 See `CITATION.cff`. The code is released under the MIT licence (`LICENSE`); the data sets keep the
 licences of their providers, and `NOTICE.md` states the terms that apply to the derived files and the trained
 checkpoints (non-commercial use for those derived from highD and from the Waymo Open Dataset).
+
+## Release v1.5.5
+
+The copy of the pooled-domain platoon table of the article (`results/compact_tables/c9_e3pooled.tex`, assembled by hand from the result tables named in its header) is the table of the current article: its caption names the 23 recording files and the verdict by the file-cluster interval, and the quantile network reads inconclusive in the harmonised column, as `results/report/tables/t5_h32_cluster__e3.csv` gives it. The companion benchmark is named TrafficLoop (formerly FollowNet-2) in the plan and in the implementation check of the extension. `extension/README.md` no longer lists a log file that the repository does not hold. The citation metadata follow the order of the authors of the article. The status files of the extension roots (`results/extension/*/status.json`) give the root as a path relative to the repository, and two documents no longer name a local working folder. No result changed.

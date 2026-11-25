@@ -407,7 +407,7 @@ other        everything else
 * **Supplementary analysis** (`scripts/analyze_e1_extra.py`): model-free
   predictability of the acceleration per data set (persistence), calibration of the
   predicted variance, rarity and matching of states in three dimensions (s, dv, v).
-* **Environment.** One Python environment for all research_plans projects
+* **Environment.** One Python environment shared with the sibling projects
   (`../cf-stability/.venv`, torch 2.11.0+cu128), attached through a thin `.venv`.
 
 ## 11. Milestone M3: closed-loop rollouts and calibration (experiment E2)

@@ -10,7 +10,7 @@
   "elapsed_s": 1254.9,
   "failures": [],
   "finished": true,
-  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_lodo",
+  "root": "extension/artifacts/ext_cl_lodo",
   "signal": "matched",
   "started": "2026-10-12 18:57:54",
   "tables": {

@@ -10,7 +10,7 @@
   "elapsed_s": 1618.9,
   "failures": [],
   "finished": true,
-  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_cl_pool",
+  "root": "extension/artifacts/ext_cl_pool",
   "signal": "matched",
   "started": "2026-10-12 18:30:24",
   "tables": {

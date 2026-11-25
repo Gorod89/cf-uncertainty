@@ -30,7 +30,7 @@ Published FollowNet rows (Chen et al. 2023, Tables 2 and 3; the benchmark's own 
 | LSTM | 22.90 | 3.72 |
 | DDPG | 38.52 | 0.00 |
 
-FollowNet-2 reference implementations (plan P4, FollowNet highD events, reconstructed signals, split driver-0, 2503 test events): closed-loop RMSE of the spacing [m] and collision share:
+TrafficLoop reference implementations (plan P4, FollowNet highD events, reconstructed signals, split driver-0, 2503 test events): closed-loop RMSE of the spacing [m] and collision share:
 
 | Model | RMSE spacing | MSE (RMSE^2) | collision share |
 |---|---|---|---|
@@ -70,4 +70,4 @@ Published FollowNet rows (Chen et al. 2023, Tables 2 and 3; the benchmark's own 
 | LSTM | 23.86 | 17.30 |
 | DDPG | 46.93 | 0.00 |
 
-Protocol differences: the published rows use FollowNet's own train/validation/test split and its unified 15 s events; ours use the driver-disjoint fold 0 of the roots (highD: test fold; NGSIM I-80: every FollowNet event, a shifted set for laws trained on highD); FollowNet-2 uses its reconstructed signals and its own split. The published MSE is the mean over events of the per-event MSE; the pooled RMSE weights every sample equally.
+Protocol differences: the published rows use FollowNet's own train/validation/test split and its unified 15 s events; ours use the driver-disjoint fold 0 of the roots (highD: test fold; NGSIM I-80: every FollowNet event, a shifted set for laws trained on highD); TrafficLoop uses its reconstructed signals and its own split. The published MSE is the mean over events of the per-event MSE; the pooled RMSE weights every sample equally.

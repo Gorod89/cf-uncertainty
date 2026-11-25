@@ -360,7 +360,7 @@ inconclusive.
   (above the 5 % mark of the design), reported, not fixed; the pilot on harmonised signals
   (under-trained models) suggested a tenfold smaller over-confidence, which the full runs refuted.
 * H3.1 restated as H3.1e at the M3 review (the original verdict is kept next to it).
-* Environment: one shared Python environment for all research_plans projects (thin venv); the GPU
+* Environment: one Python environment shared with the sibling projects (thin venv); the GPU
   was shared and reset several times, so every long run is resumable behind a retry wrapper.
 
 ## 7. Limitations

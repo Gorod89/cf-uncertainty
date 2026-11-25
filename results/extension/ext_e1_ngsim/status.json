@@ -10,7 +10,7 @@
   "elapsed_s": 10117.3,
   "failures": [],
   "finished": true,
-  "root": "C:\\Users\\\u0413\u043e\u0440\u043e\u0434\\Downloads\\research_plans\\cf-uncertainty\\extension\\artifacts\\ext_e1_ngsim",
+  "root": "extension/artifacts/ext_e1_ngsim",
   "signal": "raw",
   "started": "2026-10-12 04:33:18",
   "tables": {

@@ -2,7 +2,7 @@
 """FollowNet-protocol check of the laws (extension X5, item 1, extension/docs/PLAN.md).
 
 Every test event is simulated in closed loop behind its recorded leader with the FollowNet rules as fixed in
-FollowNet-2 (semi-implicit Euler at 10 Hz, acceleration clipped to [-8, 4] m/s^2, the first 3 s observed, a collision
+TrafficLoop (semi-implicit Euler at 10 Hz, acceleration clipped to [-8, 4] m/s^2, the first 3 s observed, a collision
 is s <= 0 at any simulated sample), deterministically: the point prediction of the law at every step (the predictive
 mean; the median of the quantile law; for the diffusion laws the mean of the 32 sampled 5 s plans, re-planned every
 5 s, with the recorded leader future for diffusion_cf and without it for diffusion_cf_hist). Scores as in FollowNet
@@ -12,7 +12,7 @@ events, and the collision rate in per mille; the RMSE of the speed is added. Set
 event, never trained on). Checkpoints: artifacts/e1 (every model, seeds 0-4) and artifacts/e1_ctrl (the controls).
 
 Writes extension/artifacts/ext_followcheck/tables/follownet_check.csv (per set, model and seed), summary.csv (mean
-and range over the seeds) and README.md with the published FollowNet rows and the FollowNet-2 reference rows next to
+and range over the seeds) and README.md with the published FollowNet rows and the TrafficLoop reference rows next to
 ours (different splits: stated there).
 
     PYTHONUTF8=1 ./.venv/Scripts/python.exe extension/scripts/follownet_check.py [--device cuda] [--seeds 0 1 2 3 4]
@@ -44,13 +44,13 @@ OUT = ROOT / "extension/artifacts/ext_followcheck"
 ROOTS = {"e1": "artifacts/e1", "e1_ctrl": "artifacts/e1_ctrl"}
 CONTROLS = ("diffusion_cf_hist", "lstm_hetero_frozen")  # read from e1_ctrl; the other labels from e1
 SETS = {"highd": ("highd", "test"), "ngsim_fn": ("ngsim_fn", "all")}
-WARMUP = HIST_LEN  # observed samples; the first simulated sample has index WARMUP (FollowNet-2: index warmup + 1 with warmup = 29)
+WARMUP = HIST_LEN  # observed samples; the first simulated sample has index WARMUP (TrafficLoop: index warmup + 1 with warmup = 29)
 
 PUBLISHED = {  # FollowNet, Chen et al. 2023, Table 2 (MSE of spacing, m^2) and Table 3 (collision rate, per mille)
     "highd": {"GHR": (23.76, 0.0), "IDM": (27.50, 0.0), "NN": (24.06, 39.87), "LSTM": (22.90, 3.72), "DDPG": (38.52, 0.0)},
     "ngsim_fn": {"GHR": (62.18, 0.0), "IDM": (54.97, 0.0), "NN": (29.00, 3.46), "LSTM": (23.86, 17.30), "DDPG": (46.93, 0.0)},
 }
-FOLLOWNET2 = {  # FollowNet-2 (plan P4, results/m2/REPORT.md), FollowNet highD events, reconstructed, split driver-0, 2503 test events:
+TRAFFICLOOP = {  # TrafficLoop (plan P4, results/m2/REPORT.md), FollowNet highD events, reconstructed, split driver-0, 2503 test events:
     # closed-loop RMSE of the spacing [m] and collision share
     "highd": {"idm": (4.005, 0.000), "lstm": (3.482, 0.002), "lstm_loop": (3.532, 0.003), "seq2seq": (3.093, 0.002),
               "diffusion": (3.361, 0.006), "pidl": (8.892, 0.129), "ddpg": (11.097, 0.000)},
@@ -197,15 +197,15 @@ def main() -> None:
         lines += ["", "Published FollowNet rows (Chen et al. 2023, Tables 2 and 3; the benchmark's own test split, 15 s events):", "",
                   "| Model | MSE spacing | collisions, per mille |", "|---|---|---|"]
         lines += [f"| {m} | {mse:.2f} | {col:.2f} |" for m, (mse, col) in PUBLISHED[set_name].items()]
-        if set_name in FOLLOWNET2:
-            lines += ["", "FollowNet-2 reference implementations (plan P4, FollowNet highD events, reconstructed signals, split "
+        if set_name in TRAFFICLOOP:
+            lines += ["", "TrafficLoop reference implementations (plan P4, FollowNet highD events, reconstructed signals, split "
                       "driver-0, 2503 test events): closed-loop RMSE of the spacing [m] and collision share:", "",
                       "| Model | RMSE spacing | MSE (RMSE^2) | collision share |", "|---|---|---|---|"]
-            lines += [f"| {m} | {r:.3f} | {r * r:.2f} | {c:.3f} |" for m, (r, c) in FOLLOWNET2[set_name].items()]
+            lines += [f"| {m} | {r:.3f} | {r * r:.2f} | {c:.3f} |" for m, (r, c) in TRAFFICLOOP[set_name].items()]
         lines.append("")
     lines += ["Protocol differences: the published rows use FollowNet's own train/validation/test split and its unified "
               "15 s events; ours use the driver-disjoint fold 0 of the roots (highD: test fold; NGSIM I-80: every FollowNet "
-              "event, a shifted set for laws trained on highD); FollowNet-2 uses its reconstructed signals and its own split. "
+              "event, a shifted set for laws trained on highD); TrafficLoop uses its reconstructed signals and its own split. "
               "The published MSE is the mean over events of the per-event MSE; the pooled RMSE weights every sample equally.", ""]
     (OUT / "README.md").write_text("\n".join(lines), encoding="utf-8")
     (OUT / "settings.json").write_text(json.dumps({"device": args.device, "seeds": args.seeds, "sets": args.sets,

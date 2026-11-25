@@ -114,7 +114,7 @@ Design, in order of feasibility:
 3. FollowGen: if its code is public, run it under the E1 protocol on highD and NGSIM I-80 (CRPS, NLL, PICP) as an
    external diffusion reference; otherwise its published numbers are quoted next to ours with the protocol gap.
 
-Cost: item 1 about one day of work (the FollowNet-2 code of plan P4 has the protocol), compute minutes; items 2-3
+Cost: item 1 about one day of work (the TrafficLoop code of plan P4 has the protocol), compute minutes; items 2-3
 depend on availability. Deliverable: `extension/artifacts/ext_followcheck/tables/`, a short subsection of Methods
 ("Implementation checks") and a supplement table.
 
